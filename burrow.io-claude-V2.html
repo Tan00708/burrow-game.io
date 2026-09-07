@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Burrow.io — Game</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700;800&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-dark:#0A0E27;
+    --bg-light:#1B2449;
+    --accent-primary:#FF6B35;
+    --accent-secondary:#F7931E;
+    --ink:#FFFFFF;
+    --ink-dim:#A8B3D1;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
+  html,body{
+    margin:0; padding:0; width:100%; height:100%; overflow:hidden;
+    background:linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-light) 100%);
+    font-family:'Inter', sans-serif;
+    touch-action:none;
+    user-select:none;
+  }
+
+  /* ========== MAIN MENU ========== */
+  .main-menu{
+    position:fixed; inset:0; z-index:15;
+    background:linear-gradient(135deg, #0A0E27 0%, #1B2449 50%, #0F1630 100%);
+    display:flex; align-items:center; justify-content:center;
+    opacity:1; pointer-events:auto; transition:opacity .4s ease;
+    overflow:hidden;
+  }
+  .main-menu.hidden{
+    opacity:0; pointer-events:none;
+  }
+
+  .menu-bg{
+    position:absolute; inset:0; z-index:0;
+  }
+  .menu-bg canvas{
+    width:100%; height:100%; display:block;
+  }
+
+  .title{
+    position:absolute; top:30px; left:50%; transform:translateX(-50%);
+    font-family:'Fredoka',sans-serif; font-size:48px; font-weight:800;
+    color:var(--ink); z-index:2;
+    text-shadow:0 4px 16px rgba(255,107,53,0.5);
+  }
+
+  .menu-content{
+    position:relative; z-index:1;
+    display:grid; grid-template-columns:1fr 1.2fr 1fr;
+    grid-template-rows:auto 1fr auto; gap:40px;
+    width:90vw; max-width:1400px; height:90vh; max-height:700px;
+  }
+
+  /* Top Left - Customization */
+  .menu-top-left{
+    grid-column:1; grid-row:1;
+    display:flex; align-items:flex-start;
+  }
+  .customize-section{
+    background:rgba(27,36,73,0.6); border:2px solid rgba(255,107,53,0.3);
+    border-radius:16px; padding:20px; backdrop-filter:blur(10px);
+    width:100%; max-width:240px;
+  }
+  .customize-section h3{
+    margin:0 0 16px 0; font-family:'Fredoka',sans-serif; font-size:14px;
+    color:var(--ink); font-weight:700; text-transform:uppercase;
+    letter-spacing:1px;
+  }
+
+  .color-grid{
+    display:grid; grid-template-columns:repeat(2, 1fr); gap:12px;
+  }
+  .color-option{
+    width:100%; aspect-ratio:1; border-radius:12px; border:3px solid transparent;
+    cursor:pointer; transition:all .2s ease; position:relative;
+    box-shadow:0 4px 12px rgba(0,0,0,0.3);
+  }
+  .color-option:hover{
+    transform:scale(1.08);
+    box-shadow:0 6px 20px rgba(255,107,53,0.4);
+  }
+  .color-option.selected{
+    border-color:var(--ink);
+    box-shadow:0 0 20px rgba(255,107,53,0.8), inset 0 0 10px rgba(255,255,255,0.2);
+  }
+  .color-option::after{
+    content:'✓'; position:absolute; inset:0;
+    display:none; align-items:center; justify-content:center;
+    font-size:24px; color:var(--ink); font-weight:bold;
+  }
+  .color-option.selected::after{
+    display:flex;
+  }
+
+  /* Top Right - Nickname */
+  .menu-top-right{
+    grid-column:3; grid-row:1;
+    display:flex; justify-content:flex-end; align-items:flex-start;
+  }
+  .input-group{
+    width:100%; max-width:240px;
+  }
+  .input-label{
+    font-size:12px; color:var(--ink-dim); font-weight:600;
+    text-transform:uppercase; letter-spacing:0.5px;
+    margin-bottom:8px; display:block;
+  }
+  .nickname-input{
+    width:100%; padding:14px 16px; border:2px solid rgba(255,107,53,0.3);
+    border-radius:12px; background:rgba(27,36,73,0.6);
+    color:var(--ink); font-family:'Inter', sans-serif; font-size:16px;
+    backdrop-filter:blur(10px); transition:all .2s ease;
+  }
+  .nickname-input::placeholder{
+    color:var(--ink-dim);
+  }
+  .nickname-input:focus{
+    outline:none; border-color:var(--accent-primary);
+    box-shadow:0 0 20px rgba(255,107,53,0.4);
+    background:rgba(27,36,73,0.9);
+  }
+
+  /* Center - 3D Worm */
+  .menu-center{
+    grid-column:2; grid-row:1 / 3;
+    display:flex; align-items:center; justify-content:center;
+    height:100%; width:100%;
+    perspective:1000px;
+  }
+  .worm-container{
+    position:relative; width:100%; height:100%; max-width:300px;
+  }
+  #wormCanvas3D{
+    width:100%; height:100%; display:block;
+  }
+
+  .worm-info{
+    position:absolute; bottom:0; left:0; right:0;
+    background:rgba(27,36,73,0.8); padding:12px;
+    border-top:2px solid var(--accent-primary);
+    text-align:center; backdrop-filter:blur(10px);
+  }
+  .worm-name{
+    font-family:'Fredoka',sans-serif; font-size:14px; font-weight:700;
+    color:var(--ink); margin:0;
+  }
+
+  /* Bottom - Play Button */
+  .menu-bottom{
+    grid-column:1 / -1; grid-row:3;
+    display:flex; justify-content:center; align-items:flex-end;
+  }
+
+  .menu-btn{
+    padding:18px 48px; border:none; border-radius:12px;
+    font-family:'Fredoka',sans-serif; font-weight:700; font-size:18px;
+    cursor:pointer; transition:all .2s ease;
+    text-transform:uppercase; letter-spacing:1px;
+    min-width:240px;
+  }
+
+  .btn-play{
+    background:linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+    color:white; box-shadow:0 8px 24px rgba(255,107,53,0.4);
+  }
+  .btn-play:hover{
+    transform:translateY(-2px);
+    box-shadow:0 12px 32px rgba(255,107,53,0.6);
+  }
+  .btn-play:active{
+    transform:translateY(0);
+  }
+
+  /* Game Canvas */
+  #game{display:block; width:100%; height:100%;}
+
+  .hud{
+    position:fixed; top:16px; left:50%; transform:translateX(-50%);
+    display:flex; justify-content:center;
+    pointer-events:none; z-index:5;
+  }
+  .hud-block{
+    background:rgba(27,36,73,0.8); border-radius:14px; padding:12px 24px;
+    backdrop-filter:blur(10px); text-align:center;
+    border:2px solid rgba(255,107,53,0.3);
+  }
+  .hud-label{font-family:'Fredoka',sans-serif; font-size:11px; letter-spacing:0.03em; color:var(--ink-dim); margin:0;}
+  .hud-value{font-family:'Fredoka',sans-serif; font-size:28px; font-weight:700; color:var(--accent-primary); margin:0; line-height:1;}
+
+  .leaderboard{
+    position:fixed; top:16px; left:18px; width:200px;
+    background:rgba(27,36,73,0.8); border-radius:14px; padding:12px;
+    backdrop-filter:blur(10px); z-index:5; border:2px solid rgba(255,107,53,0.3);
+  }
+  .leaderboard h3{margin:0 0 8px 0; font-family:'Fredoka',sans-serif; font-size:13px; color:var(--ink); font-weight:700; text-transform:uppercase;}
+  .lb-row{display:flex; justify-content:space-between; align-items:center; font-size:12px; color:var(--ink-dim); padding:4px 0;}
+  .lb-row .dot{width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:8px; flex-shrink:0;}
+  .lb-name{display:flex; align-items:center; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .lb-row.me{color:var(--accent-primary); font-weight:700;}
+
+  .overlay{
+    position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
+    background:rgba(10,14,39,0.85); backdrop-filter:blur(6px);
+    z-index:10; opacity:0; pointer-events:none; transition:opacity .25s ease;
+  }
+  .overlay.show{opacity:1; pointer-events:auto;}
+  .card{
+    background:linear-gradient(135deg, #1B2449 0%, #0F1630 100%);
+    border-radius:20px; padding:32px 28px; width:min(360px, 90vw);
+    text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.6);
+    border:2px solid rgba(255,107,53,0.3);
+  }
+  .card h1{font-family:'Fredoka',sans-serif; font-size:32px; color:var(--ink); margin:0 0 12px 0; font-weight:800;}
+  .card p{color:var(--ink-dim); font-size:15px; margin:0 0 20px 0; line-height:1.6;}
+  .result-row{display:flex; justify-content:space-between; padding:8px; font-size:14px; color:var(--ink); border-bottom:1px solid rgba(255,107,53,0.2);}
+  .result-row.me{color:var(--accent-primary); font-weight:700;}
+  .btn{
+    margin-top:16px; width:100%; border:none; border-radius:12px;
+    background:linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+    color:white; font-family:'Fredoka',sans-serif; font-weight:700; font-size:16px;
+    padding:14px 0; cursor:pointer; box-shadow:0 8px 20px rgba(255,107,53,0.4);
+    transition:transform .12s ease; text-transform:uppercase;
+  }
+  .btn:active{transform:scale(0.96);}
+  .btn-secondary{
+    background:rgba(255,107,53,0.15);
+    box-shadow:none; border:2px solid var(--accent-primary);
+    color:var(--accent-primary);
+  }
+
+  .pause-btn{
+    position:fixed; top:16px; right:18px; width:50px; height:50px;
+    border-radius:50%; border:none; background:rgba(27,36,73,0.8);
+    color:var(--ink); font-size:22px; align-items:center; justify-content:center;
+    cursor:pointer; z-index:6; backdrop-filter:blur(10px);
+    box-shadow:0 4px 14px rgba(0,0,0,0.3);
+    display:none; padding:0; border:2px solid rgba(255,107,53,0.3);
+  }
+  .pause-btn:active{ transform:scale(0.92); }
+
+  .key-badge{
+    position:fixed; top:16px; right:18px; width:44px; height:44px;
+    border-radius:12px; background:rgba(27,36,73,0.8);
+    color:var(--ink-dim); font-family:'Fredoka',sans-serif; font-weight:700; font-size:16px;
+    display:flex; align-items:center; justify-content:center;
+    z-index:6; backdrop-filter:blur(10px); pointer-events:none;
+    border:2px solid rgba(255,107,53,0.3);
+  }
+
+  .stage-toast{
+    position:fixed; top:80px; left:50%; transform:translate(-50%,-8px);
+    font-family:'Fredoka',sans-serif; font-weight:700; color:var(--ink);
+    font-size:18px; opacity:0; pointer-events:none; z-index:6;
+    background:rgba(27,36,73,0.85); border:2px solid rgba(255,107,53,0.4);
+    padding:10px 22px; border-radius:14px; backdrop-filter:blur(10px);
+    text-shadow:0 2px 10px rgba(255,107,53,0.4);
+    transition:opacity .3s ease, transform .3s ease;
+  }
+  .stage-toast.show{ opacity:1; transform:translate(-50%,0); }
+
+  .mobile-controls{
+    position:fixed; bottom:22px; left:20px; right:20px; gap:12px; z-index:6;
+    display:none; justify-content:space-between;
+  }
+  .mobile-btn{
+    width:60px; height:60px; border-radius:14px; border:none;
+    background:rgba(27,36,73,0.8); color:var(--ink); font-size:24px;
+    display:flex; align-items:center; justify-content:center;
+    backdrop-filter:blur(10px); box-shadow:0 4px 14px rgba(0,0,0,0.3);
+    touch-action:none; cursor:pointer; padding:0; flex-shrink:0;
+    border:2px solid rgba(255,107,53,0.3); transition:all .2s ease;
+  }
+  .mobile-btn:active{ background:rgba(255,107,53,0.3); transform:scale(0.95); }
+
+  @media (pointer: coarse){
+    .pause-btn{ display:flex; }
+    .mobile-controls{ display:flex; }
+    .key-badge{ display:none; }
+    .menu-content{
+      grid-template-columns:1fr;
+      grid-template-rows:auto auto auto auto;
+      gap:20px; height:auto; max-height:none;
+    }
+    .menu-top-left{ grid-column:1; grid-row:1; }
+    .menu-top-right{ grid-column:1; grid-row:2; justify-content:flex-start; }
+    .menu-center{ grid-column:1; grid-row:3; height:250px; }
+    .menu-bottom{ grid-column:1; grid-row:4; }
+    .title{ font-size:36px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="main-menu" id="mainMenu">
+  <div class="menu-bg">
+    <canvas id="bgCanvas"></canvas>
+  </div>
+  <div class="title" id="gameTitle">BURROW.IO</div>
+  <div class="menu-content">
+    <!-- Top Left: Customization -->
+    <div class="menu-top-left">
+      <div class="customize-section">
+        <h3>🎨 Couleur</h3>
+        <div class="color-grid">
+          <div class="color-option selected" data-color="#E8998D" style="background:linear-gradient(135deg, #E8998D, #D98A80);" title="Rose"></div>
+          <div class="color-option" data-color="#6BA3C4" style="background:linear-gradient(135deg, #6BA3C4, #5A92B3);" title="Bleu"></div>
+          <div class="color-option" data-color="#78D4A8" style="background:linear-gradient(135deg, #78D4A8, #67C397);" title="Vert"></div>
+          <div class="color-option" data-color="#F2D66D" style="background:linear-gradient(135deg, #F2D66D, #E1C55C);" title="Jaune"></div>
+          <div class="color-option" data-color="#D97B5A" style="background:linear-gradient(135deg, #D97B5A, #C86A49);" title="Orange"></div>
+          <div class="color-option" data-color="#B383B8" style="background:linear-gradient(135deg, #B383B8, #A272A7);" title="Violet"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Right: Nickname -->
+    <div class="menu-top-right">
+      <div class="input-group">
+        <label class="input-label">Pseudo</label>
+        <input type="text" class="nickname-input" id="nicknameInput" placeholder="Entre ton pseudo..." maxlength="20">
+      </div>
+    </div>
+
+    <!-- Center: 3D Worm -->
+    <div class="menu-center">
+      <div class="worm-container">
+        <canvas id="wormCanvas3D"></canvas>
+        <div class="worm-info">
+          <p class="worm-name" id="wormNameDisplay">Ton Ver</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom: Play Button -->
+    <div class="menu-bottom">
+      <button class="menu-btn btn-play" id="menuStartBtn">▶ Jouer</button>
+    </div>
+  </div>
+</div>
+
+<canvas id="game"></canvas>
+
+<div class="hud">
+  <div class="hud-block">
+    <p class="hud-label">DISTANCE</p>
+    <p class="hud-value" id="distVal">0 m</p>
+  </div>
+  <div class="hud-block" style="margin-left:10px;">
+    <p class="hud-label">STAGE</p>
+    <p class="hud-value" id="stageVal" style="font-size:20px;">1</p>
+  </div>
+</div>
+
+<div class="stage-toast" id="stageToast"></div>
+
+<div class="key-badge" id="keyBadge">K</div>
+<button class="pause-btn" id="pauseBtn" title="Pause">⏸</button>
+
+<div class="leaderboard">
+  <h3>🏆 Top</h3>
+  <div id="lbList"></div>
+</div>
+
+<div class="overlay" id="pauseOverlay">
+  <div class="card">
+    <h1>⏸ Pause</h1>
+    <p>Appuie sur K pour reprendre.</p>
+    <button class="btn" id="resumeBtn">Reprendre</button>
+    <button class="btn btn-secondary" id="leaveBtn">Retour au menu</button>
+  </div>
+</div>
+
+<div class="overlay" id="endOverlay">
+  <div class="card">
+    <h1>💥 Écrasé!</h1>
+    <p id="endSubtitle">Classement final</p>
+    <div id="endResults"></div>
+    <button class="btn" id="restartBtn">Rejouer</button>
+  </div>
+</div>
+
+<div class="mobile-controls">
+  <button class="mobile-btn" id="leftBtn" title="Move left">◀</button>
+  <button class="mobile-btn" id="rightBtn" title="Move right">▶</button>
+</div>
+
+<script>
+(function(){
+  // ========== PLAYER CUSTOMIZATION STATE ==========
+  let playerState = {
+    nickname: 'Anonyme',
+    wormColor: '#E8998D'
+  };
+
+  // ========== BACKGROUND ANIMATION ==========
+  const bgCanvas = document.getElementById('bgCanvas');
+  const bgCtx = bgCanvas.getContext('2d');
+  let bgTime = 0;
+
+  function resizeBgCanvas(){
+    bgCanvas.width = bgCanvas.offsetWidth * (window.devicePixelRatio || 1);
+    bgCanvas.height = bgCanvas.offsetHeight * (window.devicePixelRatio || 1);
+  }
+  resizeBgCanvas();
+  window.addEventListener('resize', resizeBgCanvas);
+
+  function animateBg(){
+    const dpr = window.devicePixelRatio || 1;
+    const w = bgCanvas.width / dpr;
+    const h = bgCanvas.height / dpr;
+
+    bgCtx.clearRect(0, 0, w, h);
+
+    // Animated particles
+    for(let i = 0; i < 30; i++){
+      const x = (w / 30 * i + bgTime * 20) % w;
+      const y = Math.sin((i + bgTime * 0.5) * 0.5) * h * 0.2 + h * 0.5;
+      const size = 2 + Math.sin(bgTime * 0.01 + i) * 1;
+      const opacity = 0.2 + Math.sin(bgTime * 0.01 + i) * 0.2;
+
+      bgCtx.fillStyle = `rgba(255, 107, 53, ${opacity})`;
+      bgCtx.beginPath();
+      bgCtx.arc(x, y, size, 0, Math.PI * 2);
+      bgCtx.fill();
+    }
+
+    bgTime += 0.5;
+    requestAnimationFrame(animateBg);
+  }
+  animateBg();
+
+  // ========== 3D WORM DISPLAY ==========
+  const wormCanvas = document.getElementById('wormCanvas3D');
+  const wormCtx = wormCanvas.getContext('2d');
+  let wormRotation = 0;
+  let wormTime = 0;
+
+  function resizeWormCanvas(){
+    const dpr = window.devicePixelRatio || 1;
+    const rect = wormCanvas.parentElement.getBoundingClientRect();
+    wormCanvas.width = rect.width * dpr;
+    wormCanvas.height = rect.height * dpr;
+    wormCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  resizeWormCanvas();
+  window.addEventListener('resize', resizeWormCanvas);
+
+  function draw3DWorm(){
+    const w = wormCanvas.width / (window.devicePixelRatio || 1);
+    const h = wormCanvas.height / (window.devicePixelRatio || 1);
+
+    wormCtx.fillStyle = 'rgba(20, 25, 50, 0.3)';
+    wormCtx.fillRect(0, 0, w, h);
+
+    const centerX = w / 2;
+    const centerY = h / 2;
+
+    wormCtx.save();
+    wormCtx.translate(centerX, centerY);
+
+    // 3D rotation effect
+    wormRotation += 1.5;
+    wormTime += 0.03;
+
+    // Draw 3D segments using perspective
+    const segmentCount = 12;
+    const segmentSpacing = 14;
+
+    for(let i = 0; i < segmentCount; i++){
+      const z = i * 2;
+      const scale = 1 - (z / (segmentCount * 2)) * 0.6;
+      const offsetY = i * segmentSpacing + Math.sin(wormTime + i * 0.4) * 4;
+      const offsetX = Math.cos(wormTime + i * 0.3) * 3;
+
+      // Perspective effect
+      const perspective = 1 + (1 - scale) * 0.3;
+
+      const hue = i % 2 === 0 ? playerState.wormColor : adjustBrightness(playerState.wormColor, -20);
+
+      wormCtx.save();
+      wormCtx.translate(offsetX, offsetY);
+      wormCtx.scale(scale, scale * 0.9);
+
+      // Shadow
+      wormCtx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+      wormCtx.beginPath();
+      wormCtx.ellipse(2, 8, 12 * scale, 3 * scale, 0, 0, Math.PI * 2);
+      wormCtx.fill();
+
+      // Segment body
+      wormCtx.fillStyle = hue;
+      wormCtx.beginPath();
+      wormCtx.arc(0, 0, 10 * scale, 0, Math.PI * 2);
+      wormCtx.fill();
+
+      // Shine
+      wormCtx.fillStyle = `rgba(255, 255, 255, ${0.3 * (1 - i / segmentCount)})`;
+      wormCtx.beginPath();
+      wormCtx.arc(-3 * scale, -3 * scale, 3 * scale, 0, Math.PI * 2);
+      wormCtx.fill();
+
+      wormCtx.restore();
+    }
+
+    // Head with more detail
+    wormCtx.save();
+    wormCtx.scale(1, 0.95);
+
+    // Head glow
+    wormCtx.fillStyle = `rgba(255, 107, 53, 0.15)`;
+    wormCtx.beginPath();
+    wormCtx.arc(0, -segmentCount * segmentSpacing, 16, 0, Math.PI * 2);
+    wormCtx.fill();
+
+    // Head
+    wormCtx.fillStyle = adjustBrightness(playerState.wormColor, 15);
+    wormCtx.beginPath();
+    wormCtx.arc(0, -segmentCount * segmentSpacing, 12, 0, Math.PI * 2);
+    wormCtx.fill();
+
+    // Eyes
+    wormCtx.fillStyle = 'rgba(40, 20, 15, 0.9)';
+    wormCtx.beginPath();
+    wormCtx.arc(-4, -segmentCount * segmentSpacing - 2, 2, 0, Math.PI * 2);
+    wormCtx.arc(4, -segmentCount * segmentSpacing - 2, 2, 0, Math.PI * 2);
+    wormCtx.fill();
+
+    // Eye shine
+    wormCtx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+    wormCtx.beginPath();
+    wormCtx.arc(-3.2, -segmentCount * segmentSpacing - 3, 0.8, 0, Math.PI * 2);
+    wormCtx.arc(4.8, -segmentCount * segmentSpacing - 3, 0.8, 0, Math.PI * 2);
+    wormCtx.fill();
+
+    wormCtx.restore();
+    wormCtx.restore();
+
+    requestAnimationFrame(draw3DWorm);
+  }
+  draw3DWorm();
+
+  // ========== MAIN MENU ==========
+  const mainMenu = document.getElementById('mainMenu');
+  const nicknameInput = document.getElementById('nicknameInput');
+  const menuStartBtn = document.getElementById('menuStartBtn');
+
+  // Color selection
+  document.querySelectorAll('.color-option').forEach(option => {
+    option.addEventListener('click', () => {
+      document.querySelectorAll('.color-option').forEach(o => o.classList.remove('selected'));
+      option.classList.add('selected');
+      playerState.wormColor = option.dataset.color;
+    });
+  });
+
+  // Nickname input
+  nicknameInput.addEventListener('input', (e) => {
+    playerState.nickname = e.target.value || 'Anonyme';
+  });
+
+  // Start game
+  menuStartBtn.addEventListener('click', () => {
+    mainMenu.classList.add('hidden');
+    resetGame();
+  });
+
+  // Helper function
+  function adjustBrightness(color, percent) {
+    const num = parseInt(color.replace("#",""), 16);
+    const amt = Math.round(2.55 * percent);
+    const R = Math.max(0, Math.min(255, (num >> 16) + amt));
+    const G = Math.max(0, Math.min(255, (num >> 8 & 0x00FF) + amt));
+    const B = Math.max(0, Math.min(255, (num & 0x0000FF) + amt));
+    return "#" + (0x1000000 + R*0x10000 + G*0x100 + B).toString(16).slice(1);
+  }
+
+  // ========== GAME CANVAS ==========
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  let W, H, DPR, playerY;
+
+  function resize(){
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = document.documentElement.clientWidth;
+    H = document.documentElement.clientHeight;
+    canvas.width = W * DPR; canvas.height = H * DPR;
+    canvas.style.width = W+'px'; canvas.style.height = H+'px';
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+    playerY = H*0.32;
+  }
+  window.addEventListener('resize', resize);
+  window.addEventListener('orientationchange', ()=> setTimeout(resize, 250));
+  document.addEventListener('fullscreenchange', ()=> setTimeout(resize, 150));
+  window.addEventListener('webkitfullscreenchange', ()=> setTimeout(resize, 150));
+  resize();
+
+  // ---------- Procedural tunnel ----------
+  const CONTROL_SPACING = 130;
+  const BASE_HALF_WIDTH = 78;
+  const MIN_HALF_WIDTH = 48;
+  const DIFFICULTY_ACCEL = 100/30;
+  let controls = [];
+  let decor = [];
+  let generatedIndex = -1;
+
+  function rand(a,b){ return a + Math.random()*(b-a); }
+  function clamp(v,a,b){ return Math.max(a, Math.min(b,v)); }
+  function smooth(t){ return t*t*(3-2*t); }
+
+  function genControlPoint(i){
+    const prev = controls[i-1];
+    const difficulty = clamp(i*0.01*DIFFICULTY_ACCEL, 0, 1);
+    const halfW = clamp((prev? prev.halfW : BASE_HALF_WIDTH) + rand(-8,8), MIN_HALF_WIDTH, BASE_HALF_WIDTH + 10) - difficulty*10;
+    let cx = prev ? prev.cx + rand(-70,70) : W/2;
+    cx = clamp(cx, halfW+30, W-halfW-30);
+    const cp = {i, depth:i*CONTROL_SPACING, cx, halfW: Math.max(halfW, MIN_HALF_WIDTH)};
+    controls[i] = cp;
+
+    const nRocks = Math.floor(rand(2,4));
+    for(let k=0;k<nRocks;k++){
+      const side = Math.random()<0.5 ? -1 : 1;
+      const d = cp.depth - rand(10, CONTROL_SPACING-10);
+      const big = Math.random() < 0.4;
+      const offsetIntoWall = rand(8, 46);
+      const wallX = side<0 ? cp.cx - cp.halfW - offsetIntoWall : cp.cx + cp.halfW + offsetIntoWall;
+      decor.push({depth:d, x: clamp(wallX, 4, W-4), r: big? rand(7,11): rand(2.5,4.5), kind: big?'rock':'speckle'});
+    }
+    return cp;
+  }
+
+  function ensureGenerated(uptoDepth){
+    while(generatedIndex < 0 || controls[generatedIndex].depth < uptoDepth){
+      generatedIndex++;
+      genControlPoint(generatedIndex);
+    }
+  }
+
+  function centerAt(d){
+    const i = Math.max(0, Math.floor(d/CONTROL_SPACING));
+    ensureGenerated(d + CONTROL_SPACING*3);
+    const a = controls[i], b = controls[i+1] || a;
+    const t = smooth(clamp((d - a.depth)/CONTROL_SPACING, 0, 1));
+    return a.cx + (b.cx-a.cx)*t;
+  }
+  function halfWAt(d){
+    const i = Math.max(0, Math.floor(d/CONTROL_SPACING));
+    const a = controls[i], b = controls[i+1] || a;
+    const t = smooth(clamp((d - a.depth)/CONTROL_SPACING, 0, 1));
+    return a.halfW + (b.halfW-a.halfW)*t;
+  }
+
+  function pruneBehind(minDepth){
+    while(decor.length && decor[0].depth < minDepth) decor.shift();
+  }
+
+  // ---------- Stages & background themes ----------
+  const THEMES = [
+    { name:'Grotte',     bg:'#1B140F', wall:'#5B564C', edge:'#171A21', rock:'#8B8578', rockHi:'rgba(255,255,255,0.18)', speckle:'rgba(40,32,24,0.5)',  path:'#3A2E22', stars:false },
+    { name:'Plaine',     bg:'#26311C', wall:'#63793E', edge:'#1F2814', rock:'#8A9B5E', rockHi:'rgba(255,255,255,0.25)', speckle:'rgba(20,26,12,0.45)', path:'#3C4A24', stars:false },
+    { name:'Volcan',     bg:'#2A0E08', wall:'#6E2A1C', edge:'#1A0704', rock:'#D9622E', rockHi:'rgba(255,214,120,0.5)', speckle:'rgba(255,120,40,0.25)', path:'#3D140C', stars:false },
+    { name:'Glacier',    bg:'#0E2333', wall:'#5FA8C9', edge:'#0A1A26', rock:'#CFEFFA', rockHi:'rgba(255,255,255,0.6)', speckle:'rgba(255,255,255,0.25)', path:'#163C52', stars:false },
+    { name:'Lune',       bg:'#0B0B14', wall:'#8B8A94', edge:'#1A1A22', rock:'#B8B7C2', rockHi:'rgba(255,255,255,0.35)', speckle:'rgba(20,20,28,0.4)',  path:'#3A3A44', stars:true },
+    { name:'Cristal',    bg:'#170B2E', wall:'#8A5FD4', edge:'#120722', rock:'#C99BFA', rockHi:'rgba(255,255,255,0.55)', speckle:'rgba(255,255,255,0.2)', path:'#2C1550', stars:false },
+    { name:'Nébuleuse',  bg:'#05030F', wall:'#3A2C6B', edge:'#0A0716', rock:'#FF6FCE', rockHi:'rgba(255,255,255,0.4)', speckle:'rgba(120,80,200,0.3)', path:'#160E33', stars:true },
+    { name:'Enfer',      bg:'#1A0303', wall:'#7A1010', edge:'#0D0000', rock:'#FF4B2B', rockHi:'rgba(255,220,150,0.6)', speckle:'rgba(255,60,20,0.3)',  path:'#330606', stars:false },
+  ];
+
+  function stageForMeters(m){
+    if(m < 500) return 1;
+    if(m < 1000) return 2;
+    if(m < 1500) return 3;
+    if(m < 2000) return 4;
+    return 5 + Math.floor((m-2000)/1000);
+  }
+  function themeForStage(stage){ return THEMES[(stage-1) % THEMES.length]; }
+
+  function hexToRgb(hex){
+    const n = parseInt(hex.replace('#',''),16);
+    return [(n>>16)&255, (n>>8)&255, n&255];
+  }
+  function parseRgba(str){
+    if(str[0]==='#'){ const [r,g,b]=hexToRgb(str); return [r,g,b,1]; }
+    const m = str.match(/rgba?\(([^)]+)\)/);
+    const parts = m[1].split(',').map(s=>parseFloat(s));
+    return [parts[0],parts[1],parts[2], parts[3]===undefined?1:parts[3]];
+  }
+  function lerpColor(a,b,t){
+    const [r1,g1,b1,a1] = parseRgba(a), [r2,g2,b2,a2] = parseRgba(b);
+    const r=Math.round(r1+(r2-r1)*t), g=Math.round(g1+(g2-g1)*t), bl=Math.round(b1+(b2-b1)*t), al=a1+(a2-a1)*t;
+    return `rgba(${r},${g},${bl},${al})`;
+  }
+
+  let currentStage = 1;
+  let themeBlend = { from: THEMES[0], to: THEMES[0], t: 1 };
+  const TRANSITION_TIME = 1.4;
+
+  function activeColors(){
+    const t = themeBlend.t;
+    if(t >= 1) return themeBlend.to;
+    const a = themeBlend.from, b = themeBlend.to;
+    return {
+      bg: lerpColor(a.bg,b.bg,t), wall: lerpColor(a.wall,b.wall,t), edge: lerpColor(a.edge,b.edge,t),
+      rock: lerpColor(a.rock,b.rock,t), rockHi: lerpColor(a.rockHi,b.rockHi,t),
+      speckle: lerpColor(a.speckle,b.speckle,t), path: lerpColor(a.path,b.path,t),
+      starAlpha: (b.stars?t:0) + (a.stars?(1-t):0)
+    };
+  }
+
+  const STAR_COUNT = 60;
+  let stars = Array.from({length:STAR_COUNT}, ()=>({x:Math.random(), y:Math.random(), r:Math.random()*1.6+0.4, seed:Math.random()*1000}));
+
+  function showStageToast(stage, theme){
+    const el = document.getElementById('stageToast');
+    el.textContent = `Stage ${stage} — ${theme.name}`;
+    el.classList.add('show');
+    clearTimeout(el._t);
+    el._t = setTimeout(()=> el.classList.remove('show'), 2400);
+    document.getElementById('stageVal').textContent = stage;
+  }
+
+  // ---------- Game state ----------
+  let scrollDist = 0, speed = 95, running = false, gameOverShown = false, paused = false;
+  let player = { x: 0, radius: 10 };
+  let trail = [];
+  const SEGMENTS = 9, SEG_SPACING = 13;
+  let particles = [];
+
+  function explode(x,y){
+    const rockColor = activeColors().rock;
+    for(let k=0;k<28;k++){
+      const ang = Math.random()*Math.PI*2, spd = 60+Math.random()*220;
+      particles.push({x,y,vx:Math.cos(ang)*spd, vy:Math.sin(ang)*spd, life:1, size:2+Math.random()*4, hex: Math.random()<0.5?playerState.wormColor:rockColor});
+    }
+  }
+
+  function resetGame(){
+    controls = []; decor = []; generatedIndex = -1;
+    scrollDist = 0; speed = 95; trail = []; particles = [];
+    ensureGenerated(H*2 + 300);
+    player.x = centerAt(H);
+    gameOverShown = false;
+    paused = false;
+    pointerControlEnabled = false;
+    keys.left = false; keys.right = false;
+    mobileButtons.left = false; mobileButtons.right = false;
+    document.getElementById('pauseOverlay').classList.remove('show');
+    currentStage = 1;
+    themeBlend = { from: THEMES[0], to: THEMES[0], t: 1 };
+    document.getElementById('stageVal').textContent = '1';
+    showStageToast(1, THEMES[0]);
+    running = true;
+    for(const bot of bots){ bot.dist = 0; bot.alive = true; bot.speed = rand(70,120); bot.crashTimer = rand(4,14); }
+  }
+
+  // ---------- Bots ----------
+  const BOT_NAMES = ['Mika','Rooty','Glim'];
+  let bots = BOT_NAMES.map(name=>({name, dist:0, speed:rand(70,120), crashTimer:rand(4,14), alive:true}));
+
+  function updateBots(dt){
+    for(const b of bots){
+      b.dist += b.speed*dt*0.12;
+      b.crashTimer -= dt;
+      if(b.crashTimer <= 0){
+        b.dist = Math.max(0, b.dist - rand(4,14));
+        b.crashTimer = rand(5,16);
+      }
+    }
+  }
+
+  function renderLeaderboard(){
+    const all = [
+      {name: playerState.nickname, dist: scrollDist/8, me:true, hex: playerState.wormColor},
+      ...bots.map(b=>({name:b.name, dist:b.dist, hex:'#C9B9A8'}))
+    ];
+    all.sort((a,b)=>b.dist-a.dist);
+    document.getElementById('lbList').innerHTML = all.map((p,i)=>`
+      <div class="lb-row ${p.me?'me':''}">
+        <span class="lb-name"><span class="dot" style="background:${p.hex}"></span>${(i+1)}. ${p.name}</span>
+        <span>${Math.floor(p.dist)}m</span>
+      </div>`).join('');
+    return all;
+  }
+
+  // ---------- Input ----------
+  let pointerX = null;
+  let pointerControlEnabled = true;
+  function setPointer(clientX){
+    if(paused) return;
+    const rect = canvas.getBoundingClientRect();
+    pointerX = clientX - rect.left;
+    pointerControlEnabled = true;
+  }
+  window.addEventListener('pointermove', e=>setPointer(e.clientX));
+  window.addEventListener('pointerdown', e=>setPointer(e.clientX));
+
+  const keys = { left:false, right:false };
+  const mobileButtons = { left:false, right:false };
+
+  window.addEventListener('keydown', e=>{
+    const tag = document.activeElement && document.activeElement.tagName;
+    if(tag === 'INPUT' || tag === 'TEXTAREA') return;
+    if(e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A'){ keys.left = true; pointerControlEnabled = false; e.preventDefault(); }
+    if(e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D'){ keys.right = true; pointerControlEnabled = false; e.preventDefault(); }
+    if(e.key === 'k' || e.key === 'K'){ togglePause(); }
+  });
+  window.addEventListener('keyup', e=>{
+    const tag = document.activeElement && document.activeElement.tagName;
+    if(tag === 'INPUT' || tag === 'TEXTAREA') return;
+    if(e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys.left = false;
+    if(e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys.right = false;
+  });
+
+  const KEY_SPEED = 300;
+
+  // Mobile buttons
+  document.getElementById('leftBtn').addEventListener('pointerdown', (e)=>{
+    mobileButtons.left = true;
+    pointerControlEnabled = false;
+    e.preventDefault();
+  });
+  document.getElementById('leftBtn').addEventListener('pointerup', ()=>{ mobileButtons.left = false; });
+  document.getElementById('leftBtn').addEventListener('pointerleave', ()=>{ mobileButtons.left = false; });
+
+  document.getElementById('rightBtn').addEventListener('pointerdown', (e)=>{
+    mobileButtons.right = true;
+    pointerControlEnabled = false;
+    e.preventDefault();
+  });
+  document.getElementById('rightBtn').addEventListener('pointerup', ()=>{ mobileButtons.right = false; });
+  document.getElementById('rightBtn').addEventListener('pointerleave', ()=>{ mobileButtons.right = false; });
+
+  document.getElementById('pauseBtn').addEventListener('click', togglePause);
+
+  // ---------- Render helpers ----------
+  function drawWallSlice(y, leftEdge, rightEdge, wallColor){
+    ctx.fillStyle = wallColor;
+    ctx.fillRect(0, y, leftEdge, 4);
+    ctx.fillRect(rightEdge, y, W-rightEdge, 4);
+  }
+
+  function drawWorm(){
+    for(let k=SEGMENTS; k>=1; k--){
+      const targetDepth = scrollDist - k*SEG_SPACING;
+      let tx = player.x;
+      for(let idx=trail.length-1; idx>=0; idx--){
+        if(trail[idx].d <= targetDepth){ tx = trail[idx].x; break; }
+        tx = trail[idx].x;
+      }
+      const sy = playerY + k*SEG_SPACING;
+      const r = Math.max(3, player.radius - k*0.55);
+      ctx.fillStyle = k%2===0 ? playerState.wormColor : adjustBrightness(playerState.wormColor, -15);
+      ctx.beginPath();
+      ctx.arc(tx, sy, r, 0, Math.PI*2);
+      ctx.fill();
+    }
+    ctx.fillStyle = adjustBrightness(playerState.wormColor, 10);
+    ctx.beginPath();
+    ctx.arc(player.x, playerY, player.radius, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(40,20,15,0.75)';
+    ctx.beginPath();
+    ctx.arc(player.x-4, playerY-3, 1.8, 0, Math.PI*2);
+    ctx.arc(player.x+4, playerY-3, 1.8, 0, Math.PI*2);
+    ctx.fill();
+  }
+
+  let lastTick = 0;
+  function tick(ts){
+    if(!lastTick) lastTick = ts;
+    const dt = Math.min((ts-lastTick)/1000, 0.05);
+    lastTick = ts;
+
+    if(themeBlend.t < 1 && running && !paused){
+      themeBlend.t = Math.min(1, themeBlend.t + dt/TRANSITION_TIME);
+    }
+    const colors = activeColors();
+
+    ctx.fillStyle = colors.bg;
+    ctx.fillRect(0,0,W,H);
+
+    ctx.fillStyle = colors.path;
+    ctx.fillRect(0,0,W,H);
+
+    if(colors.starAlpha > 0.01){
+      ctx.save();
+      ctx.globalAlpha = colors.starAlpha;
+      for(const s of stars){
+        const twinkle = 0.5 + 0.5*Math.sin(ts*0.002 + s.seed);
+        ctx.globalAlpha = colors.starAlpha * (0.35 + twinkle*0.65);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.beginPath();
+        ctx.arc(s.x*W, s.y*H, s.r, 0, Math.PI*2);
+        ctx.fill();
+      }
+      ctx.restore();
+      ctx.globalAlpha = 1;
+    }
+
+    const step = 4;
+    for(let y=0;y<H;y+=step){
+      const d = scrollDist + H + playerY - y;
+      if(d < 0) continue;
+      const c = centerAt(d), hw = halfWAt(d);
+      drawWallSlice(y, c-hw, c+hw, colors.wall);
+    }
+
+    ensureGenerated(scrollDist + H*2 + 200);
+    pruneBehind(scrollDist + H - 60);
+    for(const dcr of decor){
+      const sy = playerY - dcr.depth + scrollDist + H;
+      if(sy < -20 || sy > H+20) continue;
+      if(dcr.kind === 'rock'){
+        ctx.fillStyle = colors.rock;
+        ctx.beginPath(); ctx.arc(dcr.x, sy, dcr.r, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = colors.rockHi;
+        ctx.beginPath(); ctx.arc(dcr.x-dcr.r*0.3, sy-dcr.r*0.3, dcr.r*0.4, 0, Math.PI*2); ctx.fill();
+      } else {
+        ctx.fillStyle = colors.speckle;
+        ctx.beginPath(); ctx.arc(dcr.x, sy, dcr.r, 0, Math.PI*2); ctx.fill();
+      }
+    }
+
+    if(running && !paused){
+      if(keys.left || mobileButtons.left) player.x -= KEY_SPEED*dt;
+      if(keys.right || mobileButtons.right) player.x += KEY_SPEED*dt;
+      if(!keys.left && !keys.right && !mobileButtons.left && !mobileButtons.right && pointerControlEnabled && pointerX !== null){
+        player.x += (pointerX - player.x) * Math.min(1, dt*11);
+      }
+      player.x = clamp(player.x, 4, W-4);
+      trail.push({d:scrollDist, x:player.x});
+      while(trail.length && trail[0].d < scrollDist - SEGMENTS*SEG_SPACING - 40) trail.shift();
+
+      speed = Math.min(240, 95 + (scrollDist/8)*0.18*DIFFICULTY_ACCEL);
+      scrollDist += speed*dt;
+
+      const meters = scrollDist/8;
+      const newStage = stageForMeters(meters);
+      if(newStage !== currentStage){
+        currentStage = newStage;
+        const newTheme = themeForStage(newStage);
+        themeBlend = { from: themeBlend.to, to: newTheme, t: 0 };
+        showStageToast(newStage, newTheme);
+      }
+
+      const c = centerAt(scrollDist + H), hw = halfWAt(scrollDist + H);
+      if(player.x - player.radius < c-hw || player.x + player.radius > c+hw){
+        explode(player.x, playerY);
+        running = false;
+        showGameOver();
+      }
+
+      updateBots(dt);
+      document.getElementById('distVal').textContent = Math.floor(scrollDist/8)+' m';
+      renderLeaderboard();
+    }
+
+    drawWorm();
+
+    for(const p of particles){
+      p.life -= dt*1.6;
+      p.x += p.vx*dt; p.y += p.vy*dt;
+      p.vx *= 0.94; p.vy *= 0.94;
+      ctx.globalAlpha = Math.max(p.life,0);
+      ctx.fillStyle = p.hex;
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.size,0,Math.PI*2); ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+    particles = particles.filter(p=>p.life>0);
+
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+
+  let autoRestartTimer = null;
+  function showGameOver(){
+    if(gameOverShown) return;
+    gameOverShown = true;
+    const ranked = renderLeaderboard();
+    document.getElementById('endResults').innerHTML = ranked.map((p,i)=>`
+      <div class="result-row ${p.me?'me':''}">
+        <span>${i+1}. ${p.name}</span>
+        <span>${Math.floor(p.dist)}m</span>
+      </div>`).join('');
+    const place = ranked.findIndex(p=>p.me)+1;
+    document.getElementById('endSubtitle').textContent =
+      `${Math.floor(scrollDist/8)}m parcourus — ${place===1?'1er !':(place+'e sur '+ranked.length)}`;
+    document.getElementById('endOverlay').classList.add('show');
+
+    clearTimeout(autoRestartTimer);
+    autoRestartTimer = setTimeout(()=>{
+      document.getElementById('endOverlay').classList.remove('show');
+      resetGame();
+    }, 2200);
+  }
+
+  function togglePause(){
+    if(!running || gameOverShown) return;
+    paused = !paused;
+    document.getElementById('pauseOverlay').classList.toggle('show', paused);
+  }
+
+  document.getElementById('resumeBtn').addEventListener('click', ()=>{
+    paused = false;
+    document.getElementById('pauseOverlay').classList.remove('show');
+  });
+  document.getElementById('leaveBtn').addEventListener('click', ()=>{
+    paused = false;
+    running = false;
+    document.getElementById('pauseOverlay').classList.remove('show');
+    mainMenu.classList.remove('hidden');
+    nicknameInput.value = playerState.nickname === 'Anonyme' ? '' : playerState.nickname;
+  });
+
+  document.getElementById('restartBtn').addEventListener('click', ()=>{
+    clearTimeout(autoRestartTimer);
+    document.getElementById('endOverlay').classList.remove('show');
+    resetGame();
+  });
+
+})();
+</script>
+</body>
+</html>

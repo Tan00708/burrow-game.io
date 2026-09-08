@@ -282,16 +282,41 @@
     .pause-btn{ display:flex; }
     .mobile-controls{ display:flex; }
     .key-badge{ display:none; }
+
+    /* --- Menu principal : on passe en colonne unique, scrollable, alignée en haut
+       pour laisser la place au titre et éviter que le contenu soit rogné/centré
+       hors écran (c'était la cause du désordre à l'arrivée sur le site). --- */
+    .main-menu{
+      align-items:flex-start;
+      overflow-y:auto;
+      -webkit-overflow-scrolling:touch;
+      padding:84px 16px 24px;
+    }
+    .title{
+      top:14px; font-size:32px;
+    }
     .menu-content{
       grid-template-columns:1fr;
       grid-template-rows:auto auto auto auto;
-      gap:20px; height:auto; max-height:none;
+      gap:20px; width:100%; height:auto; max-height:none;
     }
-    .menu-top-left{ grid-column:1; grid-row:1; }
-    .menu-top-right{ grid-column:1; grid-row:2; justify-content:flex-start; }
-    .menu-center{ grid-column:1; grid-row:3; height:250px; }
-    .menu-bottom{ grid-column:1; grid-row:4; }
-    .title{ font-size:36px; }
+    .menu-top-left{ grid-column:1; grid-row:1; justify-content:center; }
+    .menu-top-right{ grid-column:1; grid-row:2; justify-content:center; }
+    .menu-center{ grid-column:1; grid-row:3; height:220px; }
+    .menu-bottom{ grid-column:1; grid-row:4; padding-bottom:12px; }
+    .customize-section, .input-group{ max-width:320px; }
+
+    /* --- HUD en jeu : le leaderboard (large, en haut à gauche) chevauchait
+       le bloc distance/stage (centré en haut) sur les petits écrans.
+       On réduit et on les sépare clairement. --- */
+    .leaderboard{
+      width:120px; padding:8px; top:12px; left:10px;
+    }
+    .leaderboard h3{ font-size:11px; margin-bottom:4px; }
+    .lb-row{ font-size:10px; padding:2px 0; }
+    .hud{ top:12px; }
+    .hud-block{ padding:8px 14px; }
+    .hud-value{ font-size:20px; }
   }
 </style>
 </head>

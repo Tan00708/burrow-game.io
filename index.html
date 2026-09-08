@@ -264,59 +264,97 @@
   }
   .stage-toast.show{ opacity:1; transform:translate(-50%,0); }
 
-  .mobile-controls{
-    position:fixed; bottom:22px; left:20px; right:20px; gap:12px; z-index:6;
-    display:none; justify-content:space-between;
-  }
-  .mobile-btn{
-    width:60px; height:60px; border-radius:14px; border:none;
-    background:rgba(27,36,73,0.8); color:var(--ink); font-size:24px;
-    display:flex; align-items:center; justify-content:center;
-    backdrop-filter:blur(10px); box-shadow:0 4px 14px rgba(0,0,0,0.3);
-    touch-action:none; cursor:pointer; padding:0; flex-shrink:0;
-    border:2px solid rgba(255,107,53,0.3); transition:all .2s ease;
-  }
-  .mobile-btn:active{ background:rgba(255,107,53,0.3); transform:scale(0.95); }
-
   @media (pointer: coarse){
-    .pause-btn{ display:flex; }
-    .mobile-controls{ display:flex; }
+    .pause-btn{ display:flex; top:calc(14px + env(safe-area-inset-top)); }
     .key-badge{ display:none; }
 
-    /* --- Menu principal : on passe en colonne unique, scrollable, alignée en haut
-       pour laisser la place au titre et éviter que le contenu soit rogné/centré
-       hors écran (c'était la cause du désordre à l'arrivée sur le site). --- */
+    /* --- Menu principal : scrollable, alignée en haut, avec marge de sécurité
+       pour le titre et les encoches (notch), pour éviter que le contenu soit
+       rogné/centré hors écran (c'était la cause du désordre à l'arrivée). --- */
     .main-menu{
       align-items:flex-start;
       overflow-y:auto;
       -webkit-overflow-scrolling:touch;
-      padding:84px 16px 24px;
+      padding:calc(78px + env(safe-area-inset-top)) 16px calc(20px + env(safe-area-inset-bottom));
     }
     .title{
-      top:14px; font-size:32px;
+      top:calc(14px + env(safe-area-inset-top)); font-size:28px;
     }
-    .menu-content{
-      grid-template-columns:1fr;
-      grid-template-rows:auto auto auto auto;
-      gap:20px; width:100%; height:auto; max-height:none;
-    }
-    .menu-top-left{ grid-column:1; grid-row:1; justify-content:center; }
-    .menu-top-right{ grid-column:1; grid-row:2; justify-content:center; }
-    .menu-center{ grid-column:1; grid-row:3; height:220px; }
-    .menu-bottom{ grid-column:1; grid-row:4; padding-bottom:12px; }
-    .customize-section, .input-group{ max-width:320px; }
 
-    /* --- HUD en jeu : le leaderboard (large, en haut à gauche) chevauchait
-       le bloc distance/stage (centré en haut) sur les petits écrans.
-       On réduit et on les sépare clairement. --- */
-    .leaderboard{
-      width:120px; padding:8px; top:12px; left:10px;
+    /* Disposition en 2 colonnes : couleur + pseudo côte à côte pour limiter
+       le défilement, ver 3D et bouton "Jouer" en pleine largeur en dessous. */
+    .menu-content{
+      grid-template-columns:1fr 1fr;
+      grid-template-rows:auto auto auto;
+      gap:14px; width:100%; height:auto; max-height:none;
     }
-    .leaderboard h3{ font-size:11px; margin-bottom:4px; }
-    .lb-row{ font-size:10px; padding:2px 0; }
-    .hud{ top:12px; }
-    .hud-block{ padding:8px 14px; }
-    .hud-value{ font-size:20px; }
+    .menu-top-left{ grid-column:1; grid-row:1; align-items:stretch; }
+    .menu-top-right{ grid-column:2; grid-row:1; align-items:stretch; justify-content:stretch; }
+    .menu-center{ grid-column:1 / -1; grid-row:2; height:180px; }
+    .menu-bottom{ grid-column:1 / -1; grid-row:3; padding-bottom:8px; }
+
+    .customize-section, .input-group{ max-width:none; width:100%; }
+    .customize-section{ padding:14px; height:100%; }
+    .customize-section h3{ font-size:12px; margin-bottom:10px; }
+    .color-grid{ grid-template-columns:repeat(3, 1fr); gap:8px; }
+    .input-group{ display:flex; flex-direction:column; justify-content:center; height:100%; }
+    .input-label{ font-size:11px; }
+    .nickname-input{ padding:12px 14px; }
+
+    .worm-info{ padding:8px; }
+    .worm-name{ font-size:12px; }
+
+    .menu-btn{ width:100%; padding:16px 24px; font-size:16px; }
+
+    /* --- HUD en jeu : le leaderboard (en haut à gauche) et le bloc
+       distance/stage (centré en haut) partageaient la même bande horizontale
+       et se chevauchaient sur les écrans étroits. On les sépare verticalement
+       pour que ça ne se touche jamais, quelle que soit la largeur du tel. --- */
+    .hud{ top:calc(10px + env(safe-area-inset-top)); }
+    .hud-block{ padding:7px 12px; }
+    .hud-label{ font-size:10px; }
+    .hud-value{ font-size:18px; }
+    .leaderboard{
+      width:104px; padding:7px; left:10px;
+      top:calc(64px + env(safe-area-inset-top));
+    }
+    .leaderboard h3{ font-size:10px; margin-bottom:4px; }
+    .lb-row{ font-size:9px; padding:2px 0; }
+    .lb-row .dot{ width:6px; height:6px; margin-right:5px; }
+  }
+
+  /* Téléphones étroits (< 400px) : on resserre encore la mise en page du menu
+     pour garder de bonnes zones tactiles sur les nuances de couleur. */
+  @media (pointer: coarse) and (max-width: 400px){
+    .title{ font-size:24px; }
+    .menu-content{ gap:10px; }
+    .customize-section{ padding:10px; }
+    .color-grid{ gap:6px; }
+    .menu-center{ height:150px; }
+    .nickname-input{ padding:11px 12px; font-size:15px; }
+  }
+
+  /* Téléphones en mode paysage : la hauteur est très limitée, on réorganise
+     le menu en 3 colonnes (couleur+pseudo / ver / bouton) plutôt qu'empilé,
+     pour éviter un défilement excessif. */
+  @media (pointer: coarse) and (orientation: landscape) and (max-height: 500px){
+    .main-menu{ padding:calc(10px + env(safe-area-inset-top)) 16px calc(10px + env(safe-area-inset-bottom)); }
+    .title{ font-size:20px; top:calc(8px + env(safe-area-inset-top)); }
+    .menu-content{
+      grid-template-columns:1fr 1fr 1fr;
+      grid-template-rows:1fr 1fr;
+      gap:10px; height:calc(100vh - 40px); max-height:none;
+    }
+    .menu-top-left{ grid-column:1; grid-row:1; }
+    .menu-top-right{ grid-column:1; grid-row:2; }
+    .menu-center{ grid-column:2; grid-row:1 / -1; height:100%; }
+    .menu-bottom{ grid-column:3; grid-row:1 / -1; align-items:center; }
+    .customize-section{ padding:8px; }
+    .customize-section h3{ margin-bottom:6px; }
+    .color-grid{ gap:5px; }
+    .worm-info{ padding:5px; }
+    .worm-name{ font-size:10px; }
+    .menu-btn{ padding:14px 16px; }
   }
 </style>
 </head>
@@ -407,11 +445,6 @@
     <div id="endResults"></div>
     <button class="btn" id="restartBtn">Rejouer</button>
   </div>
-</div>
-
-<div class="mobile-controls">
-  <button class="mobile-btn" id="leftBtn" title="Move left">◀</button>
-  <button class="mobile-btn" id="rightBtn" title="Move right">▶</button>
 </div>
 
 <script>
@@ -637,6 +670,16 @@
   function clamp(v,a,b){ return Math.max(a, Math.min(b,v)); }
   function smooth(t){ return t*t*(3-2*t); }
 
+  // Géométrie interpolée du tunnel à une profondeur d donnée, à partir de deux
+  // points de contrôle connus (sans passer par centerAt/halfWAt, qui génèrent
+  // de nouveaux points et créeraient une récursion pendant la génération).
+  function segGeomAt(prevPt, curPt, d){
+    const p = prevPt || curPt;
+    const segLen = (curPt.depth - p.depth) || 1;
+    const t = smooth(clamp((d - p.depth)/segLen, 0, 1));
+    return { cx: p.cx + (curPt.cx - p.cx)*t, halfW: p.halfW + (curPt.halfW - p.halfW)*t };
+  }
+
   function genControlPoint(i){
     const prev = controls[i-1];
     const difficulty = clamp(i*0.01*DIFFICULTY_ACCEL, 0, 1);
@@ -646,14 +689,33 @@
     const cp = {i, depth:i*CONTROL_SPACING, cx, halfW: Math.max(halfW, MIN_HALF_WIDTH)};
     controls[i] = cp;
 
+    // Gros cailloux / rochers : on calcule la position du couloir à la
+    // profondeur RÉELLE du caillou (et non celle du point de contrôle), sinon
+    // le tunnel peut avoir bougé entre-temps et le caillou se retrouve sur
+    // la route au lieu d'être planté dans la paroi.
     const nRocks = Math.floor(rand(2,4));
     for(let k=0;k<nRocks;k++){
       const side = Math.random()<0.5 ? -1 : 1;
       const d = cp.depth - rand(10, CONTROL_SPACING-10);
+      const {cx: lcx, halfW: lhw} = segGeomAt(prev, cp, d);
       const big = Math.random() < 0.4;
-      const offsetIntoWall = rand(8, 46);
-      const wallX = side<0 ? cp.cx - cp.halfW - offsetIntoWall : cp.cx + cp.halfW + offsetIntoWall;
+      const offsetIntoWall = rand(10, 46);
+      const wallX = side<0 ? lcx - lhw - offsetIntoWall : lcx + lhw + offsetIntoWall;
       decor.push({depth:d, x: clamp(wallX, 4, W-4), r: big? rand(7,11): rand(2.5,4.5), kind: big?'rock':'speckle'});
+    }
+
+    // Grain discret sur les parois : nombreux petits points, proches du bord,
+    // qui donnent une texture rocheuse subtile. Les couleurs viennent du
+    // thème courant (rock/speckle), donc l'aspect change automatiquement
+    // selon le stage (lave sur le volcan, glace sur le glacier, etc.).
+    const nGrain = Math.floor(rand(10,16));
+    for(let g=0; g<nGrain; g++){
+      const side = Math.random()<0.5 ? -1 : 1;
+      const d = cp.depth - rand(4, CONTROL_SPACING-4);
+      const {cx: lcx, halfW: lhw} = segGeomAt(prev, cp, d);
+      const offsetIntoWall = rand(2, 26);
+      const wallX = side<0 ? lcx - lhw - offsetIntoWall : lcx + lhw + offsetIntoWall;
+      decor.push({depth:d, x: clamp(wallX, 2, W-2), r: rand(0.8,2), kind:'grain', hi: Math.random()<0.3});
     }
     return cp;
   }
@@ -772,7 +834,6 @@
     paused = false;
     pointerControlEnabled = false;
     keys.left = false; keys.right = false;
-    mobileButtons.left = false; mobileButtons.right = false;
     document.getElementById('pauseOverlay').classList.remove('show');
     currentStage = 1;
     themeBlend = { from: THEMES[0], to: THEMES[0], t: 1 };
@@ -824,7 +885,6 @@
   window.addEventListener('pointerdown', e=>setPointer(e.clientX));
 
   const keys = { left:false, right:false };
-  const mobileButtons = { left:false, right:false };
 
   window.addEventListener('keydown', e=>{
     const tag = document.activeElement && document.activeElement.tagName;
@@ -841,23 +901,6 @@
   });
 
   const KEY_SPEED = 300;
-
-  // Mobile buttons
-  document.getElementById('leftBtn').addEventListener('pointerdown', (e)=>{
-    mobileButtons.left = true;
-    pointerControlEnabled = false;
-    e.preventDefault();
-  });
-  document.getElementById('leftBtn').addEventListener('pointerup', ()=>{ mobileButtons.left = false; });
-  document.getElementById('leftBtn').addEventListener('pointerleave', ()=>{ mobileButtons.left = false; });
-
-  document.getElementById('rightBtn').addEventListener('pointerdown', (e)=>{
-    mobileButtons.right = true;
-    pointerControlEnabled = false;
-    e.preventDefault();
-  });
-  document.getElementById('rightBtn').addEventListener('pointerup', ()=>{ mobileButtons.right = false; });
-  document.getElementById('rightBtn').addEventListener('pointerleave', ()=>{ mobileButtons.right = false; });
 
   document.getElementById('pauseBtn').addEventListener('click', togglePause);
 
@@ -944,6 +987,11 @@
         ctx.beginPath(); ctx.arc(dcr.x, sy, dcr.r, 0, Math.PI*2); ctx.fill();
         ctx.fillStyle = colors.rockHi;
         ctx.beginPath(); ctx.arc(dcr.x-dcr.r*0.3, sy-dcr.r*0.3, dcr.r*0.4, 0, Math.PI*2); ctx.fill();
+      } else if(dcr.kind === 'grain'){
+        ctx.globalAlpha = dcr.hi ? 0.55 : 0.8;
+        ctx.fillStyle = dcr.hi ? colors.rockHi : colors.speckle;
+        ctx.beginPath(); ctx.arc(dcr.x, sy, dcr.r, 0, Math.PI*2); ctx.fill();
+        ctx.globalAlpha = 1;
       } else {
         ctx.fillStyle = colors.speckle;
         ctx.beginPath(); ctx.arc(dcr.x, sy, dcr.r, 0, Math.PI*2); ctx.fill();
@@ -951,9 +999,9 @@
     }
 
     if(running && !paused){
-      if(keys.left || mobileButtons.left) player.x -= KEY_SPEED*dt;
-      if(keys.right || mobileButtons.right) player.x += KEY_SPEED*dt;
-      if(!keys.left && !keys.right && !mobileButtons.left && !mobileButtons.right && pointerControlEnabled && pointerX !== null){
+      if(keys.left) player.x -= KEY_SPEED*dt;
+      if(keys.right) player.x += KEY_SPEED*dt;
+      if(!keys.left && !keys.right && pointerControlEnabled && pointerX !== null){
         player.x += (pointerX - player.x) * Math.min(1, dt*11);
       }
       player.x = clamp(player.x, 4, W-4);

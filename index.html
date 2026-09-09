@@ -447,6 +447,9 @@
   </div>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-database-compat.js"></script>
+
 <script>
 (function(){
   // ========== PLAYER CUSTOMIZATION STATE ==========
@@ -454,6 +457,102 @@
     nickname: 'Anonyme',
     wormColor: '#E8998D'
   };
+
+  // ========== MULTIJOUEUR (Firebase Realtime Database) ==========
+  // 1) Crée un projet gratuit sur https://console.firebase.google.com
+  // 2) Active "Realtime Database" (mode test pour démarrer)
+  // 3) Project settings > Général > Vos applications > Web (</>) > copie
+  //    l'objet firebaseConfig et colle-le ci-dessous, à la place de celui-ci.
+  // Tant que ce n'est pas fait, le jeu tourne quand même avec 3 bots de
+  // démonstration à la place de vrais joueurs, pour ne rien casser.
+  const firebaseConfig = {
+    apiKey: "AIzaSyD4gWV0Jqz7daOKNTWgsyFBBeJoErHjndM",
+    authDomain: "burrow-c3f39.firebaseapp.com",
+    databaseURL: "https://burrow-c3f39-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "burrow-c3f39",
+    storageBucket: "burrow-c3f39.firebasestorage.app",
+    messagingSenderId: "290540859884",
+    appId: "1:290540859884:web:75b91e48b2ae5e6ace10c9"
+  };
+
+  let otherPlayers = {};      // { playerId: {nickname, color, dist, ts} } — alimenté en temps réel
+  let mpReady = false;        // true une fois connecté à Firebase
+  let myPlayerId = null;
+  let myPlayerRef = null;
+  let lastMpWrite = 0;
+  const MP_WRITE_INTERVAL = 300; // ms entre deux écritures, pour ne pas spammer la base
+
+  function initMultiplayer(){
+    const configured = firebaseConfig.apiKey
+      && firebaseConfig.apiKey.indexOf('COLLE_TA_CLE') === -1
+      && firebaseConfig.databaseURL
+      && firebaseConfig.databaseURL.indexOf('COLLE_ICI') === -1;
+    if(!configured || typeof firebase === 'undefined'){
+      console.info('Multijoueur : firebaseConfig non renseigné, utilisation de bots de démo.');
+      return;
+    }
+    try{
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.database();
+      myPlayerId = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ('p' + Math.random().toString(36).slice(2));
+      myPlayerRef = db.ref('players/' + myPlayerId);
+      myPlayerRef.onDisconnect().remove();
+      window.addEventListener('beforeunload', ()=>{ try{ myPlayerRef.remove(); }catch(e){} });
+
+      db.ref('players').on('value', (snap)=>{
+        const val = snap.val() || {};
+        const next = {};
+        const now = Date.now();
+        for(const id in val){
+          if(id === myPlayerId) continue;
+          // on ignore les joueurs dont la présence n'a pas été rafraîchie
+          // depuis 10s (onglet fermé sans onDisconnect, coupure réseau, etc.)
+          if(val[id].ts && now - val[id].ts > 10000) continue;
+          next[id] = val[id];
+        }
+        otherPlayers = next;
+      });
+
+      mpReady = true;
+      console.info('Multijoueur : connecté à Firebase.');
+    }catch(e){
+      console.warn('Multijoueur indisponible :', e);
+      mpReady = false;
+    }
+  }
+  initMultiplayer();
+
+  function mpForceUpdate(){
+    if(!mpReady || !myPlayerRef) return;
+    lastMpWrite = performance.now();
+    myPlayerRef.set({
+      nickname: playerState.nickname,
+      color: playerState.wormColor,
+      dist: Math.floor(scrollDist/8),
+      ts: Date.now()
+    });
+  }
+  function mpUpdateMe(ts){
+    if(!mpReady || !myPlayerRef) return;
+    if(ts - lastMpWrite < MP_WRITE_INTERVAL) return;
+    mpForceUpdate();
+  }
+  function mpLeave(){
+    if(!mpReady || !myPlayerRef) return;
+    myPlayerRef.remove();
+  }
+
+  // Bots de démonstration : actifs uniquement tant que Firebase n'est pas
+  // configuré, pour que le classement ne soit pas vide pendant les tests.
+  // Ils disparaissent automatiquement dès que le multijoueur est branché.
+  let demoBots = mpReady ? [] : ['Mika','Rooty','Glim'].map(name=>({name, dist:0, speed:rand(70,120), crashTimer:rand(4,14)}));
+  function updateDemoBots(dt){
+    for(const b of demoBots){
+      b.dist += b.speed*dt*0.12;
+      b.crashTimer -= dt;
+      if(b.crashTimer <= 0){ b.dist = Math.max(0, b.dist - rand(4,14)); b.crashTimer = rand(5,16); }
+    }
+  }
 
   // ========== BACKGROUND ANIMATION ==========
   const bgCanvas = document.getElementById('bgCanvas');
@@ -840,28 +939,17 @@
     document.getElementById('stageVal').textContent = '1';
     showStageToast(1, THEMES[0]);
     running = true;
-    for(const bot of bots){ bot.dist = 0; bot.alive = true; bot.speed = rand(70,120); bot.crashTimer = rand(4,14); }
-  }
-
-  // ---------- Bots ----------
-  const BOT_NAMES = ['Mika','Rooty','Glim'];
-  let bots = BOT_NAMES.map(name=>({name, dist:0, speed:rand(70,120), crashTimer:rand(4,14), alive:true}));
-
-  function updateBots(dt){
-    for(const b of bots){
-      b.dist += b.speed*dt*0.12;
-      b.crashTimer -= dt;
-      if(b.crashTimer <= 0){
-        b.dist = Math.max(0, b.dist - rand(4,14));
-        b.crashTimer = rand(5,16);
-      }
-    }
+    for(const b of demoBots){ b.dist = 0; b.speed = rand(70,120); b.crashTimer = rand(4,14); }
+    mpForceUpdate();
   }
 
   function renderLeaderboard(){
+    const others = mpReady
+      ? Object.values(otherPlayers).map(p=>({ name: p.nickname || 'Joueur', dist: p.dist || 0, hex: p.color || '#C9B9A8' }))
+      : demoBots.map(b=>({ name: b.name, dist: b.dist, hex:'#C9B9A8' }));
     const all = [
       {name: playerState.nickname, dist: scrollDist/8, me:true, hex: playerState.wormColor},
-      ...bots.map(b=>({name:b.name, dist:b.dist, hex:'#C9B9A8'}))
+      ...others
     ];
     all.sort((a,b)=>b.dist-a.dist);
     document.getElementById('lbList').innerHTML = all.map((p,i)=>`
@@ -1027,7 +1115,8 @@
         showGameOver();
       }
 
-      updateBots(dt);
+      updateDemoBots(dt);
+      mpUpdateMe(ts);
       document.getElementById('distVal').textContent = Math.floor(scrollDist/8)+' m';
       renderLeaderboard();
     }
@@ -1084,6 +1173,7 @@
   document.getElementById('leaveBtn').addEventListener('click', ()=>{
     paused = false;
     running = false;
+    mpLeave();
     document.getElementById('pauseOverlay').classList.remove('show');
     mainMenu.classList.remove('hidden');
     nicknameInput.value = playerState.nickname === 'Anonyme' ? '' : playerState.nickname;

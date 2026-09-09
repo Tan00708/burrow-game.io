@@ -264,6 +264,18 @@
   }
   .stage-toast.show{ opacity:1; transform:translate(-50%,0); }
 
+  .effects-hud{
+    position:fixed; top:132px; left:50%; transform:translateX(-50%);
+    display:flex; gap:8px; z-index:5; pointer-events:none;
+  }
+  .effect-chip{
+    display:flex; align-items:center; gap:4px;
+    background:rgba(27,36,73,0.85); border:2px solid rgba(255,107,53,0.3);
+    border-radius:10px; padding:5px 10px; font-family:'Fredoka',sans-serif;
+    font-weight:600; font-size:13px; color:var(--ink); backdrop-filter:blur(8px);
+    box-shadow:0 4px 12px rgba(0,0,0,0.25);
+  }
+
   @media (pointer: coarse){
     .pause-btn{ display:flex; top:calc(14px + env(safe-area-inset-top)); }
     .key-badge{ display:none; }
@@ -314,6 +326,8 @@
     .hud-block{ padding:7px 12px; }
     .hud-label{ font-size:10px; }
     .hud-value{ font-size:18px; }
+    .effects-hud{ top:calc(100px + env(safe-area-inset-top)); }
+    .effect-chip{ font-size:11px; padding:4px 8px; }
     .leaderboard{
       width:104px; padding:7px; left:10px;
       top:calc(64px + env(safe-area-inset-top));
@@ -420,6 +434,7 @@
 </div>
 
 <div class="stage-toast" id="stageToast"></div>
+<div class="effects-hud" id="effectsHud"></div>
 
 <div class="key-badge" id="keyBadge">K</div>
 <button class="pause-btn" id="pauseBtn" title="Pause">⏸</button>
@@ -765,6 +780,36 @@
   let decor = [];
   let generatedIndex = -1;
 
+  // ---------- Bonus (façon Mario Kart) ----------
+  // À chaque nouveau stage (sauf le 1er), le tunnel s'élargit et propose 3
+  // bonus au choix. Icône + couleur + label pour que ce soit immédiat à lire.
+  const GATE_SEGMENTS = 3; // longueur du sas élargi, en tronçons
+  const POWERUP_KINDS = ['boost', 'shield', 'shrink'];
+  const POWERUP_INFO = {
+    boost:  { emoji:'⚡', label:'BOOST',     color:'#FFC93C', ring:'#FF8C1A' },
+    shield: { emoji:'🛡️', label:'BOUCLIER', color:'#6BC6F2', ring:'#2E86C1' },
+    shrink: { emoji:'🤏', label:'PETIT',     color:'#D9A5FA', ring:'#8A5FD4' }
+  };
+  let pickups = [];
+  let pickupIdCounter = 0;
+  let genStage = 1;
+  let gateState = { active:false, remaining:0 };
+  let effects = { boostTimer:0, shieldCharges:0, shrinkTimer:0 };
+  const BASE_RADIUS = 10;
+
+  function spawnGatePickups(depth, cx, halfW){
+    const kinds = POWERUP_KINDS.slice().sort(()=> Math.random()-0.5);
+    const spread = halfW*0.55;
+    const xs = [cx-spread, cx, cx+spread];
+    for(let k=0;k<3;k++){
+      pickups.push({ id: pickupIdCounter++, depth, x: xs[k], kind: kinds[k], collected:false, r:16 });
+    }
+  }
+
+  function prunePickups(minDepth){
+    pickups = pickups.filter(p => p.depth > minDepth);
+  }
+
   function rand(a,b){ return a + Math.random()*(b-a); }
   function clamp(v,a,b){ return Math.max(a, Math.min(b,v)); }
   function smooth(t){ return t*t*(3-2*t); }
@@ -782,11 +827,37 @@
   function genControlPoint(i){
     const prev = controls[i-1];
     const difficulty = clamp(i*0.01*DIFFICULTY_ACCEL, 0, 1);
-    const halfW = clamp((prev? prev.halfW : BASE_HALF_WIDTH) + rand(-8,8), MIN_HALF_WIDTH, BASE_HALF_WIDTH + 10) - difficulty*10;
-    let cx = prev ? prev.cx + rand(-70,70) : W/2;
-    cx = clamp(cx, halfW+30, W-halfW-30);
-    const cp = {i, depth:i*CONTROL_SPACING, cx, halfW: Math.max(halfW, MIN_HALF_WIDTH)};
-    controls[i] = cp;
+    const depth = i*CONTROL_SPACING;
+
+    // On détecte ici, à la génération, si ce tronçon franchit un nouveau
+    // stage — c'est le bon moment car les parois de cette zone sont fixées
+    // bien avant que le joueur ne les atteigne. On ouvre alors un sas élargi
+    // de quelques tronçons avec 3 bonus au choix (jamais au tout premier stage).
+    if(!gateState.active){
+      const stageHere = stageForMeters(depth/8);
+      if(stageHere !== genStage){
+        genStage = stageHere;
+        gateState = { active:true, remaining: GATE_SEGMENTS };
+      }
+    }
+
+    let cp;
+    if(gateState.active){
+      const gateHalfW = Math.min(160, W/2 - 30);
+      cp = {i, depth, cx: W/2, halfW: gateHalfW, isGate:true};
+      controls[i] = cp;
+      if(gateState.remaining === GATE_SEGMENTS){
+        spawnGatePickups(depth + CONTROL_SPACING, W/2, gateHalfW);
+      }
+      gateState.remaining--;
+      if(gateState.remaining <= 0) gateState.active = false;
+    } else {
+      const halfW = clamp((prev? prev.halfW : BASE_HALF_WIDTH) + rand(-8,8), MIN_HALF_WIDTH, BASE_HALF_WIDTH + 10) - difficulty*10;
+      let cx = prev ? prev.cx + rand(-70,70) : W/2;
+      cx = clamp(cx, halfW+30, W-halfW-30);
+      cp = {i, depth, cx, halfW: Math.max(halfW, MIN_HALF_WIDTH)};
+      controls[i] = cp;
+    }
 
     // Gros cailloux / rochers : on calcule la position du couloir à la
     // profondeur RÉELLE du caillou (et non celle du point de contrôle), sinon
@@ -900,13 +971,38 @@
   const STAR_COUNT = 60;
   let stars = Array.from({length:STAR_COUNT}, ()=>({x:Math.random(), y:Math.random(), r:Math.random()*1.6+0.4, seed:Math.random()*1000}));
 
-  function showStageToast(stage, theme){
+  function showStageToast(stage, theme, hasGate){
     const el = document.getElementById('stageToast');
-    el.textContent = `Stage ${stage} — ${theme.name}`;
+    el.textContent = hasGate ? `Stage ${stage} — ${theme.name} · 🎁 Choisis un bonus !` : `Stage ${stage} — ${theme.name}`;
     el.classList.add('show');
     clearTimeout(el._t);
     el._t = setTimeout(()=> el.classList.remove('show'), 2400);
     document.getElementById('stageVal').textContent = stage;
+  }
+
+  function showPickupToast(kind){
+    const info = POWERUP_INFO[kind];
+    const el = document.getElementById('stageToast');
+    el.textContent = `${info.emoji} ${info.label} activé !`;
+    el.classList.add('show');
+    clearTimeout(el._t);
+    el._t = setTimeout(()=> el.classList.remove('show'), 1600);
+  }
+
+  function applyPowerup(kind){
+    if(kind === 'boost') effects.boostTimer = 3;
+    else if(kind === 'shield') effects.shieldCharges += 1;
+    else if(kind === 'shrink') effects.shrinkTimer = 5;
+    showPickupToast(kind);
+    renderEffectsHud();
+  }
+
+  function renderEffectsHud(){
+    const chips = [];
+    if(effects.boostTimer > 0) chips.push(`<div class="effect-chip">⚡ ${effects.boostTimer.toFixed(1)}s</div>`);
+    if(effects.shieldCharges > 0) chips.push(`<div class="effect-chip">🛡️ ×${effects.shieldCharges}</div>`);
+    if(effects.shrinkTimer > 0) chips.push(`<div class="effect-chip">🤏 ${effects.shrinkTimer.toFixed(1)}s</div>`);
+    document.getElementById('effectsHud').innerHTML = chips.join('');
   }
 
   // ---------- Game state ----------
@@ -924,8 +1020,18 @@
     }
   }
 
+  function explodeShieldBreak(x,y){
+    for(let k=0;k<18;k++){
+      const ang = Math.random()*Math.PI*2, spd = 40+Math.random()*140;
+      particles.push({x,y,vx:Math.cos(ang)*spd, vy:Math.sin(ang)*spd, life:1, size:2+Math.random()*3, hex:'#6BC6F2'});
+    }
+  }
+
   function resetGame(){
     controls = []; decor = []; generatedIndex = -1;
+    pickups = []; genStage = 1; gateState = { active:false, remaining:0 };
+    effects = { boostTimer:0, shieldCharges:0, shrinkTimer:0 };
+    player.radius = BASE_RADIUS;
     scrollDist = 0; speed = 95; trail = []; particles = [];
     ensureGenerated(H*2 + 300);
     player.x = centerAt(H);
@@ -934,10 +1040,11 @@
     pointerControlEnabled = false;
     keys.left = false; keys.right = false;
     document.getElementById('pauseOverlay').classList.remove('show');
+    document.getElementById('effectsHud').innerHTML = '';
     currentStage = 1;
     themeBlend = { from: THEMES[0], to: THEMES[0], t: 1 };
     document.getElementById('stageVal').textContent = '1';
-    showStageToast(1, THEMES[0]);
+    showStageToast(1, THEMES[0], false);
     running = true;
     for(const b of demoBots){ b.dist = 0; b.speed = rand(70,120); b.crashTimer = rand(4,14); }
     mpForceUpdate();
@@ -1067,6 +1174,7 @@
 
     ensureGenerated(scrollDist + H*2 + 200);
     pruneBehind(scrollDist + H - 60);
+    prunePickups(scrollDist + H - 60);
     for(const dcr of decor){
       const sy = playerY - dcr.depth + scrollDist + H;
       if(sy < -20 || sy > H+20) continue;
@@ -1086,6 +1194,26 @@
       }
     }
 
+    for(const pu of pickups){
+      if(pu.collected) continue;
+      const sy = playerY - pu.depth + scrollDist + H;
+      if(sy < -30 || sy > H+30) continue;
+      const info = POWERUP_INFO[pu.kind];
+      const pulse = 1 + Math.sin(ts*0.006 + pu.id)*0.06;
+      ctx.beginPath(); ctx.arc(pu.x, sy, pu.r*pulse+4, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(10,14,39,0.35)'; ctx.fill();
+      ctx.beginPath(); ctx.arc(pu.x, sy, pu.r*pulse, 0, Math.PI*2);
+      ctx.fillStyle = info.color; ctx.fill();
+      ctx.lineWidth = 2.5; ctx.strokeStyle = info.ring; ctx.stroke();
+      ctx.font = (pu.r*1.4)+'px sans-serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(info.emoji, pu.x, sy - 1);
+      ctx.font = '700 9px Fredoka, sans-serif';
+      ctx.fillStyle = 'rgba(255,255,255,0.95)';
+      ctx.fillText(info.label, pu.x, sy + pu.r + 9);
+    }
+    ctx.textAlign = 'start'; ctx.textBaseline = 'alphabetic';
+
     if(running && !paused){
       if(keys.left) player.x -= KEY_SPEED*dt;
       if(keys.right) player.x += KEY_SPEED*dt;
@@ -1096,8 +1224,14 @@
       trail.push({d:scrollDist, x:player.x});
       while(trail.length && trail[0].d < scrollDist - SEGMENTS*SEG_SPACING - 40) trail.shift();
 
+      // Effets des bonus en cours
+      if(effects.boostTimer > 0) effects.boostTimer -= dt;
+      if(effects.shrinkTimer > 0) effects.shrinkTimer -= dt;
+      player.radius = effects.shrinkTimer > 0 ? BASE_RADIUS*0.6 : BASE_RADIUS;
+      const speedMul = effects.boostTimer > 0 ? 1.6 : 1;
+
       speed = Math.min(240, 95 + (scrollDist/8)*0.18*DIFFICULTY_ACCEL);
-      scrollDist += speed*dt;
+      scrollDist += speed*dt*speedMul;
 
       const meters = scrollDist/8;
       const newStage = stageForMeters(meters);
@@ -1105,20 +1239,38 @@
         currentStage = newStage;
         const newTheme = themeForStage(newStage);
         themeBlend = { from: themeBlend.to, to: newTheme, t: 0 };
-        showStageToast(newStage, newTheme);
+        showStageToast(newStage, newTheme, newStage > 1);
+      }
+
+      // Ramassage des bonus : on regarde s'ils sont à hauteur du ver (proche
+      // de playerY à l'écran) et suffisamment proches latéralement.
+      for(const pu of pickups){
+        if(pu.collected) continue;
+        const sy = playerY - pu.depth + scrollDist + H;
+        if(Math.abs(sy - playerY) < 16 && Math.abs(player.x - pu.x) < player.radius + pu.r){
+          pu.collected = true;
+          applyPowerup(pu.kind);
+        }
       }
 
       const c = centerAt(scrollDist + H), hw = halfWAt(scrollDist + H);
       if(player.x - player.radius < c-hw || player.x + player.radius > c+hw){
-        explode(player.x, playerY);
-        running = false;
-        showGameOver();
+        if(effects.shieldCharges > 0){
+          effects.shieldCharges--;
+          player.x = centerAt(scrollDist + H);
+          explodeShieldBreak(player.x, playerY);
+        } else {
+          explode(player.x, playerY);
+          running = false;
+          showGameOver();
+        }
       }
 
       updateDemoBots(dt);
       mpUpdateMe(ts);
       document.getElementById('distVal').textContent = Math.floor(scrollDist/8)+' m';
       renderLeaderboard();
+      renderEffectsHud();
     }
 
     drawWorm();

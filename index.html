@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html lang="fr">
-<head><meta name="google-site-verification" content="scbJQaAjdQ5Ljt9i72GenibAQBYgwR_mXR5QogzjMmM" />
+<head>
+<meta name="google-site-verification" content="scbJQaAjdQ5Ljt9i72GenibAQBYgwR_mXR5QogzjMmM" />
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Burrow.io — Game</title>
+
 <meta property="og:title" content="BURROW.IO">
 <meta property="og:description" content="Plonge dans les profondeurs, évite les obstacles et bats les autres joueurs !">
 <meta property="og:image" content="https://tan00708.github.io/burrow-game.io/prewiew.png">
@@ -17,6 +19,9 @@
 <meta name="twitter:title" content="BURROW.IO">
 <meta name="twitter:description" content="Un jeu de tunnel multijoueur !">
 <meta name="twitter:image" content="https://tan00708.github.io/burrow-game.io/prewiew.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700;800&family=Inter:wght@400;600&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg-dark:#0A0E27;
@@ -265,7 +270,7 @@
   }
 
   .stage-toast{
-    position:fixed; top:80px; left:50%; transform:translate(-50%,-8px);
+    position:fixed; top:112px; left:50%; transform:translate(-50%,-8px);
     font-family:'Fredoka',sans-serif; font-weight:700; color:var(--ink);
     font-size:18px; opacity:0; pointer-events:none; z-index:6;
     background:rgba(27,36,73,0.85); border:2px solid rgba(255,107,53,0.4);
@@ -276,7 +281,7 @@
   .stage-toast.show{ opacity:1; transform:translate(-50%,0); }
 
   .effects-hud{
-    position:fixed; top:132px; left:50%; transform:translateX(-50%);
+    position:fixed; top:172px; left:50%; transform:translateX(-50%);
     display:flex; gap:8px; z-index:5; pointer-events:none;
   }
   .effect-chip{
@@ -337,7 +342,8 @@
     .hud-block{ padding:7px 12px; }
     .hud-label{ font-size:10px; }
     .hud-value{ font-size:18px; }
-    .effects-hud{ top:calc(100px + env(safe-area-inset-top)); }
+    .stage-toast{ top:calc(96px + env(safe-area-inset-top)); font-size:15px; padding:8px 16px; }
+    .effects-hud{ top:calc(150px + env(safe-area-inset-top)); }
     .effect-chip{ font-size:11px; padding:4px 8px; }
     .leaderboard{
       width:104px; padding:7px; left:10px;
@@ -866,6 +872,19 @@
       const halfW = clamp((prev? prev.halfW : BASE_HALF_WIDTH) + rand(-8,8), MIN_HALF_WIDTH, BASE_HALF_WIDTH + 10) - difficulty*10;
       let cx = prev ? prev.cx + rand(-70,70) : W/2;
       cx = clamp(cx, halfW+30, W-halfW-30);
+
+      // Recentrage progressif juste avant un sas de bonus : sur les 2
+      // derniers tronçons avant l'élargissement, on ramène doucement le
+      // chemin vers le milieu de l'écran, pour arriver déjà centré au lieu
+      // de recentrer brutalement pile au début du sas.
+      const RECENTER_SEGMENTS = 2;
+      const distToGate = nextStageBoundaryDepth(depth) - depth;
+      if(distToGate > 0 && distToGate <= RECENTER_SEGMENTS*CONTROL_SPACING){
+        const leadT = smooth(1 - distToGate/(RECENTER_SEGMENTS*CONTROL_SPACING));
+        cx = cx*(1-leadT) + (W/2)*leadT;
+        cx = clamp(cx, halfW+30, W-halfW-30);
+      }
+
       cp = {i, depth, cx, halfW: Math.max(halfW, MIN_HALF_WIDTH)};
       controls[i] = cp;
     }
@@ -947,6 +966,20 @@
   }
   function themeForStage(stage){ return THEMES[(stage-1) % THEMES.length]; }
 
+  // Profondeur (en unités du monde, comme scrollDist) de la PROCHAINE
+  // frontière de stage après une profondeur donnée. Sert à anticiper
+  // (recentrer le chemin et annoncer le bonus avant d'y arriver).
+  function nextStageBoundaryDepth(fromDepth){
+    const m = fromDepth/8;
+    let nextMeters;
+    if(m < 500) nextMeters = 500;
+    else if(m < 1000) nextMeters = 1000;
+    else if(m < 1500) nextMeters = 1500;
+    else if(m < 2000) nextMeters = 2000;
+    else nextMeters = 2000 + (Math.floor((m-2000)/1000)+1)*1000;
+    return nextMeters*8;
+  }
+
   function hexToRgb(hex){
     const n = parseInt(hex.replace('#',''),16);
     return [(n>>16)&255, (n>>8)&255, n&255];
@@ -964,6 +997,8 @@
   }
 
   let currentStage = 1;
+  let announcedStage = 1; // dernier stage déjà annoncé à l'avance (toast), avant d'y arriver
+  const TOAST_LEAD_DEPTH = 480; // distance d'anticipation de l'annonce, en unités du monde
   let themeBlend = { from: THEMES[0], to: THEMES[0], t: 1 };
   const TRANSITION_TIME = 1.4;
 
@@ -982,13 +1017,15 @@
   const STAR_COUNT = 60;
   let stars = Array.from({length:STAR_COUNT}, ()=>({x:Math.random(), y:Math.random(), r:Math.random()*1.6+0.4, seed:Math.random()*1000}));
 
+  // Le toast n'est plus responsable du numéro de stage affiché dans le HUD :
+  // il est désormais déclenché EN AVANCE (avant d'arriver), donc le HUD doit
+  // continuer à changer seulement au moment réel du passage de stage.
   function showStageToast(stage, theme, hasGate){
     const el = document.getElementById('stageToast');
     el.textContent = hasGate ? `Stage ${stage} — ${theme.name} · 🎁 Choisis un bonus !` : `Stage ${stage} — ${theme.name}`;
     el.classList.add('show');
     clearTimeout(el._t);
     el._t = setTimeout(()=> el.classList.remove('show'), 2400);
-    document.getElementById('stageVal').textContent = stage;
   }
 
   function showPickupToast(kind){
@@ -1041,6 +1078,7 @@
   function resetGame(){
     controls = []; decor = []; generatedIndex = -1;
     pickups = []; genStage = 1; gateState = { active:false, remaining:0 };
+    announcedStage = 1;
     effects = { boostTimer:0, shieldCharges:0, shrinkTimer:0 };
     player.radius = BASE_RADIUS;
     scrollDist = 0; speed = 95; trail = []; particles = [];
@@ -1245,12 +1283,21 @@
       scrollDist += speed*dt*speedMul;
 
       const meters = scrollDist/8;
+
+      // Annonce anticipée : dès qu'on est à TOAST_LEAD_DEPTH du prochain
+      // stage, on prévient le joueur avant d'y arriver (une seule fois).
+      const lookaheadStage = stageForMeters((scrollDist + TOAST_LEAD_DEPTH)/8);
+      if(lookaheadStage > announcedStage){
+        announcedStage = lookaheadStage;
+        showStageToast(lookaheadStage, themeForStage(lookaheadStage), lookaheadStage > 1);
+      }
+
       const newStage = stageForMeters(meters);
       if(newStage !== currentStage){
         currentStage = newStage;
         const newTheme = themeForStage(newStage);
         themeBlend = { from: themeBlend.to, to: newTheme, t: 0 };
-        showStageToast(newStage, newTheme, newStage > 1);
+        document.getElementById('stageVal').textContent = newStage;
       }
 
       // Ramassage des bonus : on regarde s'ils sont à hauteur du ver (proche

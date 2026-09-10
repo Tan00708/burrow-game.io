@@ -873,14 +873,23 @@
       let cx = prev ? prev.cx + rand(-70,70) : W/2;
       cx = clamp(cx, halfW+30, W-halfW-30);
 
-      // Recentrage progressif juste avant un sas de bonus : sur les 2
-      // derniers tronçons avant l'élargissement, on ramène doucement le
-      // chemin vers le milieu de l'écran, pour arriver déjà centré au lieu
-      // de recentrer brutalement pile au début du sas.
-      const RECENTER_SEGMENTS = 2;
-      const distToGate = nextStageBoundaryDepth(depth) - depth;
-      if(distToGate > 0 && distToGate <= RECENTER_SEGMENTS*CONTROL_SPACING){
-        const leadT = smooth(1 - distToGate/(RECENTER_SEGMENTS*CONTROL_SPACING));
+      // Recentrage avant un sas de bonus : on regarde directement, avec la
+      // MÊME formule que celle qui déclenche le sas, combien de tronçons il
+      // reste avant l'élargissement (au lieu de comparer à une profondeur de
+      // seuil séparée, qui pouvait être légèrement désalignée avec la grille
+      // des points de contrôle et laisser un petit résidu de décalage).
+      // Sur le tout dernier tronçon avant le sas, le centrage est FORCÉ et
+      // exact (pas juste rapproché) : c'était ce résidu qui causait l'entrée
+      // en diagonale une fois sur deux.
+      const RECENTER_SEGMENTS = 3;
+      let segsToGate = -1;
+      for(let look=1; look<=RECENTER_SEGMENTS; look++){
+        if(stageForMeters(((i+look)*CONTROL_SPACING)/8) !== genStage){ segsToGate = look; break; }
+      }
+      if(segsToGate === 1){
+        cx = W/2; // dernier tronçon avant le sas : centrage exact, sans résidu
+      } else if(segsToGate > 1){
+        const leadT = smooth(1 - (segsToGate-1)/(RECENTER_SEGMENTS-1));
         cx = cx*(1-leadT) + (W/2)*leadT;
         cx = clamp(cx, halfW+30, W-halfW-30);
       }
@@ -965,20 +974,6 @@
     return 5 + Math.floor((m-2000)/1000);
   }
   function themeForStage(stage){ return THEMES[(stage-1) % THEMES.length]; }
-
-  // Profondeur (en unités du monde, comme scrollDist) de la PROCHAINE
-  // frontière de stage après une profondeur donnée. Sert à anticiper
-  // (recentrer le chemin et annoncer le bonus avant d'y arriver).
-  function nextStageBoundaryDepth(fromDepth){
-    const m = fromDepth/8;
-    let nextMeters;
-    if(m < 500) nextMeters = 500;
-    else if(m < 1000) nextMeters = 1000;
-    else if(m < 1500) nextMeters = 1500;
-    else if(m < 2000) nextMeters = 2000;
-    else nextMeters = 2000 + (Math.floor((m-2000)/1000)+1)*1000;
-    return nextMeters*8;
-  }
 
   function hexToRgb(hex){
     const n = parseInt(hex.replace('#',''),16);

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://tan00708.github.io/burrow-game.io/sitemap.xml

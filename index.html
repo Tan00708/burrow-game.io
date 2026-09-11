@@ -811,6 +811,8 @@
   let pickupIdCounter = 0;
   let genStage = 1;
   let gateState = { active:false, remaining:0 };
+  let postGateEase = { active:false, remaining:0 };
+  const EXIT_EASE_SEGMENTS = 3;
   let effects = { boostTimer:0, shieldCharges:0, shrinkTimer:0 };
   const BASE_RADIUS = 10;
 
@@ -867,31 +869,47 @@
         spawnGatePickups(depth + CONTROL_SPACING, W/2, gateHalfW);
       }
       gateState.remaining--;
-      if(gateState.remaining <= 0) gateState.active = false;
+      if(gateState.remaining <= 0){
+        gateState.active = false;
+        postGateEase = { active:true, remaining: EXIT_EASE_SEGMENTS };
+      }
     } else {
       const halfW = clamp((prev? prev.halfW : BASE_HALF_WIDTH) + rand(-8,8), MIN_HALF_WIDTH, BASE_HALF_WIDTH + 10) - difficulty*10;
       let cx = prev ? prev.cx + rand(-70,70) : W/2;
       cx = clamp(cx, halfW+30, W-halfW-30);
 
-      // Recentrage avant un sas de bonus : on regarde directement, avec la
-      // MÊME formule que celle qui déclenche le sas, combien de tronçons il
-      // reste avant l'élargissement (au lieu de comparer à une profondeur de
-      // seuil séparée, qui pouvait être légèrement désalignée avec la grille
-      // des points de contrôle et laisser un petit résidu de décalage).
-      // Sur le tout dernier tronçon avant le sas, le centrage est FORCÉ et
-      // exact (pas juste rapproché) : c'était ce résidu qui causait l'entrée
-      // en diagonale une fois sur deux.
-      const RECENTER_SEGMENTS = 3;
-      let segsToGate = -1;
-      for(let look=1; look<=RECENTER_SEGMENTS; look++){
-        if(stageForMeters(((i+look)*CONTROL_SPACING)/8) !== genStage){ segsToGate = look; break; }
-      }
-      if(segsToGate === 1){
-        cx = W/2; // dernier tronçon avant le sas : centrage exact, sans résidu
-      } else if(segsToGate > 1){
-        const leadT = smooth(1 - (segsToGate-1)/(RECENTER_SEGMENTS-1));
+      if(postGateEase && postGateEase.active){
+        // Sortie du sas : miroir de l'entrée. On relâche PROGRESSIVEMENT le
+        // centrage au lieu de repartir d'un coup en marche aléatoire — sinon
+        // le rétrécissement juste après les bonus reproduisait le même
+        // défaut de biais que l'entrée.
+        const segsSinceGate = EXIT_EASE_SEGMENTS - postGateEase.remaining + 1;
+        const leadT = smooth(1 - segsSinceGate/EXIT_EASE_SEGMENTS);
         cx = cx*(1-leadT) + (W/2)*leadT;
         cx = clamp(cx, halfW+30, W-halfW-30);
+        postGateEase.remaining--;
+        if(postGateEase.remaining <= 0) postGateEase.active = false;
+      } else {
+        // Recentrage avant un sas de bonus : on regarde directement, avec la
+        // MÊME formule que celle qui déclenche le sas, combien de tronçons il
+        // reste avant l'élargissement (au lieu de comparer à une profondeur de
+        // seuil séparée, qui pouvait être légèrement désalignée avec la grille
+        // des points de contrôle et laisser un petit résidu de décalage).
+        // Sur le tout dernier tronçon avant le sas, le centrage est FORCÉ et
+        // exact (pas juste rapproché) : c'était ce résidu qui causait l'entrée
+        // en diagonale une fois sur deux.
+        const RECENTER_SEGMENTS = 3;
+        let segsToGate = -1;
+        for(let look=1; look<=RECENTER_SEGMENTS; look++){
+          if(stageForMeters(((i+look)*CONTROL_SPACING)/8) !== genStage){ segsToGate = look; break; }
+        }
+        if(segsToGate === 1){
+          cx = W/2; // dernier tronçon avant le sas : centrage exact, sans résidu
+        } else if(segsToGate > 1){
+          const leadT = smooth(1 - (segsToGate-1)/(RECENTER_SEGMENTS-1));
+          cx = cx*(1-leadT) + (W/2)*leadT;
+          cx = clamp(cx, halfW+30, W-halfW-30);
+        }
       }
 
       cp = {i, depth, cx, halfW: Math.max(halfW, MIN_HALF_WIDTH)};
@@ -925,6 +943,22 @@
       const offsetIntoWall = rand(2, 26);
       const wallX = side<0 ? lcx - lhw - offsetIntoWall : lcx + lhw + offsetIntoWall;
       decor.push({depth:d, x: clamp(wallX, 2, W-2), r: rand(0.8,2), kind:'grain', hi: Math.random()<0.3});
+    }
+
+    // Texture éparse sur TOUT l'écran (pas juste collée aux parois), pour un
+    // fond moins vide loin du chemin. Peu dense ("pas trop"), et on vérifie
+    // toujours que le point ne tombe pas sur la partie praticable : si c'est
+    // le cas, on le repousse juste à côté du mur le plus proche.
+    const nBgSpecks = Math.floor(rand(1,3));
+    for(let s=0; s<nBgSpecks; s++){
+      const d = cp.depth - rand(4, CONTROL_SPACING-4);
+      const {cx: lcx, halfW: lhw} = segGeomAt(prev, cp, d);
+      let x = rand(6, W-6);
+      if(Math.abs(x - lcx) < lhw + 8){
+        x = x < lcx ? lcx - lhw - rand(8, 24) : lcx + lhw + rand(8, 24);
+        x = clamp(x, 2, W-2);
+      }
+      decor.push({depth:d, x, r: rand(1, 2.4), kind:'bgspeck', hi: Math.random()<0.25});
     }
     return cp;
   }
@@ -1073,6 +1107,7 @@
   function resetGame(){
     controls = []; decor = []; generatedIndex = -1;
     pickups = []; genStage = 1; gateState = { active:false, remaining:0 };
+    postGateEase = { active:false, remaining:0 };
     announcedStage = 1;
     effects = { boostTimer:0, shieldCharges:0, shrinkTimer:0 };
     player.radius = BASE_RADIUS;
@@ -1232,6 +1267,11 @@
         ctx.fillStyle = dcr.hi ? colors.rockHi : colors.speckle;
         ctx.beginPath(); ctx.arc(dcr.x, sy, dcr.r, 0, Math.PI*2); ctx.fill();
         ctx.globalAlpha = 1;
+      } else if(dcr.kind === 'bgspeck'){
+        ctx.globalAlpha = dcr.hi ? 0.35 : 0.5;
+        ctx.fillStyle = dcr.hi ? colors.rockHi : colors.speckle;
+        ctx.beginPath(); ctx.arc(dcr.x, sy, dcr.r, 0, Math.PI*2); ctx.fill();
+        ctx.globalAlpha = 1;
       } else {
         ctx.fillStyle = colors.speckle;
         ctx.beginPath(); ctx.arc(dcr.x, sy, dcr.r, 0, Math.PI*2); ctx.fill();
@@ -1274,7 +1314,11 @@
       player.radius = effects.shrinkTimer > 0 ? BASE_RADIUS*0.6 : BASE_RADIUS;
       const speedMul = effects.boostTimer > 0 ? 1.6 : 1;
 
-      speed = Math.min(240, 95 + (scrollDist/8)*0.18*DIFFICULTY_ACCEL);
+      // Vitesse : montée rapide au début (la ruée initiale), puis une lente
+      // escalade qui ne s'arrête jamais vraiment — ça évite le plateau plat
+      // d'avant (atteint dès ~240m) et entretient la tension sur la durée.
+      const metersNow = scrollDist/8;
+      speed = Math.min(480, 95 + 220*(1 - Math.exp(-metersNow/500)) + metersNow*0.02);
       scrollDist += speed*dt*speedMul;
 
       const meters = scrollDist/8;

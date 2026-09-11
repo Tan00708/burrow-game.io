@@ -242,7 +242,7 @@
   .leaderboard{
     position:fixed; top:16px; left:18px; width:200px;
     background:rgba(27,36,73,0.8); border-radius:14px; padding:12px;
-    backdrop-filter:blur(10px); z-index:5; border:2px solid rgba(255,107,53,0.3);
+    backdrop-filter:blur(10px); z-index:16; border:2px solid rgba(255,107,53,0.3);
   }
   .leaderboard h3{margin:0 0 8px 0; font-family:'Fredoka',sans-serif; font-size:13px; color:var(--ink); font-weight:700; text-transform:uppercase;}
   .lb-row{display:flex; justify-content:space-between; align-items:center; font-size:12px; color:var(--ink-dim); padding:4px 0;}
@@ -981,15 +981,15 @@
     // profondeur RÉELLE du caillou (et non celle du point de contrôle), sinon
     // le tunnel peut avoir bougé entre-temps et le caillou se retrouve sur
     // la route au lieu d'être planté dans la paroi.
-    const nRocks = Math.floor(rand(3,6));
+    const nRocks = Math.floor(rand(4,8));
     for(let k=0;k<nRocks;k++){
       const side = Math.random()<0.5 ? -1 : 1;
       const d = cp.depth - rand(10, CONTROL_SPACING-10);
       const {cx: lcx, halfW: lhw} = segGeomAt(prev, cp, d);
-      const big = Math.random() < 0.4;
+      const big = Math.random() < 0.35;
       const offsetIntoWall = rand(10, 46);
       const wallX = side<0 ? lcx - lhw - offsetIntoWall : lcx + lhw + offsetIntoWall;
-      decor.push({depth:d, x: clamp(wallX, 4, W-4), r: big? rand(7,11): rand(2.5,4.5), kind: big?'rock':'speckle'});
+      decor.push({depth:d, x: clamp(wallX, 4, W-4), r: big? rand(7,11): rand(3,5.5), kind: big?'rock':'pebble'});
     }
 
     // Grain discret sur les parois : nombreux petits points, proches du bord,
@@ -1304,6 +1304,11 @@
         ctx.beginPath(); ctx.arc(dcr.x, sy, dcr.r, 0, Math.PI*2); ctx.fill();
         ctx.fillStyle = colors.rockHi;
         ctx.beginPath(); ctx.arc(dcr.x-dcr.r*0.3, sy-dcr.r*0.3, dcr.r*0.4, 0, Math.PI*2); ctx.fill();
+      } else if(dcr.kind === 'pebble'){
+        ctx.fillStyle = colors.rock;
+        ctx.beginPath(); ctx.arc(dcr.x, sy, dcr.r, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = colors.rockHi;
+        ctx.beginPath(); ctx.arc(dcr.x-dcr.r*0.3, sy-dcr.r*0.3, dcr.r*0.35, 0, Math.PI*2); ctx.fill();
       } else if(dcr.kind === 'grain'){
         ctx.globalAlpha = dcr.hi ? 0.55 : 0.8;
         ctx.fillStyle = dcr.hi ? colors.rockHi : colors.speckle;

@@ -6,9 +6,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Burrow.io — Jeu de tunnel multijoueur gratuit</title>
 
-<!-- SEO : c'est cette balise que Google affiche sous le titre dans les
-     résultats de recherche (og:description/twitter:description ne servent
-     eux qu'aux aperçus de liens sur Discord, Twitter/X, etc.) -->
 <meta name="description" content="Burrow.io : jeu de tunnel multijoueur gratuit, jouable directement dans le navigateur sans installation. Creuse, évite les obstacles, récupère des bonus et grimpe dans un classement en temps réel contre de vrais joueurs.">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://tan00708.github.io/burrow-game.io/">
@@ -103,10 +100,10 @@
     width:90vw; max-width:1400px; height:90vh; max-height:700px;
   }
 
-  /* Top Left - Customization */
+  /* Top Left - Customization + Records */
   .menu-top-left{
     grid-column:1; grid-row:1;
-    display:flex; align-items:flex-start;
+    display:flex; flex-direction:column; align-items:flex-start; gap:16px;
   }
   .customize-section{
     background:rgba(27,36,73,0.6); border:2px solid rgba(255,107,53,0.3);
@@ -144,10 +141,35 @@
     display:flex;
   }
 
-  /* Top Right - Nickname */
+  /* Records panels (share the customize-section look) */
+  .records-section, .personal-section{
+    width:100%; max-width:240px;
+  }
+  .mini-row{
+    display:flex; justify-content:space-between; align-items:center;
+    font-size:12px; color:var(--ink-dim); padding:4px 0;
+  }
+  .mini-row .mini-rank{
+    color:var(--ink); font-weight:700; margin-right:6px;
+  }
+  .mini-row .mini-dist{
+    color:var(--accent-primary); font-weight:700;
+  }
+  .mini-empty{
+    font-size:12px; color:var(--ink-dim); font-style:italic; padding:4px 0;
+  }
+  .personal-best-value{
+    font-family:'Fredoka',sans-serif; font-weight:800; font-size:32px;
+    color:var(--accent-primary); margin:0; line-height:1;
+  }
+  .personal-best-label{
+    font-size:11px; color:var(--ink-dim); margin:4px 0 0 0;
+  }
+
+  /* Top Right - Nickname + Personal record */
   .menu-top-right{
     grid-column:3; grid-row:1;
-    display:flex; justify-content:flex-end; align-items:flex-start;
+    display:flex; flex-direction:column; align-items:flex-end; gap:16px;
   }
   .input-group{
     width:100%; max-width:240px;
@@ -326,9 +348,6 @@
     .pause-btn{ display:flex; top:calc(14px + env(safe-area-inset-top)); }
     .key-badge{ display:none; }
 
-    /* --- Menu principal : scrollable, alignée en haut, avec marge de sécurité
-       pour le titre et les encoches (notch), pour éviter que le contenu soit
-       rogné/centré hors écran (c'était la cause du désordre à l'arrivée). --- */
     .main-menu{
       align-items:flex-start;
       overflow-y:auto;
@@ -339,35 +358,29 @@
       top:calc(14px + env(safe-area-inset-top)); font-size:28px;
     }
 
-    /* Disposition en 2 colonnes : couleur + pseudo côte à côte pour limiter
-       le défilement, ver 3D et bouton "Jouer" en pleine largeur en dessous. */
     .menu-content{
       grid-template-columns:1fr 1fr;
       grid-template-rows:auto auto auto;
       gap:14px; width:100%; height:auto; max-height:none;
     }
-    .menu-top-left{ grid-column:1; grid-row:1; align-items:stretch; }
-    .menu-top-right{ grid-column:2; grid-row:1; align-items:stretch; justify-content:stretch; }
+    .menu-top-left{ grid-column:1; grid-row:1; flex-direction:column; align-items:stretch; gap:10px; }
+    .menu-top-right{ grid-column:2; grid-row:1; flex-direction:column; align-items:stretch; gap:10px; }
     .menu-center{ grid-column:1 / -1; grid-row:2; height:180px; }
     .menu-bottom{ grid-column:1 / -1; grid-row:3; padding-bottom:8px; }
 
-    .customize-section, .input-group{ max-width:none; width:100%; }
-    .customize-section{ padding:14px; height:100%; }
+    .customize-section, .input-group, .records-section, .personal-section{ max-width:none; width:100%; }
+    .customize-section{ padding:14px; }
     .customize-section h3{ font-size:12px; margin-bottom:10px; }
     .color-grid{ grid-template-columns:repeat(3, 1fr); gap:8px; }
-    .input-group{ display:flex; flex-direction:column; justify-content:center; height:100%; }
     .input-label{ font-size:11px; }
     .nickname-input{ padding:12px 14px; }
+    .personal-best-value{ font-size:26px; }
 
     .worm-info{ padding:8px; }
     .worm-name{ font-size:12px; }
 
     .menu-btn{ width:100%; padding:16px 24px; font-size:16px; }
 
-    /* --- HUD en jeu : le leaderboard (en haut à gauche) et le bloc
-       distance/stage (centré en haut) partageaient la même bande horizontale
-       et se chevauchaient sur les écrans étroits. On les sépare verticalement
-       pour que ça ne se touche jamais, quelle que soit la largeur du tel. --- */
     .hud{ top:calc(10px + env(safe-area-inset-top)); }
     .hud-block{ padding:7px 12px; }
     .hud-label{ font-size:10px; }
@@ -384,8 +397,6 @@
     .lb-row .dot{ width:6px; height:6px; margin-right:5px; }
   }
 
-  /* Téléphones étroits (< 400px) : on resserre encore la mise en page du menu
-     pour garder de bonnes zones tactiles sur les nuances de couleur. */
   @media (pointer: coarse) and (max-width: 400px){
     .title{ font-size:24px; }
     .menu-content{ gap:10px; }
@@ -395,9 +406,6 @@
     .nickname-input{ padding:11px 12px; font-size:15px; }
   }
 
-  /* Téléphones en mode paysage : la hauteur est très limitée, on réorganise
-     le menu en 3 colonnes (couleur+pseudo / ver / bouton) plutôt qu'empilé,
-     pour éviter un défilement excessif. */
   @media (pointer: coarse) and (orientation: landscape) and (max-height: 500px){
     .main-menu{ padding:calc(10px + env(safe-area-inset-top)) 16px calc(10px + env(safe-area-inset-bottom)); }
     .title{ font-size:20px; top:calc(8px + env(safe-area-inset-top)); }
@@ -427,7 +435,7 @@
   </div>
   <div class="title" id="gameTitle">BURROW.IO</div>
   <div class="menu-content">
-    <!-- Top Left: Customization -->
+    <!-- Top Left: Customization + Global records -->
     <div class="menu-top-left">
       <div class="customize-section">
         <h3>🎨 Couleur</h3>
@@ -440,13 +448,22 @@
           <div class="color-option" data-color="#B383B8" style="background:linear-gradient(135deg, #B383B8, #A272A7);" title="Violet"></div>
         </div>
       </div>
+      <div class="customize-section records-section">
+        <h3>🏆 Meilleurs scores</h3>
+        <div id="globalScoresList"><div class="mini-empty">Chargement...</div></div>
+      </div>
     </div>
 
-    <!-- Top Right: Nickname -->
+    <!-- Top Right: Nickname + Personal record -->
     <div class="menu-top-right">
       <div class="input-group">
         <label class="input-label">Pseudo</label>
         <input type="text" class="nickname-input" id="nicknameInput" placeholder="Entre ton pseudo..." maxlength="20">
+      </div>
+      <div class="customize-section personal-section">
+        <h3>⭐ Ton record</h3>
+        <p class="personal-best-value" id="personalBestVal">0 m</p>
+        <p class="personal-best-label">Meilleure distance parcourue</p>
       </div>
     </div>
 
@@ -520,13 +537,54 @@
     wormColor: '#E8998D'
   };
 
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  // ========== RECORDS (localStorage perso + Firebase mondial) ==========
+  const SCORE_ID_KEY = 'burrowio_score_id';
+  const PERSONAL_BEST_KEY = 'burrowio_personal_best';
+
+  function getScoreId(){
+    let id = localStorage.getItem(SCORE_ID_KEY);
+    if(!id){
+      id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ('s' + Math.random().toString(36).slice(2));
+      localStorage.setItem(SCORE_ID_KEY, id);
+    }
+    return id;
+  }
+  function getPersonalBest(){
+    return parseInt(localStorage.getItem(PERSONAL_BEST_KEY) || '0', 10);
+  }
+  function setPersonalBestIfHigher(distMeters){
+    const rounded = Math.floor(distMeters);
+    if(rounded > getPersonalBest()){
+      localStorage.setItem(PERSONAL_BEST_KEY, String(rounded));
+      return true;
+    }
+    return false;
+  }
+
+  let globalTopScores = [];
+
+  function renderMenuRecords(){
+    const listEl = document.getElementById('globalScoresList');
+    if(listEl){
+      if(globalTopScores.length){
+        listEl.innerHTML = globalTopScores.map((s,i)=>`
+          <div class="mini-row">
+            <span><span class="mini-rank">${i+1}.</span>${escapeHtml(s.nickname || 'Joueur')}</span>
+            <span class="mini-dist">${Math.floor(s.dist)}m</span>
+          </div>`).join('');
+      } else {
+        listEl.innerHTML = '<div class="mini-empty">Sois le premier !</div>';
+      }
+    }
+    const pbEl = document.getElementById('personalBestVal');
+    if(pbEl) pbEl.textContent = getPersonalBest() + ' m';
+  }
+
   // ========== MULTIJOUEUR (Firebase Realtime Database) ==========
-  // 1) Crée un projet gratuit sur https://console.firebase.google.com
-  // 2) Active "Realtime Database" (mode test pour démarrer)
-  // 3) Project settings > Général > Vos applications > Web (</>) > copie
-  //    l'objet firebaseConfig et colle-le ci-dessous, à la place de celui-ci.
-  // Tant que ce n'est pas fait, le jeu tourne quand même avec 3 bots de
-  // démonstration à la place de vrais joueurs, pour ne rien casser.
   const firebaseConfig = {
     apiKey: "AIzaSyD4gWV0Jqz7daOKNTWgsyFBBeJoErHjndM",
     authDomain: "burrow-c3f39.firebaseapp.com",
@@ -537,12 +595,13 @@
     appId: "1:290540859884:web:75b91e48b2ae5e6ace10c9"
   };
 
-  let otherPlayers = {};      // { playerId: {nickname, color, dist, ts} } — alimenté en temps réel
-  let mpReady = false;        // true une fois connecté à Firebase
+  let otherPlayers = {};
+  let mpReady = false;
   let myPlayerId = null;
   let myPlayerRef = null;
+  let db = null;
   let lastMpWrite = 0;
-  const MP_WRITE_INTERVAL = 300; // ms entre deux écritures, pour ne pas spammer la base
+  const MP_WRITE_INTERVAL = 300;
 
   function initMultiplayer(){
     const configured = firebaseConfig.apiKey
@@ -555,7 +614,7 @@
     }
     try{
       firebase.initializeApp(firebaseConfig);
-      const db = firebase.database();
+      db = firebase.database();
       myPlayerId = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ('p' + Math.random().toString(36).slice(2));
       myPlayerRef = db.ref('players/' + myPlayerId);
       myPlayerRef.onDisconnect().remove();
@@ -567,12 +626,20 @@
         const now = Date.now();
         for(const id in val){
           if(id === myPlayerId) continue;
-          // on ignore les joueurs dont la présence n'a pas été rafraîchie
-          // depuis 10s (onglet fermé sans onDisconnect, coupure réseau, etc.)
           if(val[id].ts && now - val[id].ts > 10000) continue;
           next[id] = val[id];
         }
         otherPlayers = next;
+      });
+
+      db.ref('scores').orderByChild('dist').limitToLast(5).on('value', (snap)=>{
+        const val = snap.val() || {};
+        globalTopScores = Object.values(val).sort((a,b)=>b.dist-a.dist);
+        renderMenuRecords();
+      }, (err)=>{
+        console.error('Lecture du classement mondial refusée (vérifie les règles Firebase pour le chemin "scores") :', err);
+        const listEl = document.getElementById('globalScoresList');
+        if(listEl) listEl.innerHTML = '<div class="mini-empty">Classement indisponible</div>';
       });
 
       mpReady = true;
@@ -583,6 +650,22 @@
     }
   }
   initMultiplayer();
+
+  function submitScoreIfHigher(distMeters){
+    const isNewPersonalBest = setPersonalBestIfHigher(distMeters);
+    if(isNewPersonalBest && db){
+      const rounded = Math.floor(distMeters);
+      db.ref('scores/' + getScoreId()).set({
+        nickname: playerState.nickname,
+        color: playerState.wormColor,
+        dist: rounded,
+        ts: Date.now()
+      }).catch((err)=>{
+        console.error('Écriture du score mondial refusée (vérifie les règles Firebase pour le chemin "scores") :', err);
+      });
+    }
+    renderMenuRecords();
+  }
 
   function mpForceUpdate(){
     if(!mpReady || !myPlayerRef) return;
@@ -604,9 +687,6 @@
     myPlayerRef.remove();
   }
 
-  // Bots de démonstration : actifs uniquement tant que Firebase n'est pas
-  // configuré, pour que le classement ne soit pas vide pendant les tests.
-  // Ils disparaissent automatiquement dès que le multijoueur est branché.
   let demoBots = mpReady ? [] : ['Mika','Rooty','Glim'].map(name=>({name, dist:0, speed:rand(70,120), crashTimer:rand(4,14)}));
   function updateDemoBots(dt){
     for(const b of demoBots){
@@ -635,7 +715,6 @@
 
     bgCtx.clearRect(0, 0, w, h);
 
-    // Animated particles
     for(let i = 0; i < 30; i++){
       const x = (w / 30 * i + bgTime * 20) % w;
       const y = Math.sin((i + bgTime * 0.5) * 0.5) * h * 0.2 + h * 0.5;
@@ -682,11 +761,9 @@
     wormCtx.save();
     wormCtx.translate(centerX, centerY);
 
-    // 3D rotation effect
     wormRotation += 1.5;
     wormTime += 0.03;
 
-    // Draw 3D segments using perspective
     const segmentCount = 12;
     const segmentSpacing = 14;
 
@@ -696,7 +773,6 @@
       const offsetY = i * segmentSpacing + Math.sin(wormTime + i * 0.4) * 4;
       const offsetX = Math.cos(wormTime + i * 0.3) * 3;
 
-      // Perspective effect
       const perspective = 1 + (1 - scale) * 0.3;
 
       const hue = i % 2 === 0 ? playerState.wormColor : adjustBrightness(playerState.wormColor, -20);
@@ -705,19 +781,16 @@
       wormCtx.translate(offsetX, offsetY);
       wormCtx.scale(scale, scale * 0.9);
 
-      // Shadow
       wormCtx.fillStyle = 'rgba(0, 0, 0, 0.2)';
       wormCtx.beginPath();
       wormCtx.ellipse(2, 8, 12 * scale, 3 * scale, 0, 0, Math.PI * 2);
       wormCtx.fill();
 
-      // Segment body
       wormCtx.fillStyle = hue;
       wormCtx.beginPath();
       wormCtx.arc(0, 0, 10 * scale, 0, Math.PI * 2);
       wormCtx.fill();
 
-      // Shine
       wormCtx.fillStyle = `rgba(255, 255, 255, ${0.3 * (1 - i / segmentCount)})`;
       wormCtx.beginPath();
       wormCtx.arc(-3 * scale, -3 * scale, 3 * scale, 0, Math.PI * 2);
@@ -726,30 +799,25 @@
       wormCtx.restore();
     }
 
-    // Head with more detail
     wormCtx.save();
     wormCtx.scale(1, 0.95);
 
-    // Head glow
     wormCtx.fillStyle = `rgba(255, 107, 53, 0.15)`;
     wormCtx.beginPath();
     wormCtx.arc(0, -segmentCount * segmentSpacing, 16, 0, Math.PI * 2);
     wormCtx.fill();
 
-    // Head
     wormCtx.fillStyle = adjustBrightness(playerState.wormColor, 15);
     wormCtx.beginPath();
     wormCtx.arc(0, -segmentCount * segmentSpacing, 12, 0, Math.PI * 2);
     wormCtx.fill();
 
-    // Eyes
     wormCtx.fillStyle = 'rgba(40, 20, 15, 0.9)';
     wormCtx.beginPath();
     wormCtx.arc(-4, -segmentCount * segmentSpacing - 2, 2, 0, Math.PI * 2);
     wormCtx.arc(4, -segmentCount * segmentSpacing - 2, 2, 0, Math.PI * 2);
     wormCtx.fill();
 
-    // Eye shine
     wormCtx.fillStyle = 'rgba(255, 255, 255, 0.6)';
     wormCtx.beginPath();
     wormCtx.arc(-3.2, -segmentCount * segmentSpacing - 3, 0.8, 0, Math.PI * 2);
@@ -768,7 +836,6 @@
   const nicknameInput = document.getElementById('nicknameInput');
   const menuStartBtn = document.getElementById('menuStartBtn');
 
-  // Color selection
   document.querySelectorAll('.color-option').forEach(option => {
     option.addEventListener('click', () => {
       document.querySelectorAll('.color-option').forEach(o => o.classList.remove('selected'));
@@ -777,18 +844,17 @@
     });
   });
 
-  // Nickname input
   nicknameInput.addEventListener('input', (e) => {
     playerState.nickname = e.target.value || 'Anonyme';
   });
 
-  // Start game
   menuStartBtn.addEventListener('click', () => {
     mainMenu.classList.add('hidden');
     resetGame();
   });
 
-  // Helper function
+  renderMenuRecords();
+
   function adjustBrightness(color, percent) {
     const num = parseInt(color.replace("#",""), 16);
     const amt = Math.round(2.55 * percent);
@@ -827,10 +893,7 @@
   let decor = [];
   let generatedIndex = -1;
 
-  // ---------- Bonus (façon Mario Kart) ----------
-  // À chaque nouveau stage (sauf le 1er), le tunnel s'élargit et propose 3
-  // bonus au choix. Icône + couleur + label pour que ce soit immédiat à lire.
-  const GATE_SEGMENTS = 3; // longueur du sas élargi, en tronçons
+  const GATE_SEGMENTS = 3;
   const POWERUP_KINDS = ['boost', 'shield', 'shrink'];
   const POWERUP_INFO = {
     boost:  { emoji:'⚡', label:'BOOST',     color:'#FFC93C', ring:'#FF8C1A' },
@@ -842,7 +905,7 @@
   let genStage = 1;
   let gateState = { active:false, remaining:0 };
   let postGateEase = { active:false, remaining:0 };
-  let frozenCx = null; // position latérale figée pendant l'approche + le sas + la sortie
+  let frozenCx = null;
   const EXIT_EASE_SEGMENTS = 3;
   let effects = { boostTimer:0, shieldCharges:0, shrinkTimer:0 };
   const BASE_RADIUS = 10;
@@ -864,9 +927,6 @@
   function clamp(v,a,b){ return Math.max(a, Math.min(b,v)); }
   function smooth(t){ return t*t*(3-2*t); }
 
-  // Géométrie interpolée du tunnel à une profondeur d donnée, à partir de deux
-  // points de contrôle connus (sans passer par centerAt/halfWAt, qui génèrent
-  // de nouveaux points et créeraient une récursion pendant la génération).
   function segGeomAt(prevPt, curPt, d){
     const p = prevPt || curPt;
     const segLen = (curPt.depth - p.depth) || 1;
@@ -879,10 +939,6 @@
     const difficulty = clamp(i*0.01*DIFFICULTY_ACCEL, 0, 1);
     const depth = i*CONTROL_SPACING;
 
-    // On détecte ici, à la génération, si ce tronçon franchit un nouveau
-    // stage — c'est le bon moment car les parois de cette zone sont fixées
-    // bien avant que le joueur ne les atteigne. On ouvre alors un sas élargi
-    // de quelques tronçons avec 3 bonus au choix (jamais au tout premier stage).
     if(!gateState.active){
       const stageHere = stageForMeters(depth/8);
       if(stageHere !== genStage){
@@ -893,8 +949,6 @@
 
     let cp;
     if(gateState.active){
-      // Le sas reste sur la ligne figée (frozenCx) plutôt que d'être forcé
-      // au centre de l'écran — l'important est que ce soit droit, pas centré.
       const cx = frozenCx;
       const gateHalfW = Math.min(160, cx-30, W-cx-30);
       cp = {i, depth, cx, halfW: gateHalfW, isGate:true};
@@ -912,18 +966,10 @@
       let cx;
 
       if(postGateEase && postGateEase.active){
-        // Sortie du sas : on garde la ligne figée jusqu'au bout, puis la
-        // marche aléatoire repart de cette même valeur (donc sans à-coup).
         cx = frozenCx;
         postGateEase.remaining--;
         if(postGateEase.remaining <= 0){ postGateEase.active = false; frozenCx = null; }
       } else {
-        // Approche d'un sas de bonus : on regarde directement, avec la MÊME
-        // formule que celle qui déclenche le sas, combien de tronçons il
-        // reste avant l'élargissement. Dès qu'on entre dans cette fenêtre,
-        // on FIGE la position latérale (au lieu de la ramener progressivement
-        // vers un point, ce qui créait elle-même une courbe en S) : la ligne
-        // reste droite, où qu'elle soit, jusqu'à la fin du sas.
         const RECENTER_SEGMENTS = 3;
         let segsToGate = -1;
         for(let look=1; look<=RECENTER_SEGMENTS; look++){
@@ -942,10 +988,6 @@
       controls[i] = cp;
     }
 
-    // Gros cailloux / rochers : on calcule la position du couloir à la
-    // profondeur RÉELLE du caillou (et non celle du point de contrôle), sinon
-    // le tunnel peut avoir bougé entre-temps et le caillou se retrouve sur
-    // la route au lieu d'être planté dans la paroi.
     const nRocks = Math.floor(rand(2,4));
     for(let k=0;k<nRocks;k++){
       const side = Math.random()<0.5 ? -1 : 1;
@@ -957,10 +999,6 @@
       decor.push({depth:d, x: clamp(wallX, 4, W-4), r: big? rand(7,11): rand(2.5,4.5), kind: big?'rock':'speckle'});
     }
 
-    // Grain discret sur les parois : nombreux petits points, proches du bord,
-    // qui donnent une texture rocheuse subtile. Les couleurs viennent du
-    // thème courant (rock/speckle), donc l'aspect change automatiquement
-    // selon le stage (lave sur le volcan, glace sur le glacier, etc.).
     const nGrain = Math.floor(rand(10,16));
     for(let g=0; g<nGrain; g++){
       const side = Math.random()<0.5 ? -1 : 1;
@@ -971,10 +1009,6 @@
       decor.push({depth:d, x: clamp(wallX, 2, W-2), r: rand(0.8,2), kind:'grain', hi: Math.random()<0.3});
     }
 
-    // Texture éparse sur TOUT l'écran (pas juste collée aux parois), pour un
-    // fond moins vide loin du chemin. Peu dense ("pas trop"), et on vérifie
-    // toujours que le point ne tombe pas sur la partie praticable : si c'est
-    // le cas, on le repousse juste à côté du mur le plus proche.
     const nBgSpecks = Math.floor(rand(1,3));
     for(let s=0; s<nBgSpecks; s++){
       const d = cp.depth - rand(4, CONTROL_SPACING-4);
@@ -1014,7 +1048,6 @@
     while(decor.length && decor[0].depth < minDepth) decor.shift();
   }
 
-  // ---------- Stages & background themes ----------
   const THEMES = [
     { name:'Grotte',     bg:'#1B140F', wall:'#5B564C', edge:'#171A21', rock:'#8B8578', rockHi:'rgba(255,255,255,0.18)', speckle:'rgba(40,32,24,0.5)',  path:'#3A2E22', stars:false },
     { name:'Plaine',     bg:'#26311C', wall:'#63793E', edge:'#1F2814', rock:'#8A9B5E', rockHi:'rgba(255,255,255,0.25)', speckle:'rgba(20,26,12,0.45)', path:'#3C4A24', stars:false },
@@ -1052,8 +1085,8 @@
   }
 
   let currentStage = 1;
-  let announcedStage = 1; // dernier stage déjà annoncé à l'avance (toast), avant d'y arriver
-  const TOAST_LEAD_DEPTH = 480; // distance d'anticipation de l'annonce, en unités du monde
+  let announcedStage = 1;
+  const TOAST_LEAD_DEPTH = 480;
   let themeBlend = { from: THEMES[0], to: THEMES[0], t: 1 };
   const TRANSITION_TIME = 1.4;
 
@@ -1072,9 +1105,6 @@
   const STAR_COUNT = 60;
   let stars = Array.from({length:STAR_COUNT}, ()=>({x:Math.random(), y:Math.random(), r:Math.random()*1.6+0.4, seed:Math.random()*1000}));
 
-  // Le toast n'est plus responsable du numéro de stage affiché dans le HUD :
-  // il est désormais déclenché EN AVANCE (avant d'arriver), donc le HUD doit
-  // continuer à changer seulement au moment réel du passage de stage.
   function showStageToast(stage, theme, hasGate){
     const el = document.getElementById('stageToast');
     el.textContent = hasGate ? `Stage ${stage} — ${theme.name} · 🎁 Choisis un bonus !` : `Stage ${stage} — ${theme.name}`;
@@ -1108,7 +1138,6 @@
     document.getElementById('effectsHud').innerHTML = chips.join('');
   }
 
-  // ---------- Game state ----------
   let scrollDist = 0, speed = 95, running = false, gameOverShown = false, paused = false;
   let player = { x: 0, radius: 10 };
   let trail = [];
@@ -1166,13 +1195,12 @@
     all.sort((a,b)=>b.dist-a.dist);
     document.getElementById('lbList').innerHTML = all.map((p,i)=>`
       <div class="lb-row ${p.me?'me':''}">
-        <span class="lb-name"><span class="dot" style="background:${p.hex}"></span>${(i+1)}. ${p.name}</span>
+        <span class="lb-name"><span class="dot" style="background:${p.hex}"></span>${(i+1)}. ${escapeHtml(p.name)}</span>
         <span>${Math.floor(p.dist)}m</span>
       </div>`).join('');
     return all;
   }
 
-  // ---------- Input ----------
   let pointerX = null;
   let pointerControlEnabled = true;
   function setPointer(clientX){
@@ -1204,7 +1232,6 @@
 
   document.getElementById('pauseBtn').addEventListener('click', togglePause);
 
-  // ---------- Render helpers ----------
   function drawWallSlice(y, leftEdge, rightEdge, wallColor){
     ctx.fillStyle = wallColor;
     ctx.fillRect(0, y, leftEdge, 4);
@@ -1334,23 +1361,17 @@
       trail.push({d:scrollDist, x:player.x});
       while(trail.length && trail[0].d < scrollDist - SEGMENTS*SEG_SPACING - 40) trail.shift();
 
-      // Effets des bonus en cours
       if(effects.boostTimer > 0) effects.boostTimer -= dt;
       if(effects.shrinkTimer > 0) effects.shrinkTimer -= dt;
       player.radius = effects.shrinkTimer > 0 ? BASE_RADIUS*0.6 : BASE_RADIUS;
       const speedMul = effects.boostTimer > 0 ? 1.6 : 1;
 
-      // Vitesse : montée rapide au début (la ruée initiale), puis une lente
-      // escalade qui ne s'arrête jamais vraiment — ça évite le plateau plat
-      // d'avant (atteint dès ~240m) et entretient la tension sur la durée.
       const metersNow = scrollDist/8;
       speed = Math.min(480, 95 + 220*(1 - Math.exp(-metersNow/500)) + metersNow*0.02);
       scrollDist += speed*dt*speedMul;
 
       const meters = scrollDist/8;
 
-      // Annonce anticipée : dès qu'on est à TOAST_LEAD_DEPTH du prochain
-      // stage, on prévient le joueur avant d'y arriver (une seule fois).
       const lookaheadStage = stageForMeters((scrollDist + TOAST_LEAD_DEPTH)/8);
       if(lookaheadStage > announcedStage){
         announcedStage = lookaheadStage;
@@ -1365,8 +1386,6 @@
         document.getElementById('stageVal').textContent = newStage;
       }
 
-      // Ramassage des bonus : on regarde s'ils sont à hauteur du ver (proche
-      // de playerY à l'écran) et suffisamment proches latéralement.
       for(const pu of pickups){
         if(pu.collected) continue;
         const sy = playerY - pu.depth + scrollDist + H;
@@ -1417,10 +1436,11 @@
   function showGameOver(){
     if(gameOverShown) return;
     gameOverShown = true;
+    submitScoreIfHigher(scrollDist/8);
     const ranked = renderLeaderboard();
     document.getElementById('endResults').innerHTML = ranked.map((p,i)=>`
       <div class="result-row ${p.me?'me':''}">
-        <span>${i+1}. ${p.name}</span>
+        <span>${i+1}. ${escapeHtml(p.name)}</span>
         <span>${Math.floor(p.dist)}m</span>
       </div>`).join('');
     const place = ranked.findIndex(p=>p.me)+1;
@@ -1452,6 +1472,7 @@
     document.getElementById('pauseOverlay').classList.remove('show');
     mainMenu.classList.remove('hidden');
     nicknameInput.value = playerState.nickname === 'Anonyme' ? '' : playerState.nickname;
+    renderMenuRecords();
   });
 
   document.getElementById('restartBtn').addEventListener('click', ()=>{

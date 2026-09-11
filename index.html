@@ -812,6 +812,7 @@
   let genStage = 1;
   let gateState = { active:false, remaining:0 };
   let postGateEase = { active:false, remaining:0 };
+  let frozenCx = null; // position latérale figée pendant l'approche + le sas + la sortie
   const EXIT_EASE_SEGMENTS = 3;
   let effects = { boostTimer:0, shieldCharges:0, shrinkTimer:0 };
   const BASE_RADIUS = 10;
@@ -862,11 +863,14 @@
 
     let cp;
     if(gateState.active){
-      const gateHalfW = Math.min(160, W/2 - 30);
-      cp = {i, depth, cx: W/2, halfW: gateHalfW, isGate:true};
+      // Le sas reste sur la ligne figée (frozenCx) plutôt que d'être forcé
+      // au centre de l'écran — l'important est que ce soit droit, pas centré.
+      const cx = frozenCx;
+      const gateHalfW = Math.min(160, cx-30, W-cx-30);
+      cp = {i, depth, cx, halfW: gateHalfW, isGate:true};
       controls[i] = cp;
       if(gateState.remaining === GATE_SEGMENTS){
-        spawnGatePickups(depth + CONTROL_SPACING, W/2, gateHalfW);
+        spawnGatePickups(depth + CONTROL_SPACING, cx, gateHalfW);
       }
       gateState.remaining--;
       if(gateState.remaining <= 0){
@@ -875,39 +879,31 @@
       }
     } else {
       const halfW = clamp((prev? prev.halfW : BASE_HALF_WIDTH) + rand(-8,8), MIN_HALF_WIDTH, BASE_HALF_WIDTH + 10) - difficulty*10;
-      let cx = prev ? prev.cx + rand(-70,70) : W/2;
-      cx = clamp(cx, halfW+30, W-halfW-30);
+      let cx;
 
       if(postGateEase && postGateEase.active){
-        // Sortie du sas : miroir de l'entrée. On relâche PROGRESSIVEMENT le
-        // centrage au lieu de repartir d'un coup en marche aléatoire — sinon
-        // le rétrécissement juste après les bonus reproduisait le même
-        // défaut de biais que l'entrée.
-        const segsSinceGate = EXIT_EASE_SEGMENTS - postGateEase.remaining + 1;
-        const leadT = smooth(1 - segsSinceGate/EXIT_EASE_SEGMENTS);
-        cx = cx*(1-leadT) + (W/2)*leadT;
-        cx = clamp(cx, halfW+30, W-halfW-30);
+        // Sortie du sas : on garde la ligne figée jusqu'au bout, puis la
+        // marche aléatoire repart de cette même valeur (donc sans à-coup).
+        cx = frozenCx;
         postGateEase.remaining--;
-        if(postGateEase.remaining <= 0) postGateEase.active = false;
+        if(postGateEase.remaining <= 0){ postGateEase.active = false; frozenCx = null; }
       } else {
-        // Recentrage avant un sas de bonus : on regarde directement, avec la
-        // MÊME formule que celle qui déclenche le sas, combien de tronçons il
-        // reste avant l'élargissement (au lieu de comparer à une profondeur de
-        // seuil séparée, qui pouvait être légèrement désalignée avec la grille
-        // des points de contrôle et laisser un petit résidu de décalage).
-        // Sur le tout dernier tronçon avant le sas, le centrage est FORCÉ et
-        // exact (pas juste rapproché) : c'était ce résidu qui causait l'entrée
-        // en diagonale une fois sur deux.
+        // Approche d'un sas de bonus : on regarde directement, avec la MÊME
+        // formule que celle qui déclenche le sas, combien de tronçons il
+        // reste avant l'élargissement. Dès qu'on entre dans cette fenêtre,
+        // on FIGE la position latérale (au lieu de la ramener progressivement
+        // vers un point, ce qui créait elle-même une courbe en S) : la ligne
+        // reste droite, où qu'elle soit, jusqu'à la fin du sas.
         const RECENTER_SEGMENTS = 3;
         let segsToGate = -1;
         for(let look=1; look<=RECENTER_SEGMENTS; look++){
           if(stageForMeters(((i+look)*CONTROL_SPACING)/8) !== genStage){ segsToGate = look; break; }
         }
-        if(segsToGate === 1){
-          cx = W/2; // dernier tronçon avant le sas : centrage exact, sans résidu
-        } else if(segsToGate > 1){
-          const leadT = smooth(1 - (segsToGate-1)/(RECENTER_SEGMENTS-1));
-          cx = cx*(1-leadT) + (W/2)*leadT;
+        if(segsToGate >= 1){
+          if(frozenCx === null) frozenCx = prev ? prev.cx : W/2;
+          cx = frozenCx;
+        } else {
+          cx = prev ? prev.cx + rand(-70,70) : W/2;
           cx = clamp(cx, halfW+30, W-halfW-30);
         }
       }
@@ -1107,7 +1103,7 @@
   function resetGame(){
     controls = []; decor = []; generatedIndex = -1;
     pickups = []; genStage = 1; gateState = { active:false, remaining:0 };
-    postGateEase = { active:false, remaining:0 };
+    postGateEase = { active:false, remaining:0 }; frozenCx = null;
     announcedStage = 1;
     effects = { boostTimer:0, shieldCharges:0, shrinkTimer:0 };
     player.radius = BASE_RADIUS;

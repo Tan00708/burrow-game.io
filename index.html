@@ -242,15 +242,13 @@
   .leaderboard{
     position:fixed; top:16px; left:18px; width:200px;
     background:rgba(27,36,73,0.8); border-radius:14px; padding:12px;
-    backdrop-filter:blur(10px); z-index:9999; border:2px solid rgba(255,107,53,0.3);
+    backdrop-filter:blur(10px); z-index:5; border:2px solid rgba(255,107,53,0.3);
   }
   .leaderboard h3{margin:0 0 8px 0; font-family:'Fredoka',sans-serif; font-size:13px; color:var(--ink); font-weight:700; text-transform:uppercase;}
   .lb-row{display:flex; justify-content:space-between; align-items:center; font-size:12px; color:var(--ink-dim); padding:4px 0;}
   .lb-row .dot{width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:8px; flex-shrink:0;}
   .lb-name{display:flex; align-items:center; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
   .lb-row.me{color:var(--accent-primary); font-weight:700;}
-
-  .personal-board{ left:auto; right:18px; }
 
   .overlay{
     position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
@@ -381,7 +379,6 @@
       width:104px; padding:7px; left:10px;
       top:calc(64px + env(safe-area-inset-top));
     }
-    .personal-board{ left:auto; right:10px; }
     .leaderboard h3{ font-size:10px; margin-bottom:4px; }
     .lb-row{ font-size:9px; padding:2px 0; }
     .lb-row .dot{ width:6px; height:6px; margin-right:5px; }
@@ -489,14 +486,9 @@
 <div class="key-badge" id="keyBadge">K</div>
 <button class="pause-btn" id="pauseBtn" title="Pause">⏸</button>
 
-<div class="leaderboard" id="globalBoard">
-  <h3>🌍 Records</h3>
+<div class="leaderboard">
+  <h3>🏆 Top</h3>
   <div id="lbList"></div>
-</div>
-
-<div class="leaderboard personal-board" id="personalBoard">
-  <h3>⭐ Mes records</h3>
-  <div id="prList"></div>
 </div>
 
 <div class="overlay" id="pauseOverlay">
@@ -545,9 +537,12 @@
     appId: "1:290540859884:web:75b91e48b2ae5e6ace10c9"
   };
 
-  let db = null;               // instance Firebase Realtime Database, une fois connectée
-  let mpReady = false;         // true une fois connecté à Firebase
+  let otherPlayers = {};      // { playerId: {nickname, color, dist, ts} } — alimenté en temps réel
+  let mpReady = false;        // true une fois connecté à Firebase
   let myPlayerId = null;
+  let myPlayerRef = null;
+  let lastMpWrite = 0;
+  const MP_WRITE_INTERVAL = 300; // ms entre deux écritures, pour ne pas spammer la base
 
   function initMultiplayer(){
     const configured = firebaseConfig.apiKey
@@ -555,101 +550,71 @@
       && firebaseConfig.databaseURL
       && firebaseConfig.databaseURL.indexOf('COLLE_ICI') === -1;
     if(!configured || typeof firebase === 'undefined'){
-      console.info('Multijoueur : firebaseConfig non renseigné, utilisation de records de démo.');
-      renderGlobalBoard();
+      console.info('Multijoueur : firebaseConfig non renseigné, utilisation de bots de démo.');
       return;
     }
     try{
       firebase.initializeApp(firebaseConfig);
-      db = firebase.database();
+      const db = firebase.database();
       myPlayerId = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ('p' + Math.random().toString(36).slice(2));
+      myPlayerRef = db.ref('players/' + myPlayerId);
+      myPlayerRef.onDisconnect().remove();
+      window.addEventListener('beforeunload', ()=>{ try{ myPlayerRef.remove(); }catch(e){} });
+
+      db.ref('players').on('value', (snap)=>{
+        const val = snap.val() || {};
+        const next = {};
+        const now = Date.now();
+        for(const id in val){
+          if(id === myPlayerId) continue;
+          // on ignore les joueurs dont la présence n'a pas été rafraîchie
+          // depuis 10s (onglet fermé sans onDisconnect, coupure réseau, etc.)
+          if(val[id].ts && now - val[id].ts > 10000) continue;
+          next[id] = val[id];
+        }
+        otherPlayers = next;
+      });
+
       mpReady = true;
       console.info('Multijoueur : connecté à Firebase.');
-      listenGlobalScores();
     }catch(e){
       console.warn('Multijoueur indisponible :', e);
       mpReady = false;
-      renderGlobalBoard();
     }
   }
   initMultiplayer();
 
-  // ===== Classement mondial : records persistants, tous joueurs confondus =====
-  // Chaque joueur (identifié par myPlayerId, stable pour la session du
-  // navigateur) a UNE entrée dans scores/{playerId} = { nickname, dist, ts },
-  // mise à jour uniquement quand il bat son propre record. Le panneau de
-  // gauche affiche les 5 meilleures distances tous joueurs confondus.
-  let globalScores = [];
-
-  function listenGlobalScores(){
-    if(!mpReady || !db) return;
-    db.ref('scores').orderByChild('dist').limitToLast(10).on('value', (snap)=>{
-      const val = snap.val() || {};
-      globalScores = Object.values(val).sort((a,b)=> b.dist - a.dist);
-      renderGlobalBoard();
-    }, (err)=>{
-      console.warn('Lecture des scores mondiaux impossible :', err);
+  function mpForceUpdate(){
+    if(!mpReady || !myPlayerRef) return;
+    lastMpWrite = performance.now();
+    myPlayerRef.set({
+      nickname: playerState.nickname,
+      color: playerState.wormColor,
+      dist: Math.floor(scrollDist/8),
+      ts: Date.now()
     });
   }
-
-  function demoGlobalScores(){
-    // Affiché tant que Firebase n'est pas configuré / connecté, pour que le
-    // panneau ne soit jamais vide pendant les tests.
-    return [
-      { nickname:'Mika',  dist:512 },
-      { nickname:'Rooty', dist:437 },
-      { nickname:'Glim',  dist:365 }
-    ];
+  function mpUpdateMe(ts){
+    if(!mpReady || !myPlayerRef) return;
+    if(ts - lastMpWrite < MP_WRITE_INTERVAL) return;
+    mpForceUpdate();
+  }
+  function mpLeave(){
+    if(!mpReady || !myPlayerRef) return;
+    myPlayerRef.remove();
   }
 
-  function renderGlobalBoard(){
-    const list = (globalScores.length ? globalScores : demoGlobalScores()).slice(0,5);
-    document.getElementById('lbList').innerHTML = list.map((p,i)=>`
-      <div class="lb-row ${p.nickname===playerState.nickname?'me':''}">
-        <span class="lb-name">${i+1}. ${p.nickname}</span>
-        <span>${Math.floor(p.dist)}m</span>
-      </div>`).join('');
+  // Bots de démonstration : actifs uniquement tant que Firebase n'est pas
+  // configuré, pour que le classement ne soit pas vide pendant les tests.
+  // Ils disparaissent automatiquement dès que le multijoueur est branché.
+  let demoBots = mpReady ? [] : ['Mika','Rooty','Glim'].map(name=>({name, dist:0, speed:rand(70,120), crashTimer:rand(4,14)}));
+  function updateDemoBots(dt){
+    for(const b of demoBots){
+      b.dist += b.speed*dt*0.12;
+      b.crashTimer -= dt;
+      if(b.crashTimer <= 0){ b.dist = Math.max(0, b.dist - rand(4,14)); b.crashTimer = rand(5,16); }
+    }
   }
-
-  function submitGlobalScore(dist){
-    if(!mpReady || !db || !myPlayerId) return;
-    const ref = db.ref('scores/' + myPlayerId);
-    ref.once('value').then(snap=>{
-      const cur = snap.val();
-      if(!cur || dist > cur.dist){
-        ref.set({ nickname: playerState.nickname, dist: Math.floor(dist), ts: Date.now() });
-      }
-    }).catch(e=> console.warn('Envoi du score mondial impossible :', e));
-  }
-
-  // ===== Records personnels : stockés localement dans ce navigateur =====
-  const LOCAL_RECORDS_KEY = 'burrowPersonalRecords';
-
-  function loadLocalRecords(){
-    try{ return JSON.parse(localStorage.getItem(LOCAL_RECORDS_KEY)) || []; }
-    catch(e){ return []; }
-  }
-
-  function saveLocalRecord(dist){
-    const records = loadLocalRecords();
-    records.push({ name: playerState.nickname, dist: Math.floor(dist), ts: Date.now() });
-    records.sort((a,b)=> b.dist - a.dist);
-    const top = records.slice(0,10);
-    try{ localStorage.setItem(LOCAL_RECORDS_KEY, JSON.stringify(top)); }catch(e){}
-    return top;
-  }
-
-  function renderPersonalBoard(){
-    const list = loadLocalRecords().slice(0,5);
-    document.getElementById('prList').innerHTML = list.length
-      ? list.map((r,i)=>`
-        <div class="lb-row">
-          <span class="lb-name">${i+1}. ${r.name}</span>
-          <span>${r.dist}m</span>
-        </div>`).join('')
-      : '<div class="lb-row" style="opacity:.6">Aucun run pour l\'instant</div>';
-  }
-  renderPersonalBoard();
 
   // ========== BACKGROUND ANIMATION ==========
   const bgCanvas = document.getElementById('bgCanvas');
@@ -981,15 +946,15 @@
     // profondeur RÉELLE du caillou (et non celle du point de contrôle), sinon
     // le tunnel peut avoir bougé entre-temps et le caillou se retrouve sur
     // la route au lieu d'être planté dans la paroi.
-    const nRocks = Math.floor(rand(4,8));
+    const nRocks = Math.floor(rand(2,4));
     for(let k=0;k<nRocks;k++){
       const side = Math.random()<0.5 ? -1 : 1;
       const d = cp.depth - rand(10, CONTROL_SPACING-10);
       const {cx: lcx, halfW: lhw} = segGeomAt(prev, cp, d);
-      const big = Math.random() < 0.35;
+      const big = Math.random() < 0.4;
       const offsetIntoWall = rand(10, 46);
       const wallX = side<0 ? lcx - lhw - offsetIntoWall : lcx + lhw + offsetIntoWall;
-      decor.push({depth:d, x: clamp(wallX, 4, W-4), r: big? rand(7,11): rand(3,5.5), kind: big?'rock':'pebble'});
+      decor.push({depth:d, x: clamp(wallX, 4, W-4), r: big? rand(7,11): rand(2.5,4.5), kind: big?'rock':'speckle'});
     }
 
     // Grain discret sur les parois : nombreux petits points, proches du bord,
@@ -1010,7 +975,7 @@
     // fond moins vide loin du chemin. Peu dense ("pas trop"), et on vérifie
     // toujours que le point ne tombe pas sur la partie praticable : si c'est
     // le cas, on le repousse juste à côté du mur le plus proche.
-    const nBgSpecks = Math.floor(rand(2,4));
+    const nBgSpecks = Math.floor(rand(1,3));
     for(let s=0; s<nBgSpecks; s++){
       const d = cp.depth - rand(4, CONTROL_SPACING-4);
       const {cx: lcx, halfW: lhw} = segGeomAt(prev, cp, d);
@@ -1186,6 +1151,25 @@
     document.getElementById('stageVal').textContent = '1';
     showStageToast(1, THEMES[0], false);
     running = true;
+    for(const b of demoBots){ b.dist = 0; b.speed = rand(70,120); b.crashTimer = rand(4,14); }
+    mpForceUpdate();
+  }
+
+  function renderLeaderboard(){
+    const others = mpReady
+      ? Object.values(otherPlayers).map(p=>({ name: p.nickname || 'Joueur', dist: p.dist || 0, hex: p.color || '#C9B9A8' }))
+      : demoBots.map(b=>({ name: b.name, dist: b.dist, hex:'#C9B9A8' }));
+    const all = [
+      {name: playerState.nickname, dist: scrollDist/8, me:true, hex: playerState.wormColor},
+      ...others
+    ];
+    all.sort((a,b)=>b.dist-a.dist);
+    document.getElementById('lbList').innerHTML = all.map((p,i)=>`
+      <div class="lb-row ${p.me?'me':''}">
+        <span class="lb-name"><span class="dot" style="background:${p.hex}"></span>${(i+1)}. ${p.name}</span>
+        <span>${Math.floor(p.dist)}m</span>
+      </div>`).join('');
+    return all;
   }
 
   // ---------- Input ----------
@@ -1304,11 +1288,6 @@
         ctx.beginPath(); ctx.arc(dcr.x, sy, dcr.r, 0, Math.PI*2); ctx.fill();
         ctx.fillStyle = colors.rockHi;
         ctx.beginPath(); ctx.arc(dcr.x-dcr.r*0.3, sy-dcr.r*0.3, dcr.r*0.4, 0, Math.PI*2); ctx.fill();
-      } else if(dcr.kind === 'pebble'){
-        ctx.fillStyle = colors.rock;
-        ctx.beginPath(); ctx.arc(dcr.x, sy, dcr.r, 0, Math.PI*2); ctx.fill();
-        ctx.fillStyle = colors.rockHi;
-        ctx.beginPath(); ctx.arc(dcr.x-dcr.r*0.3, sy-dcr.r*0.3, dcr.r*0.35, 0, Math.PI*2); ctx.fill();
       } else if(dcr.kind === 'grain'){
         ctx.globalAlpha = dcr.hi ? 0.55 : 0.8;
         ctx.fillStyle = dcr.hi ? colors.rockHi : colors.speckle;
@@ -1410,7 +1389,10 @@
         }
       }
 
+      updateDemoBots(dt);
+      mpUpdateMe(ts);
       document.getElementById('distVal').textContent = Math.floor(scrollDist/8)+' m';
+      renderLeaderboard();
       renderEffectsHud();
     }
 
@@ -1435,24 +1417,15 @@
   function showGameOver(){
     if(gameOverShown) return;
     gameOverShown = true;
-    const distM = Math.floor(scrollDist/8);
-
-    const priorPersonalBest = loadLocalRecords()[0];
-    const isNewPersonalBest = !priorPersonalBest || distM > priorPersonalBest.dist;
-    const priorGlobalBest = globalScores[0];
-    const isNewGlobalBest = !priorGlobalBest || distM > priorGlobalBest.dist;
-
-    saveLocalRecord(distM);
-    renderPersonalBoard();
-    submitGlobalScore(distM);
-
-    document.getElementById('endResults').innerHTML = `
-      <div class="result-row me"><span>${playerState.nickname}</span><span>${distM}m</span></div>`;
-
-    let subtitle = `${distM}m parcourus`;
-    if(isNewGlobalBest) subtitle += ' — 🌍 Nouveau record mondial !';
-    else if(isNewPersonalBest) subtitle += ' — ⭐ Nouveau record personnel !';
-    document.getElementById('endSubtitle').textContent = subtitle;
+    const ranked = renderLeaderboard();
+    document.getElementById('endResults').innerHTML = ranked.map((p,i)=>`
+      <div class="result-row ${p.me?'me':''}">
+        <span>${i+1}. ${p.name}</span>
+        <span>${Math.floor(p.dist)}m</span>
+      </div>`).join('');
+    const place = ranked.findIndex(p=>p.me)+1;
+    document.getElementById('endSubtitle').textContent =
+      `${Math.floor(scrollDist/8)}m parcourus — ${place===1?'1er !':(place+'e sur '+ranked.length)}`;
     document.getElementById('endOverlay').classList.add('show');
 
     clearTimeout(autoRestartTimer);
@@ -1475,6 +1448,7 @@
   document.getElementById('leaveBtn').addEventListener('click', ()=>{
     paused = false;
     running = false;
+    mpLeave();
     document.getElementById('pauseOverlay').classList.remove('show');
     mainMenu.classList.remove('hidden');
     nicknameInput.value = playerState.nickname === 'Anonyme' ? '' : playerState.nickname;

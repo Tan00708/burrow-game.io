@@ -150,6 +150,19 @@
   .color-option.selected::after{
     display:flex;
   }
+  .color-option-plus{
+    display:flex; align-items:center; justify-content:center;
+    background:rgba(255,107,53,0.12); border:3px dashed rgba(255,107,53,0.5);
+    font-size:22px; font-weight:800; color:var(--accent-primary);
+  }
+  .color-option-plus:hover{
+    background:rgba(255,107,53,0.22);
+  }
+  .color-option-plus.selected{
+    border-style:solid; border-color:var(--ink);
+    box-shadow:0 0 20px rgba(255,107,53,0.8);
+  }
+  .color-option-plus.selected::after{ content:none; display:none; }
 
   /* Records panels (share the customize-section look) */
   .records-section, .personal-section{
@@ -318,6 +331,7 @@
   /* Le popup d'identité doit passer AU-DESSUS du menu principal (z-index 15),
      puisqu'il peut s'afficher dès l'arrivée sur le site, menu déjà visible. */
   #onboardOverlay{ z-index:20; }
+  #wormCustomOverlay{ z-index:20; }
   .card{
     background:linear-gradient(135deg, #1B2449 0%, #0F1630 100%);
     border-radius:20px; padding:32px 28px; width:min(360px, 90vw);
@@ -341,6 +355,33 @@
   .divider::before, .divider::after{
     content:''; flex:1; height:1px; background:rgba(255,107,53,0.25);
   }
+  .wide-card{ width:min(440px, 92vw); }
+  .worm-pattern-preview{
+    display:flex; justify-content:center; gap:8px; margin:18px 0 22px 0; flex-wrap:wrap;
+  }
+  .worm-segment-slot{
+    width:36px; height:36px; border-radius:50%; cursor:pointer;
+    border:3px solid transparent; transition:transform .15s ease, border-color .15s ease;
+    box-shadow:0 4px 10px rgba(0,0,0,0.3); flex-shrink:0;
+  }
+  .worm-segment-slot:hover{ transform:scale(1.08); }
+  .worm-segment-slot.selected{
+    border-color:var(--ink); box-shadow:0 0 14px rgba(255,107,53,0.6);
+  }
+  .palette-grid{
+    display:grid; grid-template-columns:repeat(6, 1fr); gap:10px; margin-bottom:6px;
+  }
+  .palette-swatch{
+    aspect-ratio:1; border-radius:10px; cursor:pointer; border:3px solid transparent;
+    transition:transform .15s ease; box-shadow:0 3px 8px rgba(0,0,0,0.3);
+  }
+  .palette-swatch:hover{ transform:scale(1.08); }
+  .palette-swatch.selected{ border-color:var(--ink); }
+  .worm-custom-actions{
+    display:flex; gap:10px; margin-top:10px;
+  }
+  .worm-custom-actions .btn{ margin-top:0; }
+  .worm-custom-actions .btn-secondary{ margin-top:0; }
   .result-row{display:flex; justify-content:space-between; padding:8px; font-size:14px; color:var(--ink); border-bottom:1px solid rgba(255,107,53,0.2);}
   .result-row.me{color:var(--accent-primary); font-weight:700;}
   .btn{
@@ -502,10 +543,10 @@
       <div class="customize-section">
         <h3>🎨 Couleur</h3>
         <div class="color-grid">
-          <div class="color-option selected" data-color="#E8998D" style="background:linear-gradient(135deg, #E8998D, #D98A80);" title="Rose"></div>
+          <div class="color-option color-option-plus" id="wormCustomizeBtn" title="Personnaliser">+</div>
           <div class="color-option" data-color="#6BA3C4" style="background:linear-gradient(135deg, #6BA3C4, #5A92B3);" title="Bleu"></div>
           <div class="color-option" data-color="#78D4A8" style="background:linear-gradient(135deg, #78D4A8, #67C397);" title="Vert"></div>
-          <div class="color-option" data-color="#F2D66D" style="background:linear-gradient(135deg, #F2D66D, #E1C55C);" title="Jaune"></div>
+          <div class="color-option selected" data-color="#FF6FA5" style="background:linear-gradient(135deg, #FF6FA5, #E8578F);" title="Rose"></div>
           <div class="color-option" data-color="#D97B5A" style="background:linear-gradient(135deg, #D97B5A, #C86A49);" title="Orange"></div>
           <div class="color-option" data-color="#B383B8" style="background:linear-gradient(135deg, #B383B8, #A272A7);" title="Violet"></div>
         </div>
@@ -568,6 +609,23 @@
   <div id="lbList"></div>
 </div>
 
+<div class="overlay" id="wormCustomOverlay">
+  <div class="card wide-card">
+    <h2>🐛 Personnalise ton ver</h2>
+    <p>Clique sur une boule, puis choisis sa couleur dans la palette.</p>
+    <div class="worm-pattern-preview" id="wormPatternPreview"></div>
+    <div class="palette-grid" id="wormPaletteGrid"></div>
+    <div class="worm-custom-actions">
+      <button class="btn btn-secondary" id="wormRandomBtn" type="button">🎲 Aléatoire</button>
+      <button class="btn btn-secondary" id="wormResetBtn" type="button">↺ Uni</button>
+    </div>
+    <div class="worm-custom-actions">
+      <button class="btn btn-secondary" id="wormCancelBtn" type="button">Annuler</button>
+      <button class="btn" id="wormSaveBtn" type="button">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="onboardOverlay">
   <div class="card">
     <h2>👋 Bienvenue</h2>
@@ -606,8 +664,18 @@
   // ========== PLAYER CUSTOMIZATION STATE ==========
   let playerState = {
     nickname: 'Anonyme',
-    wormColor: '#E8998D'
+    wormColor: '#FF6FA5'
   };
+
+  // Déclarés ici (avant le rendu 3D du menu, qui les utilise dès son premier
+  // appel) : une seule couleur = mode simple, plusieurs = motif personnalisé
+  // ("boules" du ver, éditées dans le popup de personnalisation avancée).
+  const WORM_PALETTE = ['#FF6FA5','#E8998D','#6BA3C4','#78D4A8','#F2D66D','#D97B5A','#B383B8','#7BE0C7','#5A6ACF','#F2F2F2','#3A3A44','#2C1550'];
+  const WORM_SLOT_COUNT = 6;
+  const WORM_PATTERN_KEY = 'burrowio_worm_pattern';
+  let wormPattern = [playerState.wormColor];
+  let wormPatternBackup = null;
+  let selectedSlotIndex = 0;
 
   function escapeHtml(str){
     return String(str).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -788,7 +856,7 @@
   // application créée sur https://discord.com/developers/applications, et
   // ajoute EXACTEMENT l'URL de ton site (ex: https://tan00708.github.io/burrow-game.io/)
   // dans "OAuth2 > Redirects" de cette application.
-  const DISCORD_CLIENT_ID = '1548208651288969276';
+  const DISCORD_CLIENT_ID = 'COLLE_TON_CLIENT_ID_DISCORD';
   const DISCORD_TOKEN_KEY = 'burrowio_discord_token';
   const DISCORD_USER_KEY = 'burrowio_discord_user';
   const GUEST_PSEUDO_KEY = 'burrowio_guest_pseudo';
@@ -947,6 +1015,7 @@
       showOnboarding();
     }
     renderAuthWidget();
+    loadWormPatternForCurrentIdentity();
   }
 
   function resetIdentity(){
@@ -1090,7 +1159,8 @@
 
       const perspective = 1 + (1 - scale) * 0.3;
 
-      const hue = i % 2 === 0 ? playerState.wormColor : adjustBrightness(playerState.wormColor, -20);
+      const base3D = wormPattern.length ? wormPattern[i % wormPattern.length] : playerState.wormColor;
+      const hue = i % 2 === 0 ? base3D : adjustBrightness(base3D, -20);
 
       wormCtx.save();
       wormCtx.translate(offsetX, offsetY);
@@ -1146,17 +1216,164 @@
   }
   draw3DWorm();
 
+  // ========== PERSONNALISATION DU VER (couleur simple + motif avancé) ==========
+  // Couleur appliquée à la boule n°i du ver (motif cyclique + ombrage alterné,
+  // pour garder le même relief qu'avant même avec un motif personnalisé).
+  function colorForSegment(i){
+    const palette = wormPattern.length ? wormPattern : [playerState.wormColor];
+    const base = palette[i % palette.length];
+    return i % 2 === 0 ? base : adjustBrightness(base, -15);
+  }
+
+  function saveWormPatternLocal(){
+    try{ localStorage.setItem(WORM_PATTERN_KEY, JSON.stringify(wormPattern)); }catch(e){}
+  }
+  function loadWormPatternLocal(){
+    try{
+      const raw = localStorage.getItem(WORM_PATTERN_KEY);
+      const parsed = raw ? JSON.parse(raw) : null;
+      return (Array.isArray(parsed) && parsed.length) ? parsed : null;
+    }catch(e){ return null; }
+  }
+
+  function saveWormPattern(){
+    saveWormPatternLocal();
+    // Synchronisé sur Firebase UNIQUEMENT si connecté à Discord, pour que le
+    // skin suive le joueur d'un appareil à l'autre (comme le meilleur score).
+    if(discordUser && db){
+      db.ref('skins/' + discordUser.id).set({
+        pattern: wormPattern,
+        ts: Date.now()
+      }).catch(e=> console.warn('Sauvegarde du skin Discord impossible :', e));
+    }
+  }
+
+  // Priorité : skin Discord distant (si connecté) > sauvegarde locale > défaut.
+  // Appelé à chaque changement d'identité (connexion/déconnexion Discord).
+  async function loadWormPatternForCurrentIdentity(){
+    if(discordUser && db){
+      try{
+        const snap = await db.ref('skins/' + discordUser.id).once('value');
+        const val = snap.val();
+        if(val && Array.isArray(val.pattern) && val.pattern.length){
+          wormPattern = val.pattern;
+          playerState.wormColor = wormPattern[0];
+          applyWormPatternSelectionUI();
+          return;
+        }
+      }catch(e){
+        console.warn('Lecture du skin Discord impossible :', e);
+      }
+    }
+    const local = loadWormPatternLocal();
+    if(local){
+      wormPattern = local;
+      playerState.wormColor = wormPattern[0];
+    }
+    applyWormPatternSelectionUI();
+  }
+
+  // Reflète l'état courant (couleur simple ou motif perso) sur la palette
+  // rapide du menu : coche la couleur unie correspondante, ou la case "+" si
+  // un motif multicolore est actif.
+  function applyWormPatternSelectionUI(){
+    const isCustom = wormPattern.length > 1;
+    document.querySelectorAll('.color-option[data-color]').forEach(o=>{
+      o.classList.toggle('selected', !isCustom && o.dataset.color === wormPattern[0]);
+    });
+    const plusBtn = document.getElementById('wormCustomizeBtn');
+    if(plusBtn) plusBtn.classList.toggle('selected', isCustom);
+  }
+
+  document.querySelectorAll('.color-option[data-color]').forEach(option => {
+    option.addEventListener('click', () => {
+      wormPattern = [option.dataset.color];
+      playerState.wormColor = option.dataset.color;
+      applyWormPatternSelectionUI();
+      saveWormPattern();
+    });
+  });
+
+  function renderWormPreview(){
+    const el = document.getElementById('wormPatternPreview');
+    if(!el) return;
+    el.innerHTML = wormPattern.map((c,i)=>`
+      <div class="worm-segment-slot ${i===selectedSlotIndex?'selected':''}" data-index="${i}" style="background:${c};"></div>
+    `).join('');
+    el.querySelectorAll('.worm-segment-slot').forEach(slot=>{
+      slot.addEventListener('click', ()=>{
+        selectedSlotIndex = parseInt(slot.dataset.index, 10);
+        renderWormPreview();
+        renderWormPalette();
+      });
+    });
+  }
+
+  function renderWormPalette(){
+    const el = document.getElementById('wormPaletteGrid');
+    if(!el) return;
+    const activeColor = wormPattern[selectedSlotIndex];
+    el.innerHTML = WORM_PALETTE.map(c=>`
+      <div class="palette-swatch ${activeColor===c?'selected':''}" data-color="${c}" style="background:${c};"></div>
+    `).join('');
+    el.querySelectorAll('.palette-swatch').forEach(sw=>{
+      sw.addEventListener('click', ()=>{
+        wormPattern[selectedSlotIndex] = sw.dataset.color;
+        renderWormPreview();
+        renderWormPalette();
+      });
+    });
+  }
+
+  function openWormCustomizer(){
+    wormPatternBackup = wormPattern.slice();
+    if(wormPattern.length <= 1){
+      // On part d'un ver uni existant : on étale sa couleur sur toutes les
+      // boules pour que l'utilisateur ait bien 6 boules à personnaliser.
+      const base = wormPattern[0] || playerState.wormColor;
+      wormPattern = Array(WORM_SLOT_COUNT).fill(base);
+    } else {
+      while(wormPattern.length < WORM_SLOT_COUNT) wormPattern.push(wormPattern[wormPattern.length-1]);
+      if(wormPattern.length > WORM_SLOT_COUNT) wormPattern = wormPattern.slice(0, WORM_SLOT_COUNT);
+    }
+    selectedSlotIndex = 0;
+    renderWormPreview();
+    renderWormPalette();
+    document.getElementById('wormCustomOverlay').classList.add('show');
+  }
+  function cancelWormCustomizer(){
+    if(wormPatternBackup) wormPattern = wormPatternBackup;
+    document.getElementById('wormCustomOverlay').classList.remove('show');
+  }
+  function saveWormCustomizer(){
+    // Si toutes les boules ont la même couleur, autant repasser en mode
+    // "couleur simple" plutôt que de garder un motif uniforme inutile.
+    const allSame = wormPattern.every(c => c === wormPattern[0]);
+    if(allSame) wormPattern = [wormPattern[0]];
+    playerState.wormColor = wormPattern[0];
+    applyWormPatternSelectionUI();
+    saveWormPattern();
+    document.getElementById('wormCustomOverlay').classList.remove('show');
+  }
+
+  document.getElementById('wormCustomizeBtn').addEventListener('click', openWormCustomizer);
+  document.getElementById('wormCancelBtn').addEventListener('click', cancelWormCustomizer);
+  document.getElementById('wormSaveBtn').addEventListener('click', saveWormCustomizer);
+  document.getElementById('wormRandomBtn').addEventListener('click', ()=>{
+    wormPattern = wormPattern.map(()=> WORM_PALETTE[Math.floor(Math.random()*WORM_PALETTE.length)]);
+    renderWormPreview();
+    renderWormPalette();
+  });
+  document.getElementById('wormResetBtn').addEventListener('click', ()=>{
+    const base = playerState.wormColor || WORM_PALETTE[0];
+    wormPattern = Array(WORM_SLOT_COUNT).fill(base);
+    renderWormPreview();
+    renderWormPalette();
+  });
+
   // ========== MAIN MENU ==========
   const mainMenu = document.getElementById('mainMenu');
   const menuStartBtn = document.getElementById('menuStartBtn');
-
-  document.querySelectorAll('.color-option').forEach(option => {
-    option.addEventListener('click', () => {
-      document.querySelectorAll('.color-option').forEach(o => o.classList.remove('selected'));
-      option.classList.add('selected');
-      playerState.wormColor = option.dataset.color;
-    });
-  });
 
   menuStartBtn.addEventListener('click', () => {
     mainMenu.classList.add('hidden');
@@ -1558,7 +1775,7 @@
       }
       const sy = playerY + k*SEG_SPACING;
       const r = Math.max(3, player.radius - k*0.55);
-      ctx.fillStyle = k%2===0 ? playerState.wormColor : adjustBrightness(playerState.wormColor, -15);
+      ctx.fillStyle = colorForSegment(k);
       ctx.beginPath();
       ctx.arc(tx, sy, r, 0, Math.PI*2);
       ctx.fill();

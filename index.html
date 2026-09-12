@@ -315,6 +315,9 @@
     z-index:10; opacity:0; pointer-events:none; transition:opacity .25s ease;
   }
   .overlay.show{opacity:1; pointer-events:auto;}
+  /* Le popup d'identité doit passer AU-DESSUS du menu principal (z-index 15),
+     puisqu'il peut s'afficher dès l'arrivée sur le site, menu déjà visible. */
+  #onboardOverlay{ z-index:20; }
   .card{
     background:linear-gradient(135deg, #1B2449 0%, #0F1630 100%);
     border-radius:20px; padding:32px 28px; width:min(360px, 90vw);
@@ -323,6 +326,21 @@
   }
   .card h2{font-family:'Fredoka',sans-serif; font-size:32px; color:var(--ink); margin:0 0 12px 0; font-weight:800;}
   .card p{color:var(--ink-dim); font-size:15px; margin:0 0 20px 0; line-height:1.6;}
+  .card .nickname-input{ margin-top:6px; text-align:left; }
+  .card .input-label{ margin-bottom:0; }
+  .reco{
+    font-size:11px; font-weight:600; text-transform:none;
+    opacity:0.85; margin-left:2px;
+  }
+  .divider{
+    display:flex; align-items:center; gap:10px;
+    color:var(--ink-dim); font-size:12px; font-weight:600;
+    text-transform:uppercase; letter-spacing:0.5px;
+    margin:18px 0;
+  }
+  .divider::before, .divider::after{
+    content:''; flex:1; height:1px; background:rgba(255,107,53,0.25);
+  }
   .result-row{display:flex; justify-content:space-between; padding:8px; font-size:14px; color:var(--ink); border-bottom:1px solid rgba(255,107,53,0.2);}
   .result-row.me{color:var(--accent-primary); font-weight:700;}
   .btn{
@@ -498,12 +516,8 @@
       </div>
     </div>
 
-    <!-- Top Right: Nickname + Personal record -->
+    <!-- Top Right: Personal record -->
     <div class="menu-top-right">
-      <div class="input-group">
-        <label class="input-label">Pseudo</label>
-        <input type="text" class="nickname-input" id="nicknameInput" placeholder="Entre ton pseudo..." maxlength="20">
-      </div>
       <div class="customize-section personal-section">
         <h3>⭐ Ton record</h3>
         <p class="personal-best-value" id="personalBestVal">0 m</p>
@@ -552,6 +566,18 @@
 <div class="leaderboard">
   <h3>🏆 Top</h3>
   <div id="lbList"></div>
+</div>
+
+<div class="overlay" id="onboardOverlay">
+  <div class="card">
+    <h2>👋 Bienvenue</h2>
+    <p>Connecte-toi pour garder ton meilleur score, ou joue directement en invité.</p>
+    <button class="btn" id="discordLoginBtn" type="button">🎮 Discord <span class="reco">(recommandé)</span></button>
+    <div class="divider"><span>ou</span></div>
+    <label class="input-label" style="text-align:left;">Pseudo</label>
+    <input type="text" class="nickname-input" id="guestNicknameInput" placeholder="Entre ton pseudo..." maxlength="20">
+    <button class="btn btn-secondary" id="guestPlayBtn" type="button">Jouer en invité</button>
+  </div>
 </div>
 
 <div class="overlay" id="pauseOverlay">
@@ -765,6 +791,9 @@
   const DISCORD_CLIENT_ID = '1548208651288969276';
   const DISCORD_TOKEN_KEY = 'burrowio_discord_token';
   const DISCORD_USER_KEY = 'burrowio_discord_user';
+  const GUEST_PSEUDO_KEY = 'burrowio_guest_pseudo';
+
+  let guestPseudo = null; // pseudo choisi via le popup, si pas de compte Discord
 
   function discordConfigured(){
     return DISCORD_CLIENT_ID && DISCORD_CLIENT_ID.indexOf('COLLE_TON_CLIENT_ID') === -1;
@@ -801,6 +830,17 @@
     }catch(e){ return null; }
   }
 
+  function loadGuestPseudo(){
+    try{ return localStorage.getItem(GUEST_PSEUDO_KEY) || null; }catch(e){ return null; }
+  }
+  function saveGuestPseudo(name){
+    try{ localStorage.setItem(GUEST_PSEUDO_KEY, name); }catch(e){}
+  }
+  function clearGuestPseudo(){
+    try{ localStorage.removeItem(GUEST_PSEUDO_KEY); }catch(e){}
+    guestPseudo = null;
+  }
+
   function discordAvatarUrl(user){
     if(user.avatar){
       const ext = user.avatar.startsWith('a_') ? 'gif' : 'png';
@@ -820,9 +860,9 @@
     return res.json();
   }
 
-  // Après connexion : si un record anonyme existait déjà sur cet appareil,
-  // on le reprend sur le compte Discord s'il est meilleur que celui déjà
-  // enregistré pour ce compte ; sinon on charge simplement le record Discord.
+  // Après connexion Discord : si un record anonyme existait déjà sur cet
+  // appareil, on le reprend sur le compte Discord s'il est meilleur que celui
+  // déjà enregistré pour ce compte ; sinon on charge simplement le record Discord.
   async function syncPersonalBestAfterLogin(){
     const localBest = loadLocalBest();
     if(!discordUser || !db){
@@ -858,23 +898,65 @@
     const el = document.getElementById('authWidget');
     if(!el) return;
     if(discordUser){
+      el.style.display = 'flex';
       el.innerHTML = `
         <img class="auth-avatar" src="${discordAvatarUrl(discordUser)}" alt="">
         <span class="auth-name">${escapeHtml(discordUser.username)}</span>
-        <button class="auth-logout" id="discordLogoutBtn" title="Se déconnecter" type="button">✕</button>`;
-      const btn = document.getElementById('discordLogoutBtn');
-      if(btn) btn.addEventListener('click', (e)=>{
-        e.stopPropagation();
-        clearDiscordSession();
-        currentBestDist = loadLocalBest();
-        renderAuthWidget();
-        renderMenuRecords();
-      });
-    } else if(discordConfigured()){
-      el.innerHTML = `<span class="auth-discord-icon">🎮</span><span class="auth-name">Se connecter</span>`;
+        <button class="auth-logout" id="identityLogoutBtn" title="Se déconnecter" type="button">✕</button>`;
+    } else if(guestPseudo){
+      el.style.display = 'flex';
+      el.innerHTML = `
+        <span class="auth-discord-icon">👤</span>
+        <span class="auth-name">${escapeHtml(guestPseudo)}</span>
+        <button class="auth-logout" id="identityLogoutBtn" title="Se déconnecter" type="button">✕</button>`;
     } else {
       el.style.display = 'none';
+      el.innerHTML = '';
     }
+    const logoutBtn = document.getElementById('identityLogoutBtn');
+    if(logoutBtn) logoutBtn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      resetIdentity();
+    });
+  }
+
+  // ========== IDENTITÉ OBLIGATOIRE (Discord ou pseudo invité) ==========
+  // Tant qu'aucune des deux n'est choisie, un popup bloquant s'affiche par
+  // dessus le menu (comme les popups pause/game-over) et empêche de jouer.
+  function hasIdentity(){
+    return !!(discordUser || guestPseudo);
+  }
+
+  function applyIdentityToPlayerState(){
+    if(discordUser) playerState.nickname = discordUser.username;
+    else if(guestPseudo) playerState.nickname = guestPseudo;
+  }
+
+  function showOnboarding(){
+    document.getElementById('onboardOverlay').classList.add('show');
+  }
+  function hideOnboarding(){
+    document.getElementById('onboardOverlay').classList.remove('show');
+  }
+
+  function checkIdentityGate(){
+    if(hasIdentity()){
+      applyIdentityToPlayerState();
+      hideOnboarding();
+    } else {
+      showOnboarding();
+    }
+    renderAuthWidget();
+  }
+
+  function resetIdentity(){
+    clearDiscordSession();
+    clearGuestPseudo();
+    currentBestDist = 0;
+    const guestInput = document.getElementById('guestNicknameInput');
+    if(guestInput) guestInput.value = '';
+    renderMenuRecords();
+    checkIdentityGate(); // ré-affiche le popup, aucune des deux options n'étant plus active
   }
 
   async function handleDiscordRedirect(){
@@ -889,29 +971,45 @@
       const user = await fetchDiscordUser(token);
       discordUser = user;
       saveDiscordSession(user);
-      renderAuthWidget();
+      checkIdentityGate();
       syncPersonalBestAfterLogin();
     }catch(e){
       console.warn('Connexion Discord impossible :', e);
     }
   }
 
-  function initDiscordAuth(){
+  function initIdentityAndAuth(){
     const stored = loadStoredDiscordUser();
     if(stored) discordUser = stored;
+    guestPseudo = loadGuestPseudo();
     currentBestDist = loadLocalBest();
-    renderAuthWidget();
+
+    checkIdentityGate();
     if(discordUser) syncPersonalBestAfterLogin();
     handleDiscordRedirect();
 
-    const widget = document.getElementById('authWidget');
-    if(widget){
-      widget.addEventListener('click', ()=>{
-        if(!discordUser && discordConfigured()) window.location.href = discordLoginUrl();
+    const discordBtn = document.getElementById('discordLoginBtn');
+    if(discordBtn){
+      discordBtn.addEventListener('click', ()=>{
+        if(discordConfigured()) window.location.href = discordLoginUrl();
+        else console.warn('Discord non configuré (DISCORD_CLIENT_ID manquant).');
       });
     }
+    const guestInput = document.getElementById('guestNicknameInput');
+    const guestBtn = document.getElementById('guestPlayBtn');
+    function submitGuestPseudo(){
+      const name = (guestInput.value || '').trim();
+      if(!name){ guestInput.focus(); return; }
+      guestPseudo = name.slice(0, 20);
+      saveGuestPseudo(guestPseudo);
+      checkIdentityGate();
+    }
+    if(guestBtn) guestBtn.addEventListener('click', submitGuestPseudo);
+    if(guestInput) guestInput.addEventListener('keydown', (e)=>{
+      if(e.key === 'Enter') submitGuestPseudo();
+    });
   }
-  initDiscordAuth();
+  initIdentityAndAuth();
 
   // ========== BACKGROUND ANIMATION ==========
   const bgCanvas = document.getElementById('bgCanvas');
@@ -1050,7 +1148,6 @@
 
   // ========== MAIN MENU ==========
   const mainMenu = document.getElementById('mainMenu');
-  const nicknameInput = document.getElementById('nicknameInput');
   const menuStartBtn = document.getElementById('menuStartBtn');
 
   document.querySelectorAll('.color-option').forEach(option => {
@@ -1059,10 +1156,6 @@
       option.classList.add('selected');
       playerState.wormColor = option.dataset.color;
     });
-  });
-
-  nicknameInput.addEventListener('input', (e) => {
-    playerState.nickname = e.target.value || 'Anonyme';
   });
 
   menuStartBtn.addEventListener('click', () => {
@@ -1688,7 +1781,6 @@
     mpLeave();
     document.getElementById('pauseOverlay').classList.remove('show');
     mainMenu.classList.remove('hidden');
-    nicknameInput.value = playerState.nickname === 'Anonyme' ? '' : playerState.nickname;
     renderMenuRecords();
   });
 

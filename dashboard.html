@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Burrow.io — Dashboard</title>
+  <style>
+    :root {
+      --bg:#07111f; --panel:#0d1b2e; --panel2:#10243c;
+      --text:#edf5ff; --muted:#8fa5bd; --accent:#ff9d2e;
+      --border:#1c3552; --danger:#ff6464;
+    }
+    * { box-sizing:border-box; }
+    body {
+      margin:0; min-height:100vh; background:linear-gradient(145deg,#06101d,#0a1728);
+      color:var(--text); font:15px system-ui,-apple-system,Segoe UI,sans-serif;
+    }
+    .wrap { max-width:1200px; margin:auto; padding:28px 18px 50px; }
+    .top { display:flex; justify-content:space-between; align-items:center; gap:15px; margin-bottom:22px; }
+    h1 { margin:0; font-size:26px; }
+    h2 { font-size:17px; margin:0 0 14px; }
+    .muted { color:var(--muted); }
+    .panel {
+      background:rgba(13,27,46,.9); border:1px solid var(--border);
+      border-radius:16px; padding:18px; box-shadow:0 10px 30px #0004;
+    }
+    .grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
+    .card { background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:17px; }
+    .label { color:var(--muted); font-size:13px; }
+    .value { font-size:30px; font-weight:800; margin-top:5px; }
+    .orange { color:var(--accent); }
+    .controls { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:15px; }
+    button {
+      border:1px solid var(--border); background:var(--panel2); color:var(--text);
+      border-radius:9px; padding:9px 13px; cursor:pointer;
+    }
+    button.active, button:hover { border-color:var(--accent); color:var(--accent); }
+    .danger { border-color:#6d3030; color:#ff8b8b; }
+    .columns { display:grid; grid-template-columns:1.35fr 1fr; gap:14px; margin-top:14px; }
+    .bar { display:flex; align-items:center; gap:10px; margin:9px 0; }
+    .bar span:first-child { width:110px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .track { flex:1; height:9px; background:#172a40; border-radius:99px; overflow:hidden; }
+    .fill { height:100%; background:var(--accent); }
+    table { width:100%; border-collapse:collapse; }
+    th,td { padding:9px 6px; border-bottom:1px solid var(--border); text-align:left; font-size:13px; }
+    th { color:var(--muted); font-weight:600; }
+    .login {
+      min-height:100vh; display:grid; place-items:center; padding:20px;
+    }
+    .login .panel { width:min(420px,100%); }
+    input {
+      width:100%; margin:7px 0 12px; padding:11px 12px; border-radius:9px;
+      border:1px solid var(--border); background:#081525; color:white; outline:none;
+    }
+    input:focus { border-color:var(--accent); }
+    .login button { width:100%; background:var(--accent); color:#101010; border:0; font-weight:700; }
+    #error { color:#ff8585; min-height:20px; margin:5px 0 10px; }
+    #app { display:none; }
+    @media(max-width:800px) {
+      .grid { grid-template-columns:repeat(2,1fr); }
+      .columns { grid-template-columns:1fr; }
+    }
+    @media(max-width:480px) { .grid { grid-template-columns:1fr 1fr; } .value{font-size:24px;} }
+  </style>
+</head>
+<body>
+  <section id="login" class="login">
+    <form id="loginForm" class="panel">
+      <h1>Burrow.io</h1>
+      <p class="muted">Dashboard privé</p>
+      <label>Email</label>
+      <input id="email" type="email" autocomplete="username" required>
+      <label>Mot de passe</label>
+      <input id="password" type="password" autocomplete="current-password" required>
+      <div id="error"></div>
+      <button type="submit">Se connecter</button>
+    </form>
+  </section>
+
+  <main id="app" class="wrap">
+    <div class="top">
+      <div>
+        <h1>📊 Burrow.io Analytics</h1>
+        <div class="muted">Statistiques anonymes</div>
+      </div>
+      <button id="logout" class="danger">Déconnexion</button>
+    </div>
+
+    <div class="controls">
+      <button data-days="1">24 h</button>
+      <button data-days="7" class="active">7 jours</button>
+      <button data-days="30">30 jours</button>
+      <button data-days="0">Tout</button>
+      <span id="status" class="muted" style="padding:9px">Chargement…</span>
+    </div>
+
+    <section class="grid">
+      <div class="card"><div class="label">Visites</div><div id="visits" class="value">—</div></div>
+      <div class="card"><div class="label">Visiteurs uniques</div><div id="unique" class="value orange">—</div></div>
+      <div class="card"><div class="label">Sessions</div><div id="sessions" class="value">—</div></div>
+      <div class="card"><div class="label">En ligne maintenant</div><div id="online" class="value orange">—</div></div>
+    </section>
+
+    <div class="columns">
+      <section class="panel">
+        <h2>Visites par jour</h2>
+        <div id="daysChart"></div>
+      </section>
+      <section class="panel">
+        <h2>Appareils</h2>
+        <div id="devices"></div>
+        <h2 style="margin-top:24px">Navigateurs</h2>
+        <div id="browsers"></div>
+      </section>
+    </div>
+
+    <div class="columns">
+      <section class="panel">
+        <h2>Pages</h2>
+        <div id="pages"></div>
+      </section>
+      <section class="panel">
+        <h2>Provenance</h2>
+        <div id="referrers"></div>
+      </section>
+    </div>
+
+    <section class="panel" style="margin-top:14px">
+      <h2>Dernières visites</h2>
+      <div style="overflow:auto">
+        <table>
+          <thead><tr><th>Date</th><th>Page</th><th>Appareil</th><th>Navigateur</th><th>Provenance</th></tr></thead>
+          <tbody id="recent"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-database-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyD4gWVJ0qz7daOKNTWgsyFBBeJoErHjndM",
+      authDomain: "burrow-c3f39.firebaseapp.com",
+      databaseURL: "https://burrow-c3f39-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "burrow-c3f39",
+      storageBucket: "burrow-c3f39.firebasestorage.app",
+      messagingSenderId: "290540859884",
+      appId: "1:290540859884:web:75b91e48b2ae5e6ace10c9"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.database();
+
+    const $ = id => document.getElementById(id);
+    let selectedDays = 7;
+
+    function esc(v) {
+      return String(v ?? "").replace(/[&<>"']/g, c => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+      }[c]));
+    }
+
+    function fmt(n) { return Number(n || 0).toLocaleString("fr-FR"); }
+
+    function localDay(ts) {
+      const d = new Date(ts);
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+    }
+
+    function listCounts(map) {
+      return Object.entries(map).sort((a,b)=>b[1]-a[1]);
+    }
+
+    function renderBars(id, map, empty="Aucune donnée") {
+      const root = $(id);
+      const rows = listCounts(map);
+      if (!rows.length) { root.innerHTML = `<span class="muted">${empty}</span>`; return; }
+      const max = Math.max(...rows.map(x=>x[1]),1);
+      root.innerHTML = rows.slice(0,8).map(([name,n]) =>
+        `<div class="bar"><span title="${esc(name)}">${esc(name)}</span>
+         <div class="track"><div class="fill" style="width:${Math.max(3,n/max*100)}%"></div></div>
+         <b>${fmt(n)}</b></div>`).join("");
+    }
+
+    async function loadStats() {
+      $("status").textContent = "Chargement…";
+      const since = selectedDays ? Date.now() - selectedDays*86400000 : 0;
+
+      const [visitsSnap, dailySnap, presenceSnap] = await Promise.all([
+        db.ref("analytics/visits").orderByChild("timestamp").startAt(since).once("value"),
+        db.ref("analytics/daily").once("value"),
+        db.ref("analytics/presence").once("value")
+      ]);
+
+      const raw = visitsSnap.val() || {};
+      const visits = Object.values(raw).filter(v => v && typeof v.timestamp === "number");
+      const daily = dailySnap.val() || {};
+
+      const unique = new Set(visits.map(v=>v.visitorId).filter(Boolean));
+      const sessions = new Set(visits.map(v=>v.sessionId).filter(Boolean));
+
+      let online = 0;
+      const cutoff = Date.now() - 60000;
+      Object.values(presenceSnap.val() || {}).forEach(p => {
+        if (p && p.lastSeen > cutoff) online++;
+      });
+
+      $("visits").textContent = fmt(visits.length);
+      $("unique").textContent = fmt(unique.size);
+      $("sessions").textContent = fmt(sessions.size);
+      $("online").textContent = fmt(online);
+
+      const dailyMap = {};
+      Object.entries(daily).forEach(([day,data]) => {
+        if (!data) return;
+        const ts = new Date(day+"T12:00:00").getTime();
+        if (ts >= since) dailyMap[day] = Number(data.visits || 0);
+      });
+
+      // Pour une période très courte, les visites du jour viennent du journal brut.
+      visits.forEach(v => {
+        const d = localDay(v.timestamp);
+        if (!(d in dailyMap)) dailyMap[d] = 0;
+      });
+
+      const days = Object.keys(dailyMap).sort();
+      $("daysChart").innerHTML = days.length ? (() => {
+        const max = Math.max(...days.map(d=>dailyMap[d]),1);
+        return days.slice(-31).map(d =>
+          `<div class="bar"><span>${esc(d.slice(5))}</span>
+           <div class="track"><div class="fill" style="width:${Math.max(2,dailyMap[d]/max*100)}%"></div></div>
+           <b>${fmt(dailyMap[d])}</b></div>`).join("");
+      })() : `<span class="muted">Aucune donnée</span>`;
+
+      const devices={}, browsers={}, pages={}, refs={};
+      visits.forEach(v => {
+        devices[v.device||"Autre"] = (devices[v.device||"Autre"]||0)+1;
+        browsers[v.browser||"Autre"] = (browsers[v.browser||"Autre"]||0)+1;
+        pages[v.path||"/"] = (pages[v.path||"/"]||0)+1;
+        refs[v.referrer||"Direct"] = (refs[v.referrer||"Direct"]||0)+1;
+      });
+
+      renderBars("devices", devices);
+      renderBars("browsers", browsers);
+      renderBars("pages", pages);
+      renderBars("referrers", refs);
+
+      const recent = visits.sort((a,b)=>b.timestamp-a.timestamp).slice(0,100);
+      $("recent").innerHTML = recent.length ? recent.map(v =>
+        `<tr><td>${new Date(v.timestamp).toLocaleString("fr-FR")}</td>
+         <td>${esc(v.path||"/")}</td><td>${esc(v.device||"-")}</td>
+         <td>${esc(v.browser||"-")}</td><td>${esc(v.referrer||"Direct")}</td></tr>`
+      ).join("") : `<tr><td colspan="5" class="muted">Aucune visite</td></tr>`;
+
+      $("status").textContent = `Mis à jour à ${new Date().toLocaleTimeString("fr-FR")}`;
+    }
+
+    document.querySelectorAll("[data-days]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        selectedDays = Number(btn.dataset.days);
+        document.querySelectorAll("[data-days]").forEach(b=>b.classList.remove("active"));
+        btn.classList.add("active");
+        loadStats().catch(showError);
+      });
+    });
+
+    function showError(e) {
+      console.error(e);
+      $("status").textContent = "Erreur de chargement";
+    }
+
+    $("loginForm").addEventListener("submit", async e => {
+      e.preventDefault();
+      $("error").textContent = "";
+      try {
+        await auth.signInWithEmailAndPassword($("email").value, $("password").value);
+      } catch (e) {
+        $("error").textContent = "Connexion refusée.";
+      }
+    });
+
+    $("logout").addEventListener("click", () => auth.signOut());
+
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        $("login").style.display = "none";
+        $("app").style.display = "block";
+        loadStats().catch(showError);
+      } else {
+        $("login").style.display = "grid";
+        $("app").style.display = "none";
+      }
+    });
+  </script>
+</body>
+</html>

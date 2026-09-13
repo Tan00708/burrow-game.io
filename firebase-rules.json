@@ -1,0 +1,47 @@
+{
+  "rules": {
+
+    "players": {
+      "$playerId": {
+        ".read": true,
+        ".write": true,
+        ".validate": "newData.hasChildren(['nickname','color','dist','ts'])",
+        "nickname": { ".validate": "newData.isString() && newData.val().length <= 20" },
+        "color":    { ".validate": "newData.isString() && newData.val().length <= 9" },
+        "dist":     { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000000" },
+        "ts":       { ".validate": "newData.isNumber() && newData.val() <= now + 5000" },
+        "$other":   { ".validate": false }
+      }
+    },
+
+    "scores": {
+      "$scoreId": {
+        ".read": true,
+        ".write": "!data.exists() || (newData.hasChild('dist') && newData.child('dist').val() > data.child('dist').val())",
+        ".validate": "newData.hasChildren(['nickname','dist','ts'])",
+        "nickname": { ".validate": "newData.isString() && newData.val().length <= 20" },
+        "color":    { ".validate": "newData.isString() && newData.val().length <= 9" },
+        "dist":     { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000000" },
+        "ts":       { ".validate": "newData.isNumber() && newData.val() <= now + 5000" },
+        "discord":  { ".validate": "newData.isBoolean()" },
+        "$other":   { ".validate": false }
+      }
+    },
+
+    "skins": {
+      "$discordId": {
+        ".read": true,
+        ".write": true,
+        ".validate": "newData.hasChildren(['pattern','ts'])",
+        "pattern": {
+          ".validate": "newData.hasChildren()",
+          "$index": { ".validate": "newData.isString() && newData.val().length <= 9" }
+        },
+        "ts":     { ".validate": "newData.isNumber() && newData.val() <= now + 5000" },
+        "$other": { ".validate": false }
+      }
+    },
+
+    "$other": { ".read": false, ".write": false }
+  }
+}

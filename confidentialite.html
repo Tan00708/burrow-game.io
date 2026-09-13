@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Politique de confidentialité — Burrow.io</title>
+<meta name="robots" content="noindex, follow">
+<link rel="canonical" href="https://tan00708.github.io/burrow-game.io/confidentialite.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-dark:#0A0E27;
+    --bg-light:#1B2449;
+    --accent-primary:#FF6B35;
+    --accent-secondary:#F7931E;
+    --ink:#FFFFFF;
+    --ink-dim:#A8B3D1;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; min-height:100vh;
+    background:linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-light) 50%, #0F1630 100%);
+    font-family:'Inter', sans-serif; color:var(--ink-dim);
+    line-height:1.7;
+  }
+  .wrap{
+    max-width:760px; margin:0 auto; padding:48px 24px 80px;
+  }
+  a.back{
+    display:inline-flex; align-items:center; gap:6px;
+    color:var(--accent-primary); text-decoration:none; font-weight:600;
+    font-size:14px; margin-bottom:28px;
+  }
+  a.back:hover{ text-decoration:underline; }
+  h1{
+    font-family:'Fredoka',sans-serif; font-weight:800; font-size:34px;
+    color:var(--ink); margin:0 0 6px 0;
+    text-shadow:0 4px 16px rgba(255,107,53,0.35);
+  }
+  .updated{ font-size:13px; color:var(--ink-dim); opacity:0.75; margin-bottom:36px; }
+  h2{
+    font-family:'Fredoka',sans-serif; font-weight:700; font-size:20px;
+    color:var(--ink); margin:36px 0 12px 0;
+  }
+  p, li{ font-size:15px; color:var(--ink-dim); }
+  ul{ padding-left:20px; margin:10px 0; }
+  li{ margin-bottom:8px; }
+  strong{ color:var(--ink); }
+  .card{
+    background:rgba(27,36,73,0.6); border:2px solid rgba(255,107,53,0.3);
+    border-radius:16px; padding:20px 24px; margin:20px 0;
+  }
+  code{
+    background:rgba(255,107,53,0.15); color:var(--ink);
+    padding:2px 6px; border-radius:6px; font-size:13px;
+  }
+  a{ color:var(--accent-primary); }
+  .contact{
+    margin-top:40px; padding-top:20px; border-top:1px solid rgba(255,107,53,0.25);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="index.html">← Retour au jeu</a>
+  <h1>Politique de confidentialité</h1>
+  <p class="updated">Dernière mise à jour : 13 septembre 2026</p>
+
+  <p>Burrow.io est un jeu gratuit, jouable directement dans le navigateur. Cette page explique simplement quelles données sont utilisées, pourquoi, et comment les faire supprimer.</p>
+
+  <h2>1. Quelles données sont utilisées</h2>
+  <div class="card">
+    <p><strong>Si tu joues en invité :</strong></p>
+    <ul>
+      <li>Le pseudo que tu choisis librement (aucune information réelle n'est demandée).</li>
+      <li>Un identifiant technique généré au hasard par ton navigateur, pour associer ton meilleur score à toi seul.</li>
+    </ul>
+    <p><strong>Si tu te connectes avec Discord :</strong></p>
+    <ul>
+      <li>Ton nom d'utilisateur Discord, ton avatar et ton identifiant Discord (informations publiques de ton profil, transmises par Discord avec ton accord).</li>
+      <li>Le site ne voit jamais ton mot de passe Discord et ne peut pas agir sur ton compte Discord au-delà de la lecture de ce profil.</li>
+    </ul>
+    <p><strong>Dans les deux cas :</strong></p>
+    <ul>
+      <li>Ta meilleure distance parcourue (ton score).</li>
+      <li>La couleur ou le motif personnalisé de ton ver.</li>
+      <li>Quelques préférences techniques stockées dans ton navigateur (ex : si tu as déjà vu l'explication des contrôles).</li>
+    </ul>
+  </div>
+
+  <h2>2. Pourquoi ces données</h2>
+  <ul>
+    <li>Afficher un classement mondial des meilleurs scores et un classement en temps réel pendant une partie.</li>
+    <li>Retenir ton meilleur score et l'apparence de ton ver d'une visite à l'autre.</li>
+    <li>Si tu te connectes avec Discord : retrouver ta progression sur un autre appareil ou navigateur.</li>
+  </ul>
+  <p>Le classement mondial (pseudo + meilleur score) est <strong>visible publiquement</strong> par n'importe quel visiteur du site — ce n'est pas une information privée.</p>
+
+  <h2>3. Où sont stockées ces données</h2>
+  <ul>
+    <li><strong>Dans ton navigateur</strong> (stockage local, pas de cookies publicitaires) : ton pseudo invité, ton identifiant technique, tes préférences.</li>
+    <li><strong>Sur Google Firebase</strong> (Realtime Database) : le classement mondial (pseudo, score, apparence du ver).</li>
+    <li>Le site lui-même est hébergé sur <strong>GitHub Pages</strong>, qui peut collecter des journaux techniques standards (adresse IP, navigateur) dans le cadre normal de l'hébergement d'un site web.</li>
+  </ul>
+
+  <h2>4. Partage avec des tiers</h2>
+  <p>Aucune donnée n'est vendue ni partagée à des fins commerciales ou publicitaires. Les seuls services externes utilisés sont :</p>
+  <ul>
+    <li><strong>Discord</strong>, uniquement si tu choisis de te connecter avec ;</li>
+    <li><strong>Google Firebase</strong>, pour stocker le classement mondial ;</li>
+    <li><strong>GitHub Pages</strong>, pour héberger le site.</li>
+  </ul>
+
+  <h2>5. Durée de conservation</h2>
+  <p>Les données stockées dans ton navigateur restent jusqu'à ce que tu vides les données de ce site, ou que tu cliques sur le bouton <code>✕</code> de déconnexion. Les données sur Firebase (classement) restent en ligne tant que le jeu est actif ; tu peux en demander la suppression à tout moment (voir contact ci-dessous).</p>
+
+  <h2>6. Sécurité</h2>
+  <p>Des mesures raisonnables sont prises pour protéger les données (règles d'accès sur la base de données, vérification de la session Discord). Burrow.io reste toutefois un projet gratuit sans infrastructure de sécurité de niveau professionnel : évite d'utiliser un pseudo ou des informations que tu ne souhaiterais pas voir apparaître publiquement dans un classement de jeu.</p>
+
+  <h2>7. Tes droits</h2>
+  <p>Tu peux à tout moment :</p>
+  <ul>
+    <li>Te déconnecter et supprimer les données locales de ton navigateur (bouton <code>✕</code>) ;</li>
+    <li>Demander la suppression de ton entrée dans le classement mondial ;</li>
+    <li>Demander quelles données te concernant sont stockées.</li>
+  </ul>
+
+  <h2>8. Mineurs</h2>
+  <p>Burrow.io ne vérifie pas l'âge des joueurs. Le mode invité (sans compte) ne demande aucune information personnelle et reste l'option la plus adaptée pour un jeune public.</p>
+
+  <h2>9. Modifications</h2>
+  <p>Cette politique peut évoluer si le jeu évolue. La date de dernière mise à jour est indiquée en haut de cette page.</p>
+
+  <div class="contact">
+    <h2>Contact</h2>
+    <p>Pour toute question ou demande de suppression de données : <strong>[à compléter — ton adresse email ou ton pseudo Discord]</strong></p>
+  </div>
+</div>
+</body>
+</html>

@@ -267,6 +267,12 @@
   .btn-play:active{
     transform:translateY(0);
   }
+  .privacy-link{
+    position:fixed; bottom:14px; left:50%; transform:translateX(-50%);
+    z-index:3; font-family:'Inter',sans-serif; font-size:11px;
+    color:rgba(168,179,209,0.55); text-decoration:none;
+  }
+  .privacy-link:hover{ color:rgba(168,179,209,0.9); text-decoration:underline; }
 
   /* Game Canvas */
   #game{display:block; width:100%; height:100%;}
@@ -428,6 +434,17 @@
   }
   .stage-toast.show{ opacity:1; transform:translate(-50%,0); }
 
+  .controls-hint{
+    position:fixed; top:210px; left:50%; transform:translate(-50%,-8px);
+    font-family:'Fredoka',sans-serif; font-weight:600; color:var(--ink);
+    font-size:16px; opacity:0; pointer-events:none; z-index:7;
+    background:rgba(27,36,73,0.88); border:2px solid rgba(255,107,53,0.4);
+    padding:12px 22px; border-radius:14px; backdrop-filter:blur(10px);
+    text-align:center; max-width:88vw;
+    transition:opacity .3s ease, transform .3s ease;
+  }
+  .controls-hint.show{ opacity:1; transform:translate(-50%,0); }
+
   .effects-hud{
     position:fixed; top:172px; left:50%; transform:translateX(-50%);
     display:flex; gap:8px; z-index:5; pointer-events:none;
@@ -489,6 +506,7 @@
     .hud-value{ font-size:18px; }
     .stage-toast{ top:calc(96px + env(safe-area-inset-top)); font-size:15px; padding:8px 16px; }
     .effects-hud{ top:calc(150px + env(safe-area-inset-top)); }
+    .controls-hint{ top:calc(190px + env(safe-area-inset-top)); font-size:14px; padding:10px 16px; }
     .effect-chip{ font-size:11px; padding:4px 8px; }
     .leaderboard{
       width:104px; padding:7px; left:10px;
@@ -582,6 +600,7 @@
       <button class="menu-btn btn-play" id="menuStartBtn">▶ Jouer</button>
     </div>
   </div>
+  <a class="privacy-link" href="confidentialite.html" target="_blank" rel="noopener">Confidentialité</a>
 </div>
 
 <canvas id="game"></canvas>
@@ -598,6 +617,7 @@
 </div>
 
 <div class="stage-toast" id="stageToast"></div>
+<div class="controls-hint" id="controlsHint"></div>
 <div class="effects-hud" id="effectsHud"></div>
 
 <div class="auth-widget" id="authWidget" title="Connexion Discord"></div>
@@ -859,6 +879,7 @@
   // dans "OAuth2 > Redirects" de cette application.
   const DISCORD_CLIENT_ID = '1548208651288969276';
   const DISCORD_TOKEN_KEY = 'burrowio_discord_token';
+  const DISCORD_EXPIRY_KEY = 'burrowio_discord_expiry';
   const DISCORD_USER_KEY = 'burrowio_discord_user';
   const GUEST_PSEUDO_KEY = 'burrowio_guest_pseudo';
 
@@ -882,12 +903,23 @@
     return 'https://discord.com/oauth2/authorize?' + params.toString();
   }
 
-  function saveDiscordSession(user){
-    try{ localStorage.setItem(DISCORD_USER_KEY, JSON.stringify(user)); }catch(e){}
+  // On garde le jeton et sa date d'expiration (pas seulement le profil), pour
+  // pouvoir re-vérifier la session auprès de Discord à chaque chargement de
+  // page plutôt que de faire une confiance aveugle à ce qui est en localStorage
+  // (qui, sinon, pourrait être trafiqué depuis les outils de développement).
+  function saveDiscordSession(user, token, expiresInSeconds){
+    try{
+      localStorage.setItem(DISCORD_USER_KEY, JSON.stringify(user));
+      if(token) localStorage.setItem(DISCORD_TOKEN_KEY, token);
+      if(expiresInSeconds){
+        localStorage.setItem(DISCORD_EXPIRY_KEY, String(Date.now() + expiresInSeconds*1000));
+      }
+    }catch(e){}
   }
   function clearDiscordSession(){
     try{
       localStorage.removeItem(DISCORD_TOKEN_KEY);
+      localStorage.removeItem(DISCORD_EXPIRY_KEY);
       localStorage.removeItem(DISCORD_USER_KEY);
     }catch(e){}
     discordUser = null;
@@ -897,6 +929,12 @@
       const raw = localStorage.getItem(DISCORD_USER_KEY);
       return raw ? JSON.parse(raw) : null;
     }catch(e){ return null; }
+  }
+  function loadStoredDiscordToken(){
+    try{ return localStorage.getItem(DISCORD_TOKEN_KEY) || null; }catch(e){ return null; }
+  }
+  function loadStoredDiscordExpiry(){
+    try{ return parseInt(localStorage.getItem(DISCORD_EXPIRY_KEY) || '0', 10); }catch(e){ return 0; }
   }
 
   function loadGuestPseudo(){
@@ -1033,6 +1071,7 @@
     if(!location.hash || location.hash.indexOf('access_token') === -1) return;
     const params = new URLSearchParams(location.hash.slice(1));
     const token = params.get('access_token');
+    const expiresIn = parseInt(params.get('expires_in') || '0', 10);
     if(!token) return;
     // On nettoie l'URL tout de suite pour ne pas laisser le jeton traîner
     // dans l'historique du navigateur ou un lien partagé.
@@ -1040,7 +1079,7 @@
     try{
       const user = await fetchDiscordUser(token);
       discordUser = user;
-      saveDiscordSession(user);
+      saveDiscordSession(user, token, expiresIn);
       checkIdentityGate();
       syncPersonalBestAfterLogin();
     }catch(e){
@@ -1048,14 +1087,42 @@
     }
   }
 
+  // Vérification CÔTÉ CLIENT de la session Discord mise en cache : on ne se
+  // contente pas de faire confiance au profil stocké dans localStorage (qui
+  // pourrait être trafiqué via les outils de développement, ou simplement
+  // périmé) — on re-demande le profil à Discord avec le jeton conservé.
+  // Si le jeton est expiré, absent, ou refusé par Discord, la session est
+  // effacée et le popup de connexion redemande une identité.
+  // (Ça reste une vérification client, pas une preuve cryptographique —
+  // voir la note plus haut sur les limites de ce flux sans backend.)
+  async function verifyStoredDiscordSession(){
+    const token = loadStoredDiscordToken();
+    const expiry = loadStoredDiscordExpiry();
+    if(!token || !expiry || Date.now() > expiry){
+      if(discordUser){ clearDiscordSession(); checkIdentityGate(); }
+      return;
+    }
+    try{
+      const freshUser = await fetchDiscordUser(token);
+      discordUser = freshUser; // écrase toute donnée locale potentiellement modifiée
+      saveDiscordSession(freshUser, token, Math.max(0, Math.floor((expiry - Date.now())/1000)));
+      checkIdentityGate();
+      syncPersonalBestAfterLogin();
+    }catch(e){
+      console.warn('Session Discord invalide ou expirée, reconnexion nécessaire :', e);
+      clearDiscordSession();
+      checkIdentityGate();
+    }
+  }
+
   function initIdentityAndAuth(){
     const stored = loadStoredDiscordUser();
-    if(stored) discordUser = stored;
+    if(stored) discordUser = stored; // affichage optimiste immédiat, vérifié juste après
     guestPseudo = loadGuestPseudo();
     currentBestDist = loadLocalBest();
 
     checkIdentityGate();
-    if(discordUser) syncPersonalBestAfterLogin();
+    if(discordUser) verifyStoredDiscordSession();
     handleDiscordRedirect();
 
     const discordBtn = document.getElementById('discordLoginBtn');
@@ -1687,6 +1754,30 @@
     }
   }
 
+  // Explique les contrôles une seule fois, à la toute première partie
+  // jouée sur cet appareil (jamais réaffiché ensuite, sauf si le joueur vide
+  // les données de son navigateur). Le texte dépend du type d'appareil :
+  // clavier sur ordinateur (la souris ne dirige plus le ver), doigt sur mobile.
+  const CONTROLS_SEEN_KEY = 'burrowio_controls_seen';
+  function showControlsHintIfFirstTime(){
+    let seen = false;
+    try{ seen = localStorage.getItem(CONTROLS_SEEN_KEY) === '1'; }catch(e){}
+    if(seen) return;
+    try{ localStorage.setItem(CONTROLS_SEEN_KEY, '1'); }catch(e){}
+    const el = document.getElementById('controlsHint');
+    if(!el) return;
+    const isTouch = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+    el.textContent = isTouch
+      ? '👆 Glisse le doigt sur l\'écran pour diriger ton ver'
+      : '⬅️ ➡️ Flèches ou A / D pour diriger ton ver';
+    // Petit délai pour ne pas se superposer au toast "Stage 1" qui s'affiche
+    // au tout début de la partie.
+    setTimeout(()=>{
+      el.classList.add('show');
+      setTimeout(()=> el.classList.remove('show'), 4500);
+    }, 1000);
+  }
+
   function resetGame(){
     controls = []; decor = []; generatedIndex = -1;
     pickups = []; genStage = 1; gateState = { active:false, remaining:0 };
@@ -1707,6 +1798,7 @@
     themeBlend = { from: THEMES[0], to: THEMES[0], t: 1 };
     document.getElementById('stageVal').textContent = '1';
     showStageToast(1, THEMES[0], false);
+    showControlsHintIfFirstTime();
     running = true;
     for(const b of demoBots){ b.dist = 0; b.speed = rand(70,120); b.crashTimer = rand(4,14); }
     mpForceUpdate();
@@ -1731,14 +1823,18 @@
 
   let pointerX = null;
   let pointerControlEnabled = true;
-  function setPointer(clientX){
+  function setPointer(e){
     if(paused) return;
+    // On ne garde le pilotage "au doigt" que pour le tactile/stylet : la
+    // souris ne dirige plus le ver, seul le clavier (flèches / A-D) le fait
+    // sur ordinateur.
+    if(e.pointerType === 'mouse') return;
     const rect = canvas.getBoundingClientRect();
-    pointerX = clientX - rect.left;
+    pointerX = e.clientX - rect.left;
     pointerControlEnabled = true;
   }
-  window.addEventListener('pointermove', e=>setPointer(e.clientX));
-  window.addEventListener('pointerdown', e=>setPointer(e.clientX));
+  window.addEventListener('pointermove', setPointer);
+  window.addEventListener('pointerdown', setPointer);
 
   const keys = { left:false, right:false };
 

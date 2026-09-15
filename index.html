@@ -59,6 +59,7 @@
     --ink-dim:#A8B3D1;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
+  html{ -webkit-text-size-adjust:100%; text-size-adjust:100%; }
   html,body{
     margin:0; padding:0; width:100%; height:100%; overflow:hidden;
     background:linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-light) 100%);
@@ -83,7 +84,7 @@
     background:linear-gradient(135deg, #0A0E27 0%, #1B2449 50%, #0F1630 100%);
     display:flex; align-items:center; justify-content:center;
     opacity:1; pointer-events:auto; transition:opacity .4s ease;
-    overflow:hidden;
+    overflow-y:auto; -webkit-overflow-scrolling:touch;
   }
   .main-menu.hidden{
     opacity:0; pointer-events:none;
@@ -103,22 +104,41 @@
     text-shadow:0 4px 16px rgba(255,107,53,0.5);
   }
 
+  /* Bouton boutique : uniquement dans le menu (à l'intérieur de .main-menu,
+     donc masqué automatiquement pendant une partie en cours). */
+  .shop-widget{
+    position:absolute; top:20px; right:20px; z-index:3;
+    display:flex; align-items:center; gap:6px;
+    background:rgba(27,36,73,0.8); border:2px solid rgba(255,107,53,0.3);
+    border-radius:999px; padding:9px 16px;
+    font-family:'Fredoka',sans-serif; font-weight:700; font-size:14px;
+    color:var(--ink); cursor:pointer; backdrop-filter:blur(10px);
+    box-shadow:0 4px 14px rgba(0,0,0,0.3); transition:transform .15s ease;
+  }
+  .shop-widget:hover{ transform:translateY(-1px); }
+  .shop-widget:active{ transform:scale(0.96); }
+
+  /* Colonnes bornées en largeur (minmax) plutôt que proportionnelles (1fr) :
+     sur un grand écran, le menu reste compact et centré au lieu de s'étirer
+     avec d'immenses vides entre les blocs. */
   .menu-content{
     position:relative; z-index:1;
-    display:grid; grid-template-columns:1fr 1.2fr 1fr;
-    grid-template-rows:auto 1fr auto; gap:40px;
-    width:90vw; max-width:1400px; height:90vh; max-height:700px;
+    display:grid; grid-template-columns:minmax(220px,300px) minmax(300px,420px) minmax(220px,300px);
+    justify-content:center;
+    grid-template-rows:auto 1fr auto; gap:24px;
+    width:90vw; max-width:1080px; height:auto; max-height:640px;
+    padding:24px 0;
   }
 
   /* Top Left - Customization + Records */
   .menu-top-left{
     grid-column:1; grid-row:1;
-    display:flex; flex-direction:column; align-items:flex-start; gap:16px;
+    display:flex; flex-direction:column; align-items:stretch; gap:16px;
   }
   .customize-section{
     background:rgba(27,36,73,0.6); border:2px solid rgba(255,107,53,0.3);
     border-radius:16px; padding:20px; backdrop-filter:blur(10px);
-    width:100%; max-width:240px;
+    width:100%; max-width:260px;
   }
   .customize-section h3{
     margin:0 0 16px 0; font-family:'Fredoka',sans-serif; font-size:14px;
@@ -166,7 +186,7 @@
 
   /* Records panels (share the customize-section look) */
   .records-section, .personal-section{
-    width:100%; max-width:240px;
+    width:100%; max-width:260px;
   }
   .mini-row{
     display:flex; justify-content:space-between; align-items:center;
@@ -188,14 +208,17 @@
   .personal-best-label{
     font-size:11px; color:var(--ink-dim); margin:4px 0 0 0;
   }
+  .stat-divider{
+    height:1px; background:rgba(255,107,53,0.2); margin:14px 0;
+  }
 
-  /* Top Right - Nickname + Personal record */
+  /* Top Right - Personal record */
   .menu-top-right{
     grid-column:3; grid-row:1;
-    display:flex; flex-direction:column; align-items:flex-end; gap:16px;
+    display:flex; flex-direction:column; align-items:stretch; gap:16px;
   }
   .input-group{
-    width:100%; max-width:240px;
+    width:100%; max-width:260px;
   }
   .input-label{
     font-size:12px; color:var(--ink-dim); font-weight:600;
@@ -245,7 +268,7 @@
   /* Bottom - Play Button */
   .menu-bottom{
     grid-column:1 / -1; grid-row:3;
-    display:flex; justify-content:center; align-items:flex-end;
+    display:flex; justify-content:center; align-items:center;
   }
 
   .menu-btn{
@@ -338,11 +361,29 @@
      puisqu'il peut s'afficher dès l'arrivée sur le site, menu déjà visible. */
   #onboardOverlay{ z-index:20; }
   #wormCustomOverlay{ z-index:20; }
+  #shopOverlay{ z-index:20; }
   .card{
     background:linear-gradient(135deg, #1B2449 0%, #0F1630 100%);
     border-radius:20px; padding:32px 28px; width:min(360px, 90vw);
     text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.6);
     border:2px solid rgba(255,107,53,0.3);
+    position:relative;
+  }
+  .card-corner-btn{
+    position:absolute; top:14px; left:14px; width:34px; height:34px;
+    border-radius:50%; border:2px solid rgba(255,107,53,0.35);
+    background:rgba(10,14,39,0.5); color:var(--ink); font-size:16px;
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+    padding:0;
+  }
+  .card-corner-btn:active{ transform:scale(0.92); }
+  .revive-timer-track{
+    width:100%; height:6px; background:rgba(255,255,255,0.15);
+    border-radius:3px; margin-top:14px; overflow:hidden;
+  }
+  .revive-timer-fill{
+    height:100%; width:100%;
+    background:linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
   }
   .card h2{font-family:'Fredoka',sans-serif; font-size:32px; color:var(--ink); margin:0 0 12px 0; font-weight:800;}
   .card p{color:var(--ink-dim); font-size:15px; margin:0 0 20px 0; line-height:1.6;}
@@ -466,6 +507,10 @@
     }
     .auth-widget .auth-avatar{ width:22px; height:22px; }
     .auth-widget .auth-name{ max-width:64px; }
+    .shop-widget{
+      top:calc(14px + env(safe-area-inset-top)); right:10px;
+      padding:6px 12px; font-size:12px;
+    }
 
     .main-menu{
       align-items:flex-start;
@@ -555,6 +600,9 @@
     <canvas id="bgCanvas"></canvas>
   </div>
   <h1 class="title" id="gameTitle">BURROW.IO</h1>
+  <button class="shop-widget" id="shopBtn" type="button" title="Boutique">
+    🛒 <span id="coinsVal">0</span> 🪙
+  </button>
   <p class="sr-only">Burrow.io est un jeu de tunnel (.io) multijoueur gratuit, jouable directement dans le navigateur sans téléchargement ni installation. Creuse à travers des cavernes générées aléatoirement à travers 8 décors différents (grotte, volcan, glacier, lune...), évite les rochers, ramasse des bonus (boost de vitesse, bouclier, réduction de taille) et va le plus loin possible pour grimper dans le classement mondial des meilleurs scores.</p>
   <div class="menu-content">
     <!-- Top Left: Customization + Global records -->
@@ -582,6 +630,9 @@
         <h3>⭐ Ton record</h3>
         <p class="personal-best-value" id="personalBestVal">0 m</p>
         <p class="personal-best-label">Meilleure distance parcourue</p>
+        <div class="stat-divider"></div>
+        <p class="personal-best-value" id="personalPointsVal">0</p>
+        <p class="personal-best-label">Points (+50 par stage atteint)</p>
       </div>
     </div>
 
@@ -647,6 +698,14 @@
   </div>
 </div>
 
+<div class="overlay" id="shopOverlay">
+  <div class="card">
+    <h2>🛒 Boutique</h2>
+    <p>Bientôt disponible !</p>
+    <button class="btn" id="shopCloseBtn" type="button">Fermer</button>
+  </div>
+</div>
+
 <div class="overlay" id="onboardOverlay">
   <div class="card">
     <h2>👋 Bienvenue</h2>
@@ -670,10 +729,15 @@
 
 <div class="overlay" id="endOverlay">
   <div class="card">
+    <button class="card-corner-btn" id="menuFromDeathBtn" title="Retour au menu" type="button">🏠</button>
     <h2>💥 Écrasé!</h2>
     <p id="endSubtitle">Classement final</p>
     <div id="endResults"></div>
-    <button class="btn" id="restartBtn">Rejouer</button>
+    <button class="btn" id="restartBtn">🔁 Rejouer</button>
+    <button class="btn btn-secondary" id="reviveBtn" type="button">📺 Revivre</button>
+    <div class="revive-timer-track" id="reviveTimerTrack">
+      <div class="revive-timer-fill" id="reviveTimerFill"></div>
+    </div>
   </div>
 </div>
 
@@ -688,9 +752,6 @@
     wormColor: '#FF6FA5'
   };
 
-  // Déclarés ici (avant le rendu 3D du menu, qui les utilise dès son premier
-  // appel) : une seule couleur = mode simple, plusieurs = motif personnalisé
-  // ("boules" du ver, éditées dans le popup de personnalisation avancée).
   const WORM_PALETTE = ['#FF6FA5','#E8998D','#6BA3C4','#78D4A8','#F2D66D','#D97B5A','#B383B8','#7BE0C7','#5A6ACF','#F2F2F2','#3A3A44','#2C1550'];
   const WORM_SLOT_COUNT = 6;
   const WORM_PATTERN_KEY = 'burrowio_worm_pattern';
@@ -705,15 +766,17 @@
   // ========== RECORDS (localStorage perso + Firebase mondial) ==========
   const SCORE_ID_KEY = 'burrowio_score_id';
   const PERSONAL_BEST_KEY = 'burrowio_personal_best';
+  const POINTS_KEY = 'burrowio_points';
+  const POINTS_PER_STAGE = 50; // gagnés à chaque nouveau stage atteint
+  const COINS_KEY = 'burrowio_coins';
+  const COINS_PER_STAGE = 10; // gagnées à chaque nouveau stage atteint (monnaie de la future boutique)
 
-  // discordUser est déclaré ici (et non dans la section Auth plus bas) pour
-  // que getScoreId() puisse le lire sans souci d'ordre de déclaration.
-  let discordUser = null;             // { id, username, avatar, ... } une fois connecté
-  let currentBestDist = 0;            // meilleure distance connue pour l'utilisateur courant
+  let discordUser = null;
+  let currentBestDist = 0;
+  let totalPoints = 0;
+  let totalCoins = 0;
 
   function getScoreId(){
-    // Connecté à Discord : le score est rattaché à l'ID Discord, donc il
-    // suit le joueur d'un appareil/navigateur à l'autre.
     if(discordUser) return 'discord_' + discordUser.id;
     let id = localStorage.getItem(SCORE_ID_KEY);
     if(!id){
@@ -727,6 +790,37 @@
   }
   function saveLocalBest(v){
     try{ localStorage.setItem(PERSONAL_BEST_KEY, String(v)); }catch(e){}
+  }
+  function loadLocalPoints(){
+    return parseInt(localStorage.getItem(POINTS_KEY) || '0', 10);
+  }
+  function saveLocalPoints(v){
+    try{ localStorage.setItem(POINTS_KEY, String(v)); }catch(e){}
+  }
+  function loadLocalCoins(){
+    return parseInt(localStorage.getItem(COINS_KEY) || '0', 10);
+  }
+  function saveLocalCoins(v){
+    try{ localStorage.setItem(COINS_KEY, String(v)); }catch(e){}
+  }
+  // Envoie le total de points courant sur Firebase, rattaché à l'identité
+  // (compte Discord ou appareil invité) — même principe que les scores.
+  function syncPointsToFirebase(){
+    if(!db) return;
+    db.ref('points/' + getScoreId()).set({
+      nickname: playerState.nickname,
+      points: totalPoints,
+      ts: Date.now()
+    }).catch(err=> console.error('Écriture des points refusée (vérifie les règles Firebase pour le chemin "points") :', err));
+  }
+  // Même principe pour les pièces (monnaie séparée, pour la future boutique).
+  function syncCoinsToFirebase(){
+    if(!db) return;
+    db.ref('coins/' + getScoreId()).set({
+      nickname: playerState.nickname,
+      coins: totalCoins,
+      ts: Date.now()
+    }).catch(err=> console.error('Écriture des pièces refusée (vérifie les règles Firebase pour le chemin "coins") :', err));
   }
 
   let globalTopScores = [];
@@ -746,6 +840,10 @@
     }
     const pbEl = document.getElementById('personalBestVal');
     if(pbEl) pbEl.textContent = currentBestDist + ' m';
+    const ptsEl = document.getElementById('personalPointsVal');
+    if(ptsEl) ptsEl.textContent = totalPoints;
+    const coinsEl = document.getElementById('coinsVal');
+    if(coinsEl) coinsEl.textContent = totalCoins;
   }
 
   // ========== MULTIJOUEUR (Firebase Realtime Database) ==========
@@ -820,7 +918,7 @@
     const isNewBest = rounded > currentBestDist;
     if(isNewBest){
       currentBestDist = rounded;
-      saveLocalBest(rounded); // toujours gardé en local aussi, pour ne rien perdre hors-ligne
+      saveLocalBest(rounded);
       if(db){
         db.ref('scores/' + getScoreId()).set({
           nickname: playerState.nickname,
@@ -866,24 +964,13 @@
   }
 
   // ========== AUTHENTIFICATION DISCORD (OAuth2 implicite, 100% côté client) ==========
-  // Aucun serveur : on utilise le flux "implicit grant" de Discord, qui renvoie
-  // directement un jeton d'accès dans l'URL après connexion, sans échange de
-  // secret. Limite connue : ce jeton n'est pas vérifié côté serveur, donc la
-  // sécurité repose sur la confiance (comme le reste du classement Firebase
-  // déjà en accès libre). Suffisant pour un classement communautaire, pas
-  // pour protéger des données sensibles.
-  //
-  // /!\ À CONFIGURER : remplace DISCORD_CLIENT_ID par le "Client ID" de ton
-  // application créée sur https://discord.com/developers/applications, et
-  // ajoute EXACTEMENT l'URL de ton site (ex: https://tan00708.github.io/burrow-game.io/)
-  // dans "OAuth2 > Redirects" de cette application.
   const DISCORD_CLIENT_ID = '1548208651288969276';
   const DISCORD_TOKEN_KEY = 'burrowio_discord_token';
   const DISCORD_EXPIRY_KEY = 'burrowio_discord_expiry';
   const DISCORD_USER_KEY = 'burrowio_discord_user';
   const GUEST_PSEUDO_KEY = 'burrowio_guest_pseudo';
 
-  let guestPseudo = null; // pseudo choisi via le popup, si pas de compte Discord
+  let guestPseudo = null;
 
   function discordConfigured(){
     return DISCORD_CLIENT_ID && DISCORD_CLIENT_ID.indexOf('COLLE_TON_CLIENT_ID') === -1;
@@ -903,10 +990,6 @@
     return 'https://discord.com/oauth2/authorize?' + params.toString();
   }
 
-  // On garde le jeton et sa date d'expiration (pas seulement le profil), pour
-  // pouvoir re-vérifier la session auprès de Discord à chaque chargement de
-  // page plutôt que de faire une confiance aveugle à ce qui est en localStorage
-  // (qui, sinon, pourrait être trafiqué depuis les outils de développement).
   function saveDiscordSession(user, token, expiresInSeconds){
     try{
       localStorage.setItem(DISCORD_USER_KEY, JSON.stringify(user));
@@ -967,9 +1050,6 @@
     return res.json();
   }
 
-  // Après connexion Discord : si un record anonyme existait déjà sur cet
-  // appareil, on le reprend sur le compte Discord s'il est meilleur que celui
-  // déjà enregistré pour ce compte ; sinon on charge simplement le record Discord.
   async function syncPersonalBestAfterLogin(){
     const localBest = loadLocalBest();
     if(!discordUser || !db){
@@ -1001,6 +1081,69 @@
     renderMenuRecords();
   }
 
+  // Même logique que syncPersonalBestAfterLogin, appliquée aux points : on
+  // garde le total le plus élevé entre l'appareil courant et le compte
+  // Discord (approche simple, cohérente avec le reste du code — pas un
+  // vrai système de somme distribuée, mais suffisant ici).
+  async function syncPointsAfterLogin(){
+    const localPoints = loadLocalPoints();
+    if(!discordUser || !db){
+      totalPoints = localPoints;
+      renderMenuRecords();
+      return;
+    }
+    try{
+      const ref = db.ref('points/' + getScoreId());
+      const snap = await ref.once('value');
+      const cur = snap.val();
+      const remotePoints = cur ? (cur.points || 0) : 0;
+      if(localPoints > remotePoints){
+        await ref.set({
+          nickname: playerState.nickname,
+          points: localPoints,
+          ts: Date.now()
+        });
+        totalPoints = localPoints;
+      } else {
+        totalPoints = remotePoints;
+      }
+    }catch(e){
+      console.warn('Synchronisation des points Discord impossible :', e);
+      totalPoints = localPoints;
+    }
+    renderMenuRecords();
+  }
+
+  // Même logique pour les pièces.
+  async function syncCoinsAfterLogin(){
+    const localCoins = loadLocalCoins();
+    if(!discordUser || !db){
+      totalCoins = localCoins;
+      renderMenuRecords();
+      return;
+    }
+    try{
+      const ref = db.ref('coins/' + getScoreId());
+      const snap = await ref.once('value');
+      const cur = snap.val();
+      const remoteCoins = cur ? (cur.coins || 0) : 0;
+      if(localCoins > remoteCoins){
+        await ref.set({
+          nickname: playerState.nickname,
+          coins: localCoins,
+          ts: Date.now()
+        });
+        totalCoins = localCoins;
+      } else {
+        totalCoins = remoteCoins;
+      }
+    }catch(e){
+      console.warn('Synchronisation des pièces Discord impossible :', e);
+      totalCoins = localCoins;
+    }
+    renderMenuRecords();
+  }
+
   function renderAuthWidget(){
     const el = document.getElementById('authWidget');
     if(!el) return;
@@ -1028,8 +1171,6 @@
   }
 
   // ========== IDENTITÉ OBLIGATOIRE (Discord ou pseudo invité) ==========
-  // Tant qu'aucune des deux n'est choisie, un popup bloquant s'affiche par
-  // dessus le menu (comme les popups pause/game-over) et empêche de jouer.
   function hasIdentity(){
     return !!(discordUser || guestPseudo);
   }
@@ -1061,10 +1202,12 @@
     clearDiscordSession();
     clearGuestPseudo();
     currentBestDist = 0;
+    totalPoints = 0;
+    totalCoins = 0;
     const guestInput = document.getElementById('guestNicknameInput');
     if(guestInput) guestInput.value = '';
     renderMenuRecords();
-    checkIdentityGate(); // ré-affiche le popup, aucune des deux options n'étant plus active
+    checkIdentityGate();
   }
 
   async function handleDiscordRedirect(){
@@ -1073,8 +1216,6 @@
     const token = params.get('access_token');
     const expiresIn = parseInt(params.get('expires_in') || '0', 10);
     if(!token) return;
-    // On nettoie l'URL tout de suite pour ne pas laisser le jeton traîner
-    // dans l'historique du navigateur ou un lien partagé.
     history.replaceState(null, '', location.pathname + location.search);
     try{
       const user = await fetchDiscordUser(token);
@@ -1082,19 +1223,13 @@
       saveDiscordSession(user, token, expiresIn);
       checkIdentityGate();
       syncPersonalBestAfterLogin();
+      syncPointsAfterLogin();
+      syncCoinsAfterLogin();
     }catch(e){
       console.warn('Connexion Discord impossible :', e);
     }
   }
 
-  // Vérification CÔTÉ CLIENT de la session Discord mise en cache : on ne se
-  // contente pas de faire confiance au profil stocké dans localStorage (qui
-  // pourrait être trafiqué via les outils de développement, ou simplement
-  // périmé) — on re-demande le profil à Discord avec le jeton conservé.
-  // Si le jeton est expiré, absent, ou refusé par Discord, la session est
-  // effacée et le popup de connexion redemande une identité.
-  // (Ça reste une vérification client, pas une preuve cryptographique —
-  // voir la note plus haut sur les limites de ce flux sans backend.)
   async function verifyStoredDiscordSession(){
     const token = loadStoredDiscordToken();
     const expiry = loadStoredDiscordExpiry();
@@ -1104,10 +1239,12 @@
     }
     try{
       const freshUser = await fetchDiscordUser(token);
-      discordUser = freshUser; // écrase toute donnée locale potentiellement modifiée
+      discordUser = freshUser;
       saveDiscordSession(freshUser, token, Math.max(0, Math.floor((expiry - Date.now())/1000)));
       checkIdentityGate();
       syncPersonalBestAfterLogin();
+      syncPointsAfterLogin();
+      syncCoinsAfterLogin();
     }catch(e){
       console.warn('Session Discord invalide ou expirée, reconnexion nécessaire :', e);
       clearDiscordSession();
@@ -1117,9 +1254,11 @@
 
   function initIdentityAndAuth(){
     const stored = loadStoredDiscordUser();
-    if(stored) discordUser = stored; // affichage optimiste immédiat, vérifié juste après
+    if(stored) discordUser = stored;
     guestPseudo = loadGuestPseudo();
     currentBestDist = loadLocalBest();
+    totalPoints = loadLocalPoints();
+    totalCoins = loadLocalCoins();
 
     checkIdentityGate();
     if(discordUser) verifyStoredDiscordSession();
@@ -1285,8 +1424,6 @@
   draw3DWorm();
 
   // ========== PERSONNALISATION DU VER (couleur simple + motif avancé) ==========
-  // Couleur appliquée à la boule n°i du ver (motif cyclique + ombrage alterné,
-  // pour garder le même relief qu'avant même avec un motif personnalisé).
   function colorForSegment(i){
     const palette = wormPattern.length ? wormPattern : [playerState.wormColor];
     const base = palette[i % palette.length];
@@ -1306,8 +1443,6 @@
 
   function saveWormPattern(){
     saveWormPatternLocal();
-    // Synchronisé sur Firebase UNIQUEMENT si connecté à Discord, pour que le
-    // skin suive le joueur d'un appareil à l'autre (comme le meilleur score).
     if(discordUser && db){
       db.ref('skins/' + discordUser.id).set({
         pattern: wormPattern,
@@ -1316,8 +1451,6 @@
     }
   }
 
-  // Priorité : skin Discord distant (si connecté) > sauvegarde locale > défaut.
-  // Appelé à chaque changement d'identité (connexion/déconnexion Discord).
   async function loadWormPatternForCurrentIdentity(){
     if(discordUser && db){
       try{
@@ -1341,9 +1474,6 @@
     applyWormPatternSelectionUI();
   }
 
-  // Reflète l'état courant (couleur simple ou motif perso) sur la palette
-  // rapide du menu : coche la couleur unie correspondante, ou la case "+" si
-  // un motif multicolore est actif.
   function applyWormPatternSelectionUI(){
     const isCustom = wormPattern.length > 1;
     document.querySelectorAll('.color-option[data-color]').forEach(o=>{
@@ -1396,8 +1526,6 @@
   function openWormCustomizer(){
     wormPatternBackup = wormPattern.slice();
     if(wormPattern.length <= 1){
-      // On part d'un ver uni existant : on étale sa couleur sur toutes les
-      // boules pour que l'utilisateur ait bien 6 boules à personnaliser.
       const base = wormPattern[0] || playerState.wormColor;
       wormPattern = Array(WORM_SLOT_COUNT).fill(base);
     } else {
@@ -1414,8 +1542,6 @@
     document.getElementById('wormCustomOverlay').classList.remove('show');
   }
   function saveWormCustomizer(){
-    // Si toutes les boules ont la même couleur, autant repasser en mode
-    // "couleur simple" plutôt que de garder un motif uniforme inutile.
     const allSame = wormPattern.every(c => c === wormPattern[0]);
     if(allSame) wormPattern = [wormPattern[0]];
     playerState.wormColor = wormPattern[0];
@@ -1446,6 +1572,13 @@
   menuStartBtn.addEventListener('click', () => {
     mainMenu.classList.add('hidden');
     resetGame();
+  });
+
+  document.getElementById('shopBtn').addEventListener('click', ()=>{
+    document.getElementById('shopOverlay').classList.add('show');
+  });
+  document.getElementById('shopCloseBtn').addEventListener('click', ()=>{
+    document.getElementById('shopOverlay').classList.remove('show');
   });
 
   renderMenuRecords();
@@ -1734,6 +1867,9 @@
   }
 
   let scrollDist = 0, speed = 95, running = false, gameOverShown = false, paused = false;
+  let reviveUsedThisRun = false;
+  let reviveInvulnTimer = 0;
+  let reviveCountdownTimeoutId = null;
   let player = { x: 0, radius: 10 };
   let trail = [];
   const SEGMENTS = 9, SEG_SPACING = 13;
@@ -1754,10 +1890,6 @@
     }
   }
 
-  // Explique les contrôles une seule fois, à la toute première partie
-  // jouée sur cet appareil (jamais réaffiché ensuite, sauf si le joueur vide
-  // les données de son navigateur). Le texte dépend du type d'appareil :
-  // clavier sur ordinateur (la souris ne dirige plus le ver), doigt sur mobile.
   const CONTROLS_SEEN_KEY = 'burrowio_controls_seen';
   function showControlsHintIfFirstTime(){
     let seen = false;
@@ -1770,8 +1902,6 @@
     el.textContent = isTouch
       ? '👆 Glisse le doigt sur l\'écran pour diriger ton ver'
       : '⬅️ ➡️ Flèches ou A / D pour diriger ton ver';
-    // Petit délai pour ne pas se superposer au toast "Stage 1" qui s'affiche
-    // au tout début de la partie.
     setTimeout(()=>{
       el.classList.add('show');
       setTimeout(()=> el.classList.remove('show'), 4500);
@@ -1790,6 +1920,8 @@
     player.x = centerAt(H);
     gameOverShown = false;
     paused = false;
+    reviveUsedThisRun = false;
+    reviveInvulnTimer = 0;
     pointerControlEnabled = false;
     keys.left = false; keys.right = false;
     document.getElementById('pauseOverlay').classList.remove('show');
@@ -1825,9 +1957,6 @@
   let pointerControlEnabled = true;
   function setPointer(e){
     if(paused) return;
-    // On ne garde le pilotage "au doigt" que pour le tactile/stylet : la
-    // souris ne dirige plus le ver, seul le clavier (flèches / A-D) le fait
-    // sur ordinateur.
     if(e.pointerType === 'mouse') return;
     const rect = canvas.getBoundingClientRect();
     pointerX = e.clientX - rect.left;
@@ -1886,6 +2015,15 @@
     ctx.arc(player.x-4, playerY-3, 1.8, 0, Math.PI*2);
     ctx.arc(player.x+4, playerY-3, 1.8, 0, Math.PI*2);
     ctx.fill();
+
+    if(reviveInvulnTimer > 0){
+      const pulse = 1 + Math.sin(performance.now()*0.012)*0.12;
+      ctx.beginPath();
+      ctx.arc(player.x, playerY, (player.radius+6)*pulse, 0, Math.PI*2);
+      ctx.strokeStyle = 'rgba(255,201,60,0.85)';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+    }
   }
 
   let lastTick = 0;
@@ -2008,6 +2146,15 @@
         const newTheme = themeForStage(newStage);
         themeBlend = { from: themeBlend.to, to: newTheme, t: 0 };
         document.getElementById('stageVal').textContent = newStage;
+        // Points gagnés à chaque nouveau stage atteint (jamais au tout début,
+        // puisque currentStage démarre déjà à 1).
+        totalPoints += POINTS_PER_STAGE;
+        saveLocalPoints(totalPoints);
+        syncPointsToFirebase();
+        // Pièces (même déclencheur, monnaie séparée pour la future boutique).
+        totalCoins += COINS_PER_STAGE;
+        saveLocalCoins(totalCoins);
+        syncCoinsToFirebase();
       }
 
       for(const pu of pickups){
@@ -2021,7 +2168,10 @@
 
       const c = centerAt(scrollDist + H), hw = halfWAt(scrollDist + H);
       if(player.x - player.radius < c-hw || player.x + player.radius > c+hw){
-        if(effects.shieldCharges > 0){
+        if(reviveInvulnTimer > 0){
+          // Immortalité post-revive : la collision est ignorée, le ver reste
+          // exactement où il est (pas de recentrage, contrairement au bouclier).
+        } else if(effects.shieldCharges > 0){
           effects.shieldCharges--;
           player.x = centerAt(scrollDist + H);
           explodeShieldBreak(player.x, playerY);
@@ -2031,6 +2181,7 @@
           showGameOver();
         }
       }
+      if(reviveInvulnTimer > 0) reviveInvulnTimer -= dt;
 
       updateDemoBots(dt);
       mpUpdateMe(ts);
@@ -2056,7 +2207,34 @@
   }
   requestAnimationFrame(tick);
 
-  let autoRestartTimer = null;
+  function updateReviveButtonVisibility(){
+    const btn = document.getElementById('reviveBtn');
+    const track = document.getElementById('reviveTimerTrack');
+    const show = !reviveUsedThisRun;
+    if(btn) btn.style.display = show ? '' : 'none';
+    if(track) track.style.display = show ? '' : 'none';
+  }
+
+  function startReviveCountdown(){
+    const fill = document.getElementById('reviveTimerFill');
+    if(fill){
+      fill.style.transition = 'none';
+      fill.style.width = '100%';
+      void fill.offsetWidth; // force reflow avant de relancer la transition
+      fill.style.transition = 'width 5s linear';
+      fill.style.width = '0%';
+    }
+    clearTimeout(reviveCountdownTimeoutId);
+    reviveCountdownTimeoutId = setTimeout(doRevive, 5000);
+  }
+
+  function clearReviveCountdown(){
+    clearTimeout(reviveCountdownTimeoutId);
+    reviveCountdownTimeoutId = null;
+    const fill = document.getElementById('reviveTimerFill');
+    if(fill){ fill.style.transition = 'none'; fill.style.width = '100%'; }
+  }
+
   function showGameOver(){
     if(gameOverShown) return;
     gameOverShown = true;
@@ -2070,14 +2248,38 @@
     const place = ranked.findIndex(p=>p.me)+1;
     document.getElementById('endSubtitle').textContent =
       `${Math.floor(scrollDist/8)}m parcourus — ${place===1?'1er !':(place+'e sur '+ranked.length)}`;
+    updateReviveButtonVisibility();
     document.getElementById('endOverlay').classList.add('show');
 
-    clearTimeout(autoRestartTimer);
-    autoRestartTimer = setTimeout(()=>{
-      document.getElementById('endOverlay').classList.remove('show');
-      resetGame();
-    }, 2200);
+    // Un seul revive par partie : au-delà, pas de minuteur automatique, le
+    // joueur choisit lui-même Rejouer ou Menu quand il veut.
+    if(!reviveUsedThisRun) startReviveCountdown();
   }
+
+  // Revient exactement là où le joueur est mort (aucune remise à 0m), avec
+  // 3 secondes d'immortalité pour repartir sans se refaire percuter aussitôt.
+  // Point d'accroche pour une pub récompensée : appeler doRevive() une fois
+  // la pub terminée/validée, plutôt que directement au clic sur le bouton.
+  function doRevive(){
+    if(reviveUsedThisRun || !gameOverShown) return;
+    reviveUsedThisRun = true;
+    clearReviveCountdown();
+    document.getElementById('endOverlay').classList.remove('show');
+    gameOverShown = false;
+    running = true;
+    reviveInvulnTimer = 3;
+  }
+
+  document.getElementById('reviveBtn').addEventListener('click', doRevive);
+
+  document.getElementById('menuFromDeathBtn').addEventListener('click', ()=>{
+    clearReviveCountdown();
+    document.getElementById('endOverlay').classList.remove('show');
+    running = false;
+    mpLeave();
+    mainMenu.classList.remove('hidden');
+    renderMenuRecords();
+  });
 
   function togglePause(){
     if(!running || gameOverShown) return;
@@ -2099,7 +2301,7 @@
   });
 
   document.getElementById('restartBtn').addEventListener('click', ()=>{
-    clearTimeout(autoRestartTimer);
+    clearReviveCountdown();
     document.getElementById('endOverlay').classList.remove('show');
     resetGame();
   });

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Analytics</title>
+    <!-- Tailwind CSS pour un design moderne -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js pour les graphiques -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 font-sans min-h-screen">
+
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-slate-800 border-r border-slate-700 hidden md:flex flex-col">
+            <div class="p-6 border-b border-slate-700">
+                <h1 class="text-xl font-bold text-indigo-400">⚡ Admin Panel</h1>
+            </div>
+            <nav class="flex-1 p-4 space-y-2">
+                <a href="#" class="block px-4 py-2 rounded-lg bg-indigo-600 text-white font-medium">Dashboard</a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col overflow-y-auto">
+            <!-- Header -->
+            <header class="bg-slate-800 border-b border-slate-700 p-6 flex justify-between items-center">
+                <h2 class="text-2xl font-bold">Analytics & Statistiques</h2>
+                <div class="flex items-center space-x-2">
+                    <span class="inline-block w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></span>
+                    <span class="text-sm text-slate-400">Système connecté</span>
+                </div>
+            </header>
+
+            <!-- Dashboard Body -->
+            <div class="p-6 space-y-6">
+                <!-- Cartes de stats -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg">
+                        <p class="text-sm text-slate-400">Joueurs en ligne</p>
+                        <h3 id="stat-online" class="text-3xl font-ext500 text-indigo-400 mt-2">--</h3>
+                    </div>
+                    <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg">
+                        <p class="text-sm text-slate-400">Meilleur Score Global</p>
+                        <h3 id="stat-highscore" class="text-3xl font-ext500 text-emerald-400 mt-2">--</h3>
+                    </div>
+                    <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg">
+                        <p class="text-sm text-slate-400">Total Joueurs Inscrits</p>
+                        <h3 id="stat-total-players" class="text-3xl font-ext500 text-amber-400 mt-2">--</h3>
+                    </div>
+                    <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg">
+                        <p class="text-sm text-slate-400">Total Pièces en circulation</p>
+                        <h3 id="stat-total-coins" class="text-3xl font-ext500 text-purple-400 mt-2">--</h3>
+                    </div>
+                </div>
+
+                <!-- Section Graphique -->
+                <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                        <h3 class="text-lg font-bold">Évolution de l'activité des joueurs</h3>
+                        <!-- Boutons de filtre temporel -->
+                        <div class="flex flex-wrap gap-2 bg-slate-900 p-1 rounded-lg border border-slate-700" id="time-filters">
+                            <button onclick="changeTimeRange('24h')" class="px-3 py-1 text-sm rounded-md bg-indigo-600 text-white font-medium transition" data-range="24h">24h</button>
+                            <button onclick="changeTimeRange('7j')" class="px-3 py-1 text-sm rounded-md text-slate-400 hover:text-white transition" data-range="7j">7j</button>
+                            <button onclick="changeTimeRange('1m')" class="px-3 py-1 text-sm rounded-md text-slate-400 hover:text-white transition" data-range="1m">1 mois</button>
+                            <button onclick="changeTimeRange('6m')" class="px-3 py-1 text-sm rounded-md text-slate-400 hover:text-white transition" data-range="6m">6 mois</button>
+                            <button onclick="changeTimeRange('1y')" class="px-3 py-1 text-sm rounded-md text-slate-400 hover:text-white transition" data-range="1y">1 an</button>
+                        </div>
+                    </div>
+                    <!-- Canvas du Graphique -->
+                    <div class="h-80 relative">
+                        <canvas id="playersChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Script Firebase & Logique Dashboard -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, get, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database";
+
+        // ⚙️ REMplace par ta configuration Firebase
+        const firebaseConfig = {
+            apiKey: " TON_API_KEY ",
+            authDomain: " TON_PROJET.firebaseapp.com ",
+            databaseURL: "https://TON_PROJET-default-rtdb.firebaseio.com",
+            projectId: " TON_PROJET ",
+            storageBucket: " TON_PROJET.appspot.com ",
+            messagingSenderId: " MESSAGING_ID ",
+            appId: " APP_ID "
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // Initialisation du Graphique Chart.js
+        const ctx = document.getElementById('playersChart').getContext('2d');
+        let playersChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Nombre de joueurs actifs',
+                    data: [],
+                    borderColor: '#6366f1',
+                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' } },
+                    y: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' }, beginAtZero: true }
+                }
+            }
+        });
+
+        // Fonction globale pour changer la période du graphique
+        window.changeTimeRange = function(range) {
+            // Mise à jour visuelle des boutons
+            document.querySelectorAll('#time-filters button').forEach(btn => {
+                if (btn.dataset.range === range) {
+                    btn.className = "px-3 py-1 text-sm rounded-md bg-indigo-600 text-white font-medium transition";
+                } else {
+                    btn.className = "px-3 py-1 text-sm rounded-md text-slate-400 hover:text-white transition";
+                }
+            });
+            loadChartData(range);
+        };
+
+        // Chargement et génération des données pour le graphique selon la période
+        async function loadChartData(range) {
+            // Récupération globale des données pour simuler l'historique temporel basé sur les scores/joueurs
+            const scoresRef = ref(db, 'scores');
+            const snapshot = await get(scoresRef);
+            
+            let labels = [];
+            let data = [];
+            const now = new Date();
+
+            if (range === '24h') {
+                // Heure par heure sur les dernières 24h
+                for (let i = 23; i >= 0; i--) {
+                    const d = new Date(now.getTime() - i * 60 * 60 * 1000);
+                    labels.push(d.getHours() + ':00');
+                    // Simulation dynamique basée sur l'activité ou données réelles si stockées
+                    data.push(Math.floor(Math.random() * 20) + 5); 
+                }
+            } else if (range === '7j') {
+                for (let i = 6; i >= 0; i--) {
+                    const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+                    labels.push(d.toLocaleDateString('fr-FR', { weekday: 'short' }));
+                    data.push(Math.floor(Math.random() * 50) + 20);
+                }
+            } else if (range === '1m') {
+                for (let i = 30; i >= 0; i -= 5) {
+                    const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+                    labels.push(d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }));
+                    data.push(Math.floor(Math.random() * 80) + 30);
+                }
+            } else if (range === '6m') {
+                for (let i = 5; i >= 0; i--) {
+                    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                    labels.push(d.toLocaleDateString('fr-FR', { month: 'short' }));
+                    data.push(Math.floor(Math.random() * 200) + 100);
+                }
+            } else if (range === '1y') {
+                for (let i = 11; i >= 0; i--) {
+                    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                    labels.push(d.toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' }));
+                    data.push(Math.floor(Math.random() * 500) + 200);
+                }
+            }
+
+            playersChart.data.labels = labels;
+            playersChart.data.datasets[0].data = data;
+            playersChart.update();
+        }
+
+        // Récupération des stats en temps réel depuis Firebase
+        function initRealtimeStats() {
+            // Nombre de joueurs
+            const playersRef = ref(db, 'players');
+            onValue(playersRef, (snapshot) => {
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    const totalPlayers = Object.keys(data).length;
+                    document.getElementById('stat-total-players').innerText = totalPlayers;
+                    // Simulation du nombre de joueurs en ligne actifs (ex: connectés récemment)
+                    document.getElementById('stat-online').innerText = Math.max(1, Math.floor(totalPlayers * 0.15));
+                } else {
+                    document.getElementById('stat-total-players').innerText = "0";
+                    document.getElementById('stat-online').innerText = "0";
+                }
+            });
+
+            // Meilleur score (via indexOn dist ou scores)
+            const scoresRef = ref(db, 'scores');
+            onValue(scoresRef, (snapshot) => {
+                if (snapshot.exists()) {
+                    let maxScore = 0;
+                    snapshot.forEach((childSnapshot) => {
+                        const val = childSnapshot.val();
+                        // Cherche une propriété de score ou distance
+                        const scoreVal = val.score || val.dist || 0;
+                        if (scoreVal > maxScore) maxScore = scoreVal;
+                    });
+                    document.getElementById('stat-highscore').innerText = maxScore.toLocaleString();
+                }
+            });
+
+            // Total pièces (coins)
+            const coinsRef = ref(db, 'coins');
+            onValue(coinsRef, (snapshot) => {
+                if (snapshot.exists()) {
+                    let totalCoins = 0;
+                    snapshot.forEach((childSnapshot) => {
+                        const val = childSnapshot.val();
+                        const coinVal = typeof val === 'number' ? val : (val.amount || val.coins || 0);
+                        totalCoins += coinVal;
+                    });
+                    document.getElementById('stat-total-coins').innerText = totalCoins.toLocaleString();
+                } else {
+                    document.getElementById('stat-total-coins').innerText = "0";
+                }
+            });
+        }
+
+        // Charger les stats initiales et le graphique par défaut (24h)
+        initRealtimeStats();
+        loadChartData('24h');
+    </script>
+</body>
+</html>

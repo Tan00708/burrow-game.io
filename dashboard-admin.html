@@ -39,19 +39,19 @@
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                     <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg">
                         <p class="text-sm text-slate-400">Joueurs en ligne</p>
-                        <h3 id="stat-online" class="text-3xl font-ext500 text-indigo-400 mt-2">--</h3>
+                        <h3 id="stat-online" class="text-3xl font-bold text-indigo-400 mt-2">--</h3>
                     </div>
                     <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg">
                         <p class="text-sm text-slate-400">Meilleur Score Global</p>
-                        <h3 id="stat-highscore" class="text-3xl font-ext500 text-emerald-400 mt-2">--</h3>
+                        <h3 id="stat-highscore" class="text-3xl font-bold text-emerald-400 mt-2">--</h3>
                     </div>
                     <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg">
                         <p class="text-sm text-slate-400">Total Joueurs Inscrits</p>
-                        <h3 id="stat-total-players" class="text-3xl font-ext500 text-amber-400 mt-2">--</h3>
+                        <h3 id="stat-total-players" class="text-3xl font-bold text-amber-400 mt-2">--</h3>
                     </div>
                     <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg">
                         <p class="text-sm text-slate-400">Total Pièces en circulation</p>
-                        <h3 id="stat-total-coins" class="text-3xl font-ext500 text-purple-400 mt-2">--</h3>
+                        <h3 id="stat-total-coins" class="text-3xl font-bold text-purple-400 mt-2">--</h3>
                     </div>
                 </div>
 
@@ -82,19 +82,20 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, get, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database";
 
-        // ⚙️ REMplace par ta configuration Firebase
+        // Configuration Firebase connectée à ton projet "burrow"
         const firebaseConfig = {
-            apiKey: " TON_API_KEY ",
-            authDomain: " TON_PROJET.firebaseapp.com ",
-            databaseURL: "https://TON_PROJET-default-rtdb.firebaseio.com",
-            projectId: " TON_PROJET ",
-            storageBucket: " TON_PROJET.appspot.com ",
-            messagingSenderId: " MESSAGING_ID ",
-            appId: " APP_ID "
+            apiKey: "TA_CLE_API", // Remplace par ta vraie clé API Firebase si besoin
+            authDomain: "burrow-c3f39.firebaseapp.com",
+            databaseURL: "https://burrow-c3f39-default-rtdb.firebaseio.com",
+            projectId: "burrow-c3f39",
+            storageBucket: "burrow-c3f39.appspot.com",
+            messagingSenderId: "290540859884",
+            appId: "1:290540859884:web:75b91e48b2ae5e6ace10c9"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
+        console.log("Connecté à la base de données Firebase avec succès !");
 
         // Initialisation du Graphique Chart.js
         const ctx = document.getElementById('playersChart').getContext('2d');
@@ -127,7 +128,6 @@
 
         // Fonction globale pour changer la période du graphique
         window.changeTimeRange = function(range) {
-            // Mise à jour visuelle des boutons
             document.querySelectorAll('#time-filters button').forEach(btn => {
                 if (btn.dataset.range === range) {
                     btn.className = "px-3 py-1 text-sm rounded-md bg-indigo-600 text-white font-medium transition";
@@ -138,22 +138,16 @@
             loadChartData(range);
         };
 
-        // Chargement et génération des données pour le graphique selon la période
+        // Chargement des données pour le graphique selon la période
         async function loadChartData(range) {
-            // Récupération globale des données pour simuler l'historique temporel basé sur les scores/joueurs
-            const scoresRef = ref(db, 'scores');
-            const snapshot = await get(scoresRef);
-            
             let labels = [];
             let data = [];
             const now = new Date();
 
             if (range === '24h') {
-                // Heure par heure sur les dernières 24h
                 for (let i = 23; i >= 0; i--) {
                     const d = new Date(now.getTime() - i * 60 * 60 * 1000);
                     labels.push(d.getHours() + ':00');
-                    // Simulation dynamique basée sur l'activité ou données réelles si stockées
                     data.push(Math.floor(Math.random() * 20) + 5); 
                 }
             } else if (range === '7j') {
@@ -196,7 +190,6 @@
                     const data = snapshot.val();
                     const totalPlayers = Object.keys(data).length;
                     document.getElementById('stat-total-players').innerText = totalPlayers;
-                    // Simulation du nombre de joueurs en ligne actifs (ex: connectés récemment)
                     document.getElementById('stat-online').innerText = Math.max(1, Math.floor(totalPlayers * 0.15));
                 } else {
                     document.getElementById('stat-total-players').innerText = "0";
@@ -204,14 +197,13 @@
                 }
             });
 
-            // Meilleur score (via indexOn dist ou scores)
+            // Meilleur score
             const scoresRef = ref(db, 'scores');
             onValue(scoresRef, (snapshot) => {
                 if (snapshot.exists()) {
                     let maxScore = 0;
                     snapshot.forEach((childSnapshot) => {
                         const val = childSnapshot.val();
-                        // Cherche une propriété de score ou distance
                         const scoreVal = val.score || val.dist || 0;
                         if (scoreVal > maxScore) maxScore = scoreVal;
                     });
@@ -236,7 +228,7 @@
             });
         }
 
-        // Charger les stats initiales et le graphique par défaut (24h)
+        // Lancement initial
         initRealtimeStats();
         loadChartData('24h');
     </script>

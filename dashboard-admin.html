@@ -6,7 +6,7 @@
     <title>Admin Dashboard - Analytics</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Chart.js pour les graphiques -->
+    <!-- Chart.js pour l'affichage graphique -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="bg-slate-900 text-slate-100 font-sans min-h-screen">
@@ -26,7 +26,7 @@
         <main class="flex-1 flex flex-col overflow-y-auto">
             <!-- Header -->
             <header class="bg-slate-800 border-b border-slate-700 p-6 flex justify-between items-center">
-                <h2 class="text-2xl font-bold">Analytics & Statistiques</h2>
+                <h2 class="text-2xl font-bold">Analytics & Statistiques Réelles</h2>
                 <div class="flex items-center space-x-2">
                     <span class="inline-block w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></span>
                     <span class="text-sm text-slate-400">Système connecté</span>
@@ -38,20 +38,20 @@
                 <!-- Cartes de stats -->
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                     <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg">
-                        <p class="text-sm text-slate-400">Joueurs actifs (récents)</p>
-                        <h3 id="stat-online" class="text-3xl font-bold text-indigo-400 mt-2">--</h3>
+                        <p class="text-sm text-slate-400">Joueurs actuellement connectés</p>
+                        <h3 id="stat-online" class="text-3xl font-bold text-indigo-400 mt-2">0</h3>
                     </div>
                     <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg">
                         <p class="text-sm text-slate-400">Meilleur Score Global</p>
-                        <h3 id="stat-highscore" class="text-3xl font-bold text-emerald-400 mt-2">--</h3>
+                        <h3 id="stat-highscore" class="text-3xl font-bold text-emerald-400 mt-2">0 m</h3>
                     </div>
                     <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg">
-                        <p class="text-sm text-slate-400">Total Joueurs Inscrits</p>
-                        <h3 id="stat-total-players" class="text-3xl font-bold text-amber-400 mt-2">--</h3>
+                        <p class="text-sm text-slate-400">Total Joueurs Inscrits / Comptes</p>
+                        <h3 id="stat-total-players" class="text-3xl font-bold text-amber-400 mt-2">0</h3>
                     </div>
                     <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg">
                         <p class="text-sm text-slate-400">Total Pièces en circulation</p>
-                        <h3 id="stat-total-coins" class="text-3xl font-bold text-purple-400 mt-2">--</h3>
+                        <h3 id="stat-total-coins" class="text-3xl font-bold text-purple-400 mt-2">0</h3>
                     </div>
                 </div>
 
@@ -82,7 +82,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, get, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        // Configuration Firebase exacte de ton projet "burrow"
+        // Configuration Firebase réelle de ton projet "burrow"
         const firebaseConfig = {
             apiKey: "AIzaSyD4gWV0Jqz7daOKNTWgsyFBBeJoErHjndM",
             authDomain: "burrow-c3f39.firebaseapp.com",
@@ -103,13 +103,13 @@
             data: {
                 labels: [],
                 datasets: [{
-                    label: 'Scores / Activité enregistrée',
+                    label: 'Parties / Activité réelle enregistrée',
                     data: [],
                     borderColor: '#6366f1',
                     backgroundColor: 'rgba(99, 102, 241, 0.1)',
                     borderWidth: 2,
                     fill: true,
-                    tension: 0.3
+                    tension: 0.2
                 }]
             },
             options: {
@@ -118,12 +118,12 @@
                 plugins: { legend: { display: false } },
                 scales: {
                     x: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' } },
-                    y: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' }, beginAtZero: true }
+                    y: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' }, beginAtZero: true, precision: 0 }
                 }
             }
         });
 
-        // Fonction globale indispensable pour les boutons de filtre temporel
+        // Fonction globale pour changer la période du graphique
         window.changeTimeRange = function(range) {
             document.querySelectorAll('#time-filters button').forEach(btn => {
                 if (btn.dataset.range === range) {
@@ -135,7 +135,7 @@
             loadChartData(range);
         };
 
-        // Chargement dynamique des données pour le graphique depuis Firebase
+        // Chargement 100% RÉEL des données graphiques depuis Firebase (sans donnée fictive)
         async function loadChartData(range) {
             try {
                 const scoresRef = ref(db, 'scores');
@@ -146,47 +146,68 @@
                 let data = [];
                 const now = new Date();
 
-                // On extrait les timestamps réels des scores stockés dans le jeu
-                const timestamps = Object.values(scoresData).map(s => s.ts || Date.now());
+                // On extrait uniquement les vrais horodatages (timestamps) des parties jouées enregistrées dans Firebase
+                const timestamps = Object.values(scoresData)
+                    .map(s => s.ts)
+                    .filter(ts => typeof ts === 'number' && ts > 0);
 
                 if (range === '24h') {
                     for (let i = 23; i >= 0; i--) {
                         const d = new Date(now.getTime() - i * 60 * 60 * 1000);
                         labels.push(d.getHours() + ':00');
-                        // Compte les parties jouées/enregistrées autour de cette heure
+                        // Compte exact des parties enregistrées pendant cette heure précise
                         const count = timestamps.filter(ts => {
                             const tDate = new Date(ts);
-                            return tDate.getDate() === d.getDate() && tDate.getHours() === d.getHours();
+                            return tDate.getDate() === d.getDate() &&
+                                   tDate.getMonth() === d.getMonth() &&
+                                   tDate.getFullYear() === d.getFullYear() &&
+                                   tDate.getHours() === d.getHours();
                         }).length;
-                        data.push(count > 0 ? count : Math.floor(Math.random() * 3)); // Fallback visuel si peu de données
+                        data.push(count);
                     }
                 } else if (range === '7j') {
                     for (let i = 6; i >= 0; i--) {
                         const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
-                        labels.push(d.toLocaleDateString('fr-FR', { weekday: 'short' }));
+                        labels.push(d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' }));
                         const count = timestamps.filter(ts => {
                             const tDate = new Date(ts);
-                            return Math.abs(tDate - d) < 24 * 60 * 60 * 1000;
+                            return tDate.getDate() === d.getDate() &&
+                                   tDate.getMonth() === d.getMonth() &&
+                                   tDate.getFullYear() === d.getFullYear();
                         }).length;
-                        data.push(count > 0 ? count : Math.floor(Math.random() * 5));
+                        data.push(count);
                     }
                 } else if (range === '1m') {
-                    for (let i = 30; i >= 0; i -= 5) {
+                    for (let i = 29; i >= 0; i--) {
                         const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
                         labels.push(d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }));
-                        data.push(Math.floor(Math.random() * 10) + 2);
+                        const count = timestamps.filter(ts => {
+                            const tDate = new Date(ts);
+                            return tDate.getDate() === d.getDate() &&
+                                   tDate.getMonth() === d.getMonth() &&
+                                   tDate.getFullYear() === d.getFullYear();
+                        }).length;
+                        data.push(count);
                     }
                 } else if (range === '6m') {
                     for (let i = 5; i >= 0; i--) {
                         const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
                         labels.push(d.toLocaleDateString('fr-FR', { month: 'short' }));
-                        data.push(Math.floor(Math.random() * 20) + 5);
+                        const count = timestamps.filter(ts => {
+                            const tDate = new Date(ts);
+                            return tDate.getMonth() === d.getMonth() && tDate.getFullYear() === d.getFullYear();
+                        }).length;
+                        data.push(count);
                     }
                 } else if (range === '1y') {
                     for (let i = 11; i >= 0; i--) {
                         const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
                         labels.push(d.toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' }));
-                        data.push(Math.floor(Math.random() * 50) + 10);
+                        const count = timestamps.filter(ts => {
+                            const tDate = new Date(ts);
+                            return tDate.getMonth() === d.getMonth() && tDate.getFullYear() === d.getFullYear();
+                        }).length;
+                        data.push(count);
                     }
                 }
 
@@ -194,43 +215,47 @@
                 playersChart.data.datasets[0].data = data;
                 playersChart.update();
             } catch (e) {
-                console.error("Erreur de chargement du graphique:", e);
+                console.error("Erreur lors de la récupération des données réelles Firebase:", e);
             }
         }
 
-        // Récupération des stats en temps réel (Joueurs, Meilleurs scores, Pièces)
+        // Récupération en temps réel des statistiques exactes de Firebase
         function initRealtimeStats() {
-            // Nombre de joueurs connectés / enregistrés
+            // Nombre de joueurs actifs en temps réel (dans le nœud /players)
             const playersRef = ref(db, 'players');
             onValue(playersRef, (snapshot) => {
                 if (snapshot.exists()) {
                     const data = snapshot.val();
-                    const totalPlayers = Object.keys(data).length;
-                    document.getElementById('stat-total-players').innerText = totalPlayers;
-                    document.getElementById('stat-online').innerText = Math.max(1, totalPlayers);
+                    const now = Date.now();
+                    // Filtre pour ne garder que les joueurs actifs lors des 10 dernières secondes
+                    const activeOnline = Object.values(data).filter(p => p.ts && (now - p.ts < 10000)).length;
+                    document.getElementById('stat-online').innerText = activeOnline;
                 } else {
-                    document.getElementById('stat-total-players').innerText = "0";
                     document.getElementById('stat-online').innerText = "0";
                 }
             });
 
-            // Meilleur score global
+            // Meilleur score absolu et total d'enregistrements (dans le nœud /scores)
             const scoresRef = ref(db, 'scores');
             onValue(scoresRef, (snapshot) => {
                 if (snapshot.exists()) {
                     let maxScore = 0;
+                    let totalScores = 0;
                     snapshot.forEach((child) => {
+                        totalScores++;
                         const val = child.val();
                         const dist = val.dist || 0;
                         if (dist > maxScore) maxScore = dist;
                     });
                     document.getElementById('stat-highscore').innerText = maxScore.toLocaleString() + " m";
+                    document.getElementById('stat-total-players').innerText = totalScores;
                 } else {
                     document.getElementById('stat-highscore').innerText = "0 m";
+                    document.getElementById('stat-total-players').innerText = "0";
                 }
             });
 
-            // Total des pièces (coins)
+            // Total des pièces enregistrées (dans le nœud /coins)
             const coinsRef = ref(db, 'coins');
             onValue(coinsRef, (snapshot) => {
                 if (snapshot.exists()) {
@@ -246,7 +271,7 @@
             });
         }
 
-        // Lancement des scripts au chargement
+        // Lancement initial
         initRealtimeStats();
         loadChartData('24h');
     </script>

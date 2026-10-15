@@ -100,11 +100,11 @@
     text-shadow:0 4px 16px rgba(255,107,53,0.5);
   }
 
-  /* SELECTEUR DE LANGUE (POSITIONNÉ À CÔTÉ DU PROFIL) */
+  /* SÉLECTEUR DE LANGUE (ESPACÉ POUR ÉVITER LA SUPERPOSITION) */
   .lang-select-widget {
     position: fixed;
     top: 16px;
-    left: 155px;
+    left: 175px;
     z-index: 20;
     background: rgba(27,36,73,0.8);
     border: 2px solid rgba(255,107,53,0.3);
@@ -227,7 +227,7 @@
     height:1px; background:rgba(255,107,53,0.2); margin:14px 0;
   }
 
-  /* ========== BOUTON RANK WIDGET ========== */
+  /* ========== WIDGET RANK ========== */
   .rank-widget-btn {
     display: flex;
     align-items: center;
@@ -295,13 +295,13 @@
     border-radius: 2px;
   }
 
-  /* ========== RANK ROAD HORIZONTALE ELARGIE (2.5x PLUS LARGE) ========== */
+  /* ========== RANK ROAD AMÉLIORÉE (MISE EN VALEUR ÉLÉGANTE) ========== */
   .rank-road-scroll-wrapper {
     width: 100%;
     overflow-x: auto;
     overflow-y: hidden;
     white-space: nowrap;
-    padding: 50px 20px 25px 20px;
+    padding: 55px 20px 30px 20px;
     margin: 15px 0;
     scrollbar-width: thin;
     scrollbar-color: var(--accent-primary) rgba(27, 36, 73, 0.5);
@@ -332,6 +332,7 @@
     transform: translateY(-50%);
     z-index: 1;
     border-radius: 3px;
+    box-shadow: 0 0 10px rgba(255,107,53,0.15);
   }
   .rank-road-continuous-fill {
     position: absolute;
@@ -341,6 +342,7 @@
     background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
     border-radius: 3px;
     width: 0%;
+    box-shadow: 0 0 12px rgba(255,107,53,0.5);
   }
 
   .rank-node {
@@ -350,14 +352,18 @@
     align-items: center;
     margin: 0 60px;
     z-index: 2;
+    transition: transform 0.2s ease;
+  }
+  .rank-node:hover {
+    transform: translateY(-3px);
   }
 
   .rank-node-oval {
-    width: 100px;
-    height: 44px;
+    width: 108px;
+    height: 48px;
     border-radius: 999px;
     background: rgba(27, 36, 73, 0.95);
-    border: 2px solid rgba(255, 107, 53, 0.4);
+    border: 2px solid rgba(255, 107, 53, 0.35);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -366,26 +372,32 @@
     font-size: 14px;
     font-weight: 700;
     color: var(--ink-dim);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-    transition: all 0.2s ease;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+    transition: all 0.25s ease;
   }
   .rank-node.active .rank-node-oval {
     border-color: var(--accent-primary);
-    background: rgba(255, 107, 53, 0.25);
+    background: rgba(255, 107, 53, 0.3);
     color: var(--ink);
-    box-shadow: 0 0 20px rgba(255, 107, 53, 0.4);
+    box-shadow: 0 0 25px rgba(255, 107, 53, 0.6), inset 0 0 10px rgba(255,255,255,0.2);
+    transform: scale(1.06);
   }
 
   .rank-node-score-box {
     margin-top: 14px;
-    background: rgba(15, 22, 48, 0.8);
+    background: rgba(15, 22, 48, 0.85);
     border: 1px solid rgba(255, 107, 53, 0.3);
     border-radius: 8px;
-    padding: 4px 12px;
+    padding: 5px 12px;
     font-family: 'Fredoka', sans-serif;
     font-size: 11px;
     color: var(--ink-dim);
     white-space: nowrap;
+  }
+  .rank-node.active .rank-node-score-box {
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+    font-weight: 700;
   }
 
   .rank-player-marker-container {
@@ -399,7 +411,7 @@
     transition: left 0.3s ease;
   }
   .rank-player-score-box {
-    background: var(--accent-primary);
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
     color: var(--ink);
     border-radius: 8px;
     padding: 5px 12px;
@@ -407,15 +419,31 @@
     font-size: 13px;
     font-weight: 800;
     white-space: nowrap;
-    box-shadow: 0 3px 12px rgba(255, 107, 53, 0.6);
+    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.7);
     margin-bottom: 12px;
   }
   .rank-player-pin {
     width: 6px;
-    height: 48px;
+    height: 52px;
     background: var(--accent-primary);
-    box-shadow: 0 0 12px var(--accent-primary);
+    box-shadow: 0 0 14px var(--accent-primary);
     border-radius: 3px;
+  }
+
+  /* Boutons séparés 75% / 25% dans le modal Rank Road */
+  .rank-modal-actions {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+    margin-top: 16px;
+  }
+  .rank-modal-actions .btn-play-road {
+    flex: 0 0 75%;
+    margin-top: 0;
+  }
+  .rank-modal-actions .btn-close-road {
+    flex: 0 0 25%;
+    margin-top: 0;
   }
 
   .wide-card {
@@ -718,7 +746,7 @@
     .auth-widget .auth-avatar{ width:22px; height:22px; }
     .auth-widget .auth-name{ max-width:64px; }
     .lang-select-widget{
-      top:calc(14px + env(safe-area-inset-top)); left:100px;
+      top:calc(14px + env(safe-area-inset-top)); left:130px;
       padding:5px 8px; font-size:11px;
     }
     .shop-widget{
@@ -814,7 +842,6 @@
     <canvas id="bgCanvas"></canvas>
   </div>
 
-  <!-- SELECTEUR DE LANGUE DÉCALÉ À CÔTÉ DE LA CONNEXION -->
   <select class="lang-select-widget" id="langSelect">
     <option value="fr">🇫🇷 FR</option>
     <option value="en">🇬🇧 EN</option>
@@ -917,8 +944,8 @@
   <div id="lbList"></div>
 </div>
 
-<!-- POP-UP RANK ROAD SCROLLABLE ET 2.5x PLUS LARGE -->
-<div class="overlay" id="rankProgressionOverlay">
+<!-- POP-UP RANK ROAD AVEC BOUTON JOUER (75%) ET FERMER (25%) -->
+<div class="overlay dismissable-overlay" id="rankProgressionOverlay">
   <div class="card wide-card">
     <h2>📈 Rank Road</h2>
     <p data-i18n="rankRoadSubtitle">Fais glisser horizontalement pour explorer la route des rangs !</p>
@@ -929,11 +956,14 @@
       </div>
     </div>
 
-    <button class="btn" id="closeRankModalBtn" type="button" data-i18n="close">Fermer</button>
+    <div class="rank-modal-actions">
+      <button class="btn btn-play-road" id="roadPlayBtn" type="button" data-i18n="play">▶ Jouer</button>
+      <button class="btn btn-secondary btn-close-road" id="closeRankModalBtn" type="button" data-i18n="close">Fermer</button>
+    </div>
   </div>
 </div>
 
-<div class="overlay" id="wormCustomOverlay">
+<div class="overlay dismissable-overlay" id="wormCustomOverlay">
   <div class="card wide-card">
     <h2 data-i18n="customWormTitle">🐛 Personnalise ton ver</h2>
     <p data-i18n="customWormDesc">Clique sur une boule, puis choisis sa couleur dans la palette.</p>
@@ -950,7 +980,7 @@
   </div>
 </div>
 
-<div class="overlay" id="shopOverlay">
+<div class="overlay dismissable-overlay" id="shopOverlay">
   <div class="card">
     <h2 data-i18n="shopTitle">🛒 Boutique</h2>
     <p data-i18n="comingSoon">Bientôt disponible !</p>
@@ -1321,6 +1351,22 @@
   });
   document.getElementById('closeRankModalBtn').addEventListener('click', ()=>{
     document.getElementById('rankProgressionOverlay').classList.remove('show');
+  });
+
+  // Action bouton Jouer depuis la Rank Road
+  document.getElementById('roadPlayBtn').addEventListener('click', ()=>{
+    document.getElementById('rankProgressionOverlay').classList.remove('show');
+    mainMenu.classList.add('hidden');
+    resetGame();
+  });
+
+  // Gestion clic en dehors des popups (fermeture / retour menu)
+  document.querySelectorAll('.overlay.dismissable-overlay').forEach(overlay => {
+    overlay.addEventListener('click', (e) => {
+      if(e.target === overlay){
+        overlay.classList.remove('show');
+      }
+    });
   });
 
   // ========== PLAYER CUSTOMIZATION STATE ==========

@@ -418,8 +418,8 @@
     border-radius: 3px;
   }
 
-  .wide-card { 
-    width: min(900px, 95vw) !important; 
+  .wide-card {
+    width: min(900px, 95vw) !important;
   }
 
   .menu-top-right{
@@ -813,7 +813,7 @@
   <div class="menu-bg">
     <canvas id="bgCanvas"></canvas>
   </div>
-  
+
   <!-- SELECTEUR DE LANGUE DÉCALÉ À CÔTÉ DE LA CONNEXION -->
   <select class="lang-select-widget" id="langSelect">
     <option value="fr">🇫🇷 FR</option>
@@ -856,7 +856,7 @@
         <div class="stat-divider"></div>
         <p class="personal-best-value" id="personalPointsVal">0</p>
         <p class="personal-best-label" data-i18n="totalScoreLabel">Score cumulé total</p>
-        
+
         <!-- WIDGET RANK -->
         <button class="rank-widget-btn" id="openRankModalBtn" type="button" title="Voir les rangs">
           <div class="rank-preview-square" id="widgetRankSquare">🥉</div>
@@ -922,7 +922,7 @@
   <div class="card wide-card">
     <h2>📈 Rank Road</h2>
     <p data-i18n="rankRoadSubtitle">Fais glisser horizontalement pour explorer la route des rangs !</p>
-    
+
     <div class="rank-road-scroll-wrapper" id="rankRoadScrollWrapper">
       <div class="rank-road-track-continuous" id="rankRoadTrack">
         <!-- Généré dynamiquement en JS -->
@@ -1345,7 +1345,7 @@
   const PERSONAL_BEST_KEY = 'burrowio_personal_best';
   const POINTS_KEY = 'burrowio_points';
   const COINS_KEY = 'burrowio_coins';
-  const COINS_PER_STAGE = 10; 
+  const COINS_PER_STAGE = 10;
 
   let discordUser = null;
   let currentBestDist = 0;
@@ -2697,7 +2697,7 @@
         const newTheme = themeForStage(newStage);
         themeBlend = { from: themeBlend.to, to: newTheme, t: 0 };
         document.getElementById('stageVal').textContent = newStage;
-        
+
         totalPoints += 50;
         saveLocalPoints(totalPoints);
         syncPointsToFirebase();
@@ -2785,7 +2785,7 @@
   function showGameOver(){
     if(gameOverShown) return;
     gameOverShown = true;
-    
+
     const finalDist = Math.floor(scrollDist/8);
     totalPoints += finalDist;
     saveLocalPoints(totalPoints);

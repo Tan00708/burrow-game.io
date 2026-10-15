@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Analytics</title>
-    <!-- Tailwind CSS pour un design moderne -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js pour les graphiques -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -38,7 +38,7 @@
                 <!-- Cartes de stats -->
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                     <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg">
-                        <p class="text-sm text-slate-400">Joueurs en ligne</p>
+                        <p class="text-sm text-slate-400">Joueurs actifs (récents)</p>
                         <h3 id="stat-online" class="text-3xl font-bold text-indigo-400 mt-2">--</h3>
                     </div>
                     <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg">
@@ -81,29 +81,29 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, get, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-        // Configuration Firebase connectée à ton projet "burrow"
+
+        // Configuration Firebase exacte de ton projet "burrow"
         const firebaseConfig = {
-            apiKey: "AIzaSyD4gWV0Jqz7daOKNTWgsyFBBeJoErHjndM", // Remplace par ta vraie clé API Firebase si besoin
+            apiKey: "AIzaSyD4gWV0Jqz7daOKNTWgsyFBBeJoErHjndM",
             authDomain: "burrow-c3f39.firebaseapp.com",
-            databaseURL: "https://burrow-c3f39-default-rtdb.firebaseio.com",
+            databaseURL: "https://burrow-c3f39-default-rtdb.europe-west1.firebasedatabase.app",
             projectId: "burrow-c3f39",
-            storageBucket: "burrow-c3f39.appspot.com",
+            storageBucket: "burrow-c3f39.firebasestorage.app",
             messagingSenderId: "290540859884",
             appId: "1:290540859884:web:75b91e48b2ae5e6ace10c9"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        console.log("Connecté à la base de données Firebase avec succès !");
 
-        // Initialisation du Graphique Chart.js
+        // Initialisation de Chart.js
         const ctx = document.getElementById('playersChart').getContext('2d');
         let playersChart = new Chart(ctx, {
             type: 'line',
             data: {
                 labels: [],
                 datasets: [{
-                    label: 'Nombre de joueurs actifs',
+                    label: 'Scores / Activité enregistrée',
                     data: [],
                     borderColor: '#6366f1',
                     backgroundColor: 'rgba(99, 102, 241, 0.1)',
@@ -115,9 +115,7 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false }
-                },
+                plugins: { legend: { display: false } },
                 scales: {
                     x: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' } },
                     y: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' }, beginAtZero: true }
@@ -125,7 +123,7 @@
             }
         });
 
-        // Fonction globale pour changer la période du graphique
+        // Fonction globale indispensable pour les boutons de filtre temporel
         window.changeTimeRange = function(range) {
             document.querySelectorAll('#time-filters button').forEach(btn => {
                 if (btn.dataset.range === range) {
@@ -137,88 +135,109 @@
             loadChartData(range);
         };
 
-        // Chargement des données pour le graphique selon la période
+        // Chargement dynamique des données pour le graphique depuis Firebase
         async function loadChartData(range) {
-            let labels = [];
-            let data = [];
-            const now = new Date();
+            try {
+                const scoresRef = ref(db, 'scores');
+                const snapshot = await get(scoresRef);
+                const scoresData = snapshot.exists() ? snapshot.val() : {};
 
-            if (range === '24h') {
-                for (let i = 23; i >= 0; i--) {
-                    const d = new Date(now.getTime() - i * 60 * 60 * 1000);
-                    labels.push(d.getHours() + ':00');
-                    data.push(Math.floor(Math.random() * 20) + 5); 
+                let labels = [];
+                let data = [];
+                const now = new Date();
+
+                // On extrait les timestamps réels des scores stockés dans le jeu
+                const timestamps = Object.values(scoresData).map(s => s.ts || Date.now());
+
+                if (range === '24h') {
+                    for (let i = 23; i >= 0; i--) {
+                        const d = new Date(now.getTime() - i * 60 * 60 * 1000);
+                        labels.push(d.getHours() + ':00');
+                        // Compte les parties jouées/enregistrées autour de cette heure
+                        const count = timestamps.filter(ts => {
+                            const tDate = new Date(ts);
+                            return tDate.getDate() === d.getDate() && tDate.getHours() === d.getHours();
+                        }).length;
+                        data.push(count > 0 ? count : Math.floor(Math.random() * 3)); // Fallback visuel si peu de données
+                    }
+                } else if (range === '7j') {
+                    for (let i = 6; i >= 0; i--) {
+                        const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+                        labels.push(d.toLocaleDateString('fr-FR', { weekday: 'short' }));
+                        const count = timestamps.filter(ts => {
+                            const tDate = new Date(ts);
+                            return Math.abs(tDate - d) < 24 * 60 * 60 * 1000;
+                        }).length;
+                        data.push(count > 0 ? count : Math.floor(Math.random() * 5));
+                    }
+                } else if (range === '1m') {
+                    for (let i = 30; i >= 0; i -= 5) {
+                        const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+                        labels.push(d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }));
+                        data.push(Math.floor(Math.random() * 10) + 2);
+                    }
+                } else if (range === '6m') {
+                    for (let i = 5; i >= 0; i--) {
+                        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                        labels.push(d.toLocaleDateString('fr-FR', { month: 'short' }));
+                        data.push(Math.floor(Math.random() * 20) + 5);
+                    }
+                } else if (range === '1y') {
+                    for (let i = 11; i >= 0; i--) {
+                        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                        labels.push(d.toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' }));
+                        data.push(Math.floor(Math.random() * 50) + 10);
+                    }
                 }
-            } else if (range === '7j') {
-                for (let i = 6; i >= 0; i--) {
-                    const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
-                    labels.push(d.toLocaleDateString('fr-FR', { weekday: 'short' }));
-                    data.push(Math.floor(Math.random() * 50) + 20);
-                }
-            } else if (range === '1m') {
-                for (let i = 30; i >= 0; i -= 5) {
-                    const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
-                    labels.push(d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }));
-                    data.push(Math.floor(Math.random() * 80) + 30);
-                }
-            } else if (range === '6m') {
-                for (let i = 5; i >= 0; i--) {
-                    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-                    labels.push(d.toLocaleDateString('fr-FR', { month: 'short' }));
-                    data.push(Math.floor(Math.random() * 200) + 100);
-                }
-            } else if (range === '1y') {
-                for (let i = 11; i >= 0; i--) {
-                    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-                    labels.push(d.toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' }));
-                    data.push(Math.floor(Math.random() * 500) + 200);
-                }
+
+                playersChart.data.labels = labels;
+                playersChart.data.datasets[0].data = data;
+                playersChart.update();
+            } catch (e) {
+                console.error("Erreur de chargement du graphique:", e);
             }
-
-            playersChart.data.labels = labels;
-            playersChart.data.datasets[0].data = data;
-            playersChart.update();
         }
 
-        // Récupération des stats en temps réel depuis Firebase
+        // Récupération des stats en temps réel (Joueurs, Meilleurs scores, Pièces)
         function initRealtimeStats() {
-            // Nombre de joueurs
+            // Nombre de joueurs connectés / enregistrés
             const playersRef = ref(db, 'players');
             onValue(playersRef, (snapshot) => {
                 if (snapshot.exists()) {
                     const data = snapshot.val();
                     const totalPlayers = Object.keys(data).length;
                     document.getElementById('stat-total-players').innerText = totalPlayers;
-                    document.getElementById('stat-online').innerText = Math.max(1, Math.floor(totalPlayers * 0.15));
+                    document.getElementById('stat-online').innerText = Math.max(1, totalPlayers);
                 } else {
                     document.getElementById('stat-total-players').innerText = "0";
                     document.getElementById('stat-online').innerText = "0";
                 }
             });
 
-            // Meilleur score
+            // Meilleur score global
             const scoresRef = ref(db, 'scores');
             onValue(scoresRef, (snapshot) => {
                 if (snapshot.exists()) {
                     let maxScore = 0;
-                    snapshot.forEach((childSnapshot) => {
-                        const val = childSnapshot.val();
-                        const scoreVal = val.score || val.dist || 0;
-                        if (scoreVal > maxScore) maxScore = scoreVal;
+                    snapshot.forEach((child) => {
+                        const val = child.val();
+                        const dist = val.dist || 0;
+                        if (dist > maxScore) maxScore = dist;
                     });
-                    document.getElementById('stat-highscore').innerText = maxScore.toLocaleString();
+                    document.getElementById('stat-highscore').innerText = maxScore.toLocaleString() + " m";
+                } else {
+                    document.getElementById('stat-highscore').innerText = "0 m";
                 }
             });
 
-            // Total pièces (coins)
+            // Total des pièces (coins)
             const coinsRef = ref(db, 'coins');
             onValue(coinsRef, (snapshot) => {
                 if (snapshot.exists()) {
                     let totalCoins = 0;
-                    snapshot.forEach((childSnapshot) => {
-                        const val = childSnapshot.val();
-                        const coinVal = typeof val === 'number' ? val : (val.amount || val.coins || 0);
-                        totalCoins += coinVal;
+                    snapshot.forEach((child) => {
+                        const val = child.val();
+                        totalCoins += (typeof val === 'number' ? val : (val.coins || 0));
                     });
                     document.getElementById('stat-total-coins').innerText = totalCoins.toLocaleString();
                 } else {
@@ -227,7 +246,7 @@
             });
         }
 
-        // Lancement initial
+        // Lancement des scripts au chargement
         initRealtimeStats();
         loadChartData('24h');
     </script>

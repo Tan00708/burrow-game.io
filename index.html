@@ -7,7 +7,7 @@
 <title>Burrow.io — Jeu de tunnel multijoueur gratuit</title>
 
 <meta name="description" content="Burrow.io : jeu de tunnel multijoueur gratuit, jouable directement dans le navigateur sans installation. Creuse, évite les obstacles, récupère des bonus et grimpe dans un classement en temps réel contre de vrais joueurs.">
-<meta name="robots" content="index, follow">
+<meta name="robots" content="noindex, nofollow">
 <link rel="canonical" href="https://tan00708.github.io/burrow-game.io/">
 <meta name="theme-color" content="#FF6B35">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.85em%22 font-size=%2290%22>🐛</text></svg>">
@@ -68,10 +68,6 @@
     user-select:none;
   }
 
-  /* Contenu utile pour les moteurs de recherche et les lecteurs d'écran,
-     invisible à l'écran mais bien présent dans le HTML (donc lu par Google) :
-     sans ça, Google construit son extrait de recherche à partir des libellés
-     d'interface ("Couleur", "Pseudo", "K"...) au lieu d'une vraie description. */
   .sr-only{
     position:absolute; width:1px; height:1px;
     padding:0; margin:-1px; overflow:hidden;
@@ -104,8 +100,32 @@
     text-shadow:0 4px 16px rgba(255,107,53,0.5);
   }
 
-  /* Bouton boutique : uniquement dans le menu (à l'intérieur de .main-menu,
-     donc masqué automatiquement pendant une partie en cours). */
+  /* SELECTEUR DE LANGUE (POSITIONNÉ À CÔTÉ DU PROFIL) */
+  .lang-select-widget {
+    position: fixed;
+    top: 16px;
+    left: 155px;
+    z-index: 20;
+    background: rgba(27,36,73,0.8);
+    border: 2px solid rgba(255,107,53,0.3);
+    border-radius: 999px;
+    padding: 6px 12px;
+    color: var(--ink);
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    outline: none;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+    transition: transform .15s ease;
+  }
+  .lang-select-widget:hover { transform: translateY(-1px); }
+  .lang-select-widget option {
+    background: var(--bg-dark);
+    color: var(--ink);
+  }
+
   .shop-widget{
     position:absolute; top:20px; right:20px; z-index:3;
     display:flex; align-items:center; gap:6px;
@@ -118,9 +138,6 @@
   .shop-widget:hover{ transform:translateY(-1px); }
   .shop-widget:active{ transform:scale(0.96); }
 
-  /* Colonnes bornées en largeur (minmax) plutôt que proportionnelles (1fr) :
-     sur un grand écran, le menu reste compact et centré au lieu de s'étirer
-     avec d'immenses vides entre les blocs. */
   .menu-content{
     position:relative; z-index:1;
     display:grid; grid-template-columns:minmax(220px,300px) minmax(300px,420px) minmax(220px,300px);
@@ -130,7 +147,6 @@
     padding:24px 0;
   }
 
-  /* Top Left - Customization + Records */
   .menu-top-left{
     grid-column:1; grid-row:1;
     display:flex; flex-direction:column; align-items:stretch; gap:16px;
@@ -184,7 +200,6 @@
   }
   .color-option-plus.selected::after{ content:none; display:none; }
 
-  /* Records panels (share the customize-section look) */
   .records-section, .personal-section{
     width:100%; max-width:260px;
   }
@@ -212,7 +227,201 @@
     height:1px; background:rgba(255,107,53,0.2); margin:14px 0;
   }
 
-  /* Top Right - Personal record */
+  /* ========== BOUTON RANK WIDGET ========== */
+  .rank-widget-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(15, 22, 48, 0.7);
+    border: 2px solid rgba(255, 107, 53, 0.35);
+    border-radius: 16px;
+    padding: 10px;
+    width: 100%;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 10px;
+  }
+  .rank-widget-btn:hover {
+    background: rgba(27, 36, 73, 0.9);
+    border-color: var(--accent-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.25);
+  }
+  .rank-preview-square {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: rgba(255, 107, 53, 0.15);
+    border: 2px solid var(--accent-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .rank-track-line {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    position: relative;
+    padding: 0 4px;
+  }
+  .rank-oval {
+    width: 30px;
+    height: 20px;
+    border-radius: 999px;
+    background: rgba(27, 36, 73, 0.9);
+    border: 2px solid var(--accent-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    z-index: 2;
+    flex-shrink: 0;
+  }
+  .rank-progress-bar-bg {
+    position: absolute;
+    left: 15px;
+    right: 15px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 2px;
+    z-index: 1;
+  }
+  .rank-progress-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+    border-radius: 2px;
+  }
+
+  /* ========== RANK ROAD HORIZONTALE ELARGIE (2.5x PLUS LARGE) ========== */
+  .rank-road-scroll-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    padding: 50px 20px 25px 20px;
+    margin: 15px 0;
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent-primary) rgba(27, 36, 73, 0.5);
+  }
+  .rank-road-scroll-wrapper::-webkit-scrollbar {
+    height: 6px;
+  }
+  .rank-road-scroll-wrapper::-webkit-scrollbar-thumb {
+    background: var(--accent-primary);
+    border-radius: 3px;
+  }
+
+  .rank-road-track-continuous {
+    display: inline-flex;
+    align-items: center;
+    position: relative;
+    padding: 0 40px;
+    min-width: 100%;
+  }
+
+  .rank-road-continuous-line {
+    position: absolute;
+    top: 50%;
+    left: 50px;
+    right: 50px;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-50%);
+    z-index: 1;
+    border-radius: 3px;
+  }
+  .rank-road-continuous-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+    border-radius: 3px;
+    width: 0%;
+  }
+
+  .rank-node {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0 60px;
+    z-index: 2;
+  }
+
+  .rank-node-oval {
+    width: 100px;
+    height: 44px;
+    border-radius: 999px;
+    background: rgba(27, 36, 73, 0.95);
+    border: 2px solid rgba(255, 107, 53, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink-dim);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    transition: all 0.2s ease;
+  }
+  .rank-node.active .rank-node-oval {
+    border-color: var(--accent-primary);
+    background: rgba(255, 107, 53, 0.25);
+    color: var(--ink);
+    box-shadow: 0 0 20px rgba(255, 107, 53, 0.4);
+  }
+
+  .rank-node-score-box {
+    margin-top: 14px;
+    background: rgba(15, 22, 48, 0.8);
+    border: 1px solid rgba(255, 107, 53, 0.3);
+    border-radius: 8px;
+    padding: 4px 12px;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 11px;
+    color: var(--ink-dim);
+    white-space: nowrap;
+  }
+
+  .rank-player-marker-container {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 4;
+    transition: left 0.3s ease;
+  }
+  .rank-player-score-box {
+    background: var(--accent-primary);
+    color: var(--ink);
+    border-radius: 8px;
+    padding: 5px 12px;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 13px;
+    font-weight: 800;
+    white-space: nowrap;
+    box-shadow: 0 3px 12px rgba(255, 107, 53, 0.6);
+    margin-bottom: 12px;
+  }
+  .rank-player-pin {
+    width: 6px;
+    height: 48px;
+    background: var(--accent-primary);
+    box-shadow: 0 0 12px var(--accent-primary);
+    border-radius: 3px;
+  }
+
+  .wide-card { 
+    width: min(900px, 95vw) !important; 
+  }
+
   .menu-top-right{
     grid-column:3; grid-row:1;
     display:flex; flex-direction:column; align-items:stretch; gap:16px;
@@ -240,7 +449,6 @@
     background:rgba(27,36,73,0.9);
   }
 
-  /* Center - 3D Worm */
   .menu-center{
     grid-column:2; grid-row:1 / 3;
     display:flex; align-items:center; justify-content:center;
@@ -259,13 +467,19 @@
     background:rgba(27,36,73,0.8); padding:12px;
     border-top:2px solid var(--accent-primary);
     text-align:center; backdrop-filter:blur(10px);
+    display: flex;
+    align-items:center;
+    justify-content:center;
+    gap: 8px;
   }
   .worm-name{
     font-family:'Fredoka',sans-serif; font-size:14px; font-weight:700;
     color:var(--ink); margin:0;
   }
+  .worm-rank-tag {
+    font-size: 14px;
+  }
 
-  /* Bottom - Play Button */
   .menu-bottom{
     grid-column:1 / -1; grid-row:3;
     display:flex; justify-content:center; align-items:center;
@@ -297,7 +511,6 @@
   }
   .privacy-link:hover{ color:rgba(168,179,209,0.9); text-decoration:underline; }
 
-  /* Game Canvas */
   #game{display:block; width:100%; height:100%;}
 
   .hud{
@@ -313,7 +526,6 @@
   .hud-label{font-family:'Fredoka',sans-serif; font-size:11px; letter-spacing:0.03em; color:var(--ink-dim); margin:0;}
   .hud-value{font-family:'Fredoka',sans-serif; font-size:28px; font-weight:700; color:var(--accent-primary); margin:0; line-height:1;}
 
-  /* Widget de connexion Discord, toujours visible (menu ET en jeu) */
   .auth-widget{
     position:fixed; top:16px; left:18px; z-index:20;
     display:flex; align-items:center; gap:8px;
@@ -357,11 +569,10 @@
     z-index:10; opacity:0; pointer-events:none; transition:opacity .25s ease;
   }
   .overlay.show{opacity:1; pointer-events:auto;}
-  /* Le popup d'identité doit passer AU-DESSUS du menu principal (z-index 15),
-     puisqu'il peut s'afficher dès l'arrivée sur le site, menu déjà visible. */
   #onboardOverlay{ z-index:20; }
   #wormCustomOverlay{ z-index:20; }
   #shopOverlay{ z-index:20; }
+  #rankProgressionOverlay{ z-index:25; }
   .card{
     background:linear-gradient(135deg, #1B2449 0%, #0F1630 100%);
     border-radius:20px; padding:32px 28px; width:min(360px, 90vw);
@@ -402,7 +613,6 @@
   .divider::before, .divider::after{
     content:''; flex:1; height:1px; background:rgba(255,107,53,0.25);
   }
-  .wide-card{ width:min(440px, 92vw); }
   .worm-pattern-preview{
     display:flex; justify-content:center; gap:8px; margin:18px 0 22px 0; flex-wrap:wrap;
   }
@@ -507,6 +717,10 @@
     }
     .auth-widget .auth-avatar{ width:22px; height:22px; }
     .auth-widget .auth-name{ max-width:64px; }
+    .lang-select-widget{
+      top:calc(14px + env(safe-area-inset-top)); left:100px;
+      padding:5px 8px; font-size:11px;
+    }
     .shop-widget{
       top:calc(14px + env(safe-area-inset-top)); right:10px;
       padding:6px 12px; font-size:12px;
@@ -599,16 +813,25 @@
   <div class="menu-bg">
     <canvas id="bgCanvas"></canvas>
   </div>
+  
+  <!-- SELECTEUR DE LANGUE DÉCALÉ À CÔTÉ DE LA CONNEXION -->
+  <select class="lang-select-widget" id="langSelect">
+    <option value="fr">🇫🇷 FR</option>
+    <option value="en">🇬🇧 EN</option>
+    <option value="es">🇪🇸 ES</option>
+    <option value="de">🇩🇪 DE</option>
+  </select>
+
   <h1 class="title" id="gameTitle">BURROW.IO</h1>
   <button class="shop-widget" id="shopBtn" type="button" title="Boutique">
     🛒 <span id="coinsVal">0</span> 🪙
   </button>
-  <p class="sr-only">Burrow.io est un jeu de tunnel (.io) multijoueur gratuit, jouable directement dans le navigateur sans téléchargement ni installation. Creuse à travers des cavernes générées aléatoirement à travers 8 décors différents (grotte, volcan, glacier, lune...), évite les rochers, ramasse des bonus (boost de vitesse, bouclier, réduction de taille) et va le plus loin possible pour grimper dans le classement mondial des meilleurs scores.</p>
+  <p class="sr-only">Burrow.io est un jeu de tunnel (.io) multijoueur gratuit, jouable directement dans le navigateur sans téléchargement ni installation. Creuse à travers des cavernes générées aléatoirement à travers 8 décors différents (grotte, volcan, glacier, lune...), évite les obstacles, ramasse des bonus (boost de vitesse, bouclier, réduction de taille) et va le plus loin possible pour grimper dans le classement mondial des meilleurs scores.</p>
   <div class="menu-content">
     <!-- Top Left: Customization + Global records -->
     <div class="menu-top-left">
       <div class="customize-section">
-        <h3>🎨 Couleur</h3>
+        <h3 data-i18n="color">🎨 Couleur</h3>
         <div class="color-grid">
           <div class="color-option color-option-plus" id="wormCustomizeBtn" title="Personnaliser">+</div>
           <div class="color-option" data-color="#6BA3C4" style="background:linear-gradient(135deg, #6BA3C4, #5A92B3);" title="Bleu"></div>
@@ -619,20 +842,32 @@
         </div>
       </div>
       <div class="customize-section records-section">
-        <h3>🏆 Meilleurs scores</h3>
-        <div id="globalScoresList"><div class="mini-empty">Chargement...</div></div>
+        <h3 data-i18n="topScores">🏆 Meilleurs scores</h3>
+        <div id="globalScoresList"><div class="mini-empty" data-i18n="loading">Chargement...</div></div>
       </div>
     </div>
 
-    <!-- Top Right: Personal record -->
+    <!-- Top Right: Personal record + WIDGET RANK -->
     <div class="menu-top-right">
       <div class="customize-section personal-section">
-        <h3>⭐ Ton record</h3>
+        <h3 data-i18n="yourRecord">⭐ Ton record</h3>
         <p class="personal-best-value" id="personalBestVal">0 m</p>
-        <p class="personal-best-label">Meilleure distance parcourue</p>
+        <p class="personal-best-label" data-i18n="bestDistLabel">Meilleure distance parcourue</p>
         <div class="stat-divider"></div>
         <p class="personal-best-value" id="personalPointsVal">0</p>
-        <p class="personal-best-label">Points (+50 par stage atteint)</p>
+        <p class="personal-best-label" data-i18n="totalScoreLabel">Score cumulé total</p>
+        
+        <!-- WIDGET RANK -->
+        <button class="rank-widget-btn" id="openRankModalBtn" type="button" title="Voir les rangs">
+          <div class="rank-preview-square" id="widgetRankSquare">🥉</div>
+          <div class="rank-track-line">
+            <div class="rank-oval" id="widgetRankOvalLeft">🥉</div>
+            <div class="rank-progress-bar-bg">
+              <div class="rank-progress-bar-fill" id="widgetRankFill"></div>
+            </div>
+            <div class="rank-oval" id="widgetRankOvalRight">🥈</div>
+          </div>
+        </button>
       </div>
     </div>
 
@@ -641,28 +876,29 @@
       <div class="worm-container">
         <canvas id="wormCanvas3D"></canvas>
         <div class="worm-info">
-          <p class="worm-name" id="wormNameDisplay">Ton Ver</p>
+          <span class="worm-rank-tag" id="wormRankEmojiDisplay">🥉</span>
+          <p class="worm-name" id="wormNameDisplay" data-i18n="yourWorm">Ton Ver</p>
         </div>
       </div>
     </div>
 
     <!-- Bottom: Play Button -->
     <div class="menu-bottom">
-      <button class="menu-btn btn-play" id="menuStartBtn">▶ Jouer</button>
+      <button class="menu-btn btn-play" id="menuStartBtn" data-i18n="play">▶ Jouer</button>
     </div>
   </div>
-  <a class="privacy-link" href="confidentialite.html" target="_blank" rel="noopener">Confidentialité</a>
+  <a class="privacy-link" href="confidentialite.html" target="_blank" rel="noopener" data-i18n="privacy">Confidentialité</a>
 </div>
 
 <canvas id="game"></canvas>
 
 <div class="hud">
   <div class="hud-block">
-    <p class="hud-label">DISTANCE</p>
+    <p class="hud-label" data-i18n="distance">DISTANCE</p>
     <p class="hud-value" id="distVal">0 m</p>
   </div>
   <div class="hud-block" style="margin-left:10px;">
-    <p class="hud-label">STAGE</p>
+    <p class="hud-label" data-i18n="stage">STAGE</p>
     <p class="hud-value" id="stageVal" style="font-size:20px;">1</p>
   </div>
 </div>
@@ -677,64 +913,80 @@
 <button class="pause-btn" id="pauseBtn" title="Pause">⏸</button>
 
 <div class="leaderboard">
-  <h3>🏆 Top</h3>
+  <h3 data-i18n="top">🏆 Top</h3>
   <div id="lbList"></div>
+</div>
+
+<!-- POP-UP RANK ROAD SCROLLABLE ET 2.5x PLUS LARGE -->
+<div class="overlay" id="rankProgressionOverlay">
+  <div class="card wide-card">
+    <h2>📈 Rank Road</h2>
+    <p data-i18n="rankRoadSubtitle">Fais glisser horizontalement pour explorer la route des rangs !</p>
+    
+    <div class="rank-road-scroll-wrapper" id="rankRoadScrollWrapper">
+      <div class="rank-road-track-continuous" id="rankRoadTrack">
+        <!-- Généré dynamiquement en JS -->
+      </div>
+    </div>
+
+    <button class="btn" id="closeRankModalBtn" type="button" data-i18n="close">Fermer</button>
+  </div>
 </div>
 
 <div class="overlay" id="wormCustomOverlay">
   <div class="card wide-card">
-    <h2>🐛 Personnalise ton ver</h2>
-    <p>Clique sur une boule, puis choisis sa couleur dans la palette.</p>
+    <h2 data-i18n="customWormTitle">🐛 Personnalise ton ver</h2>
+    <p data-i18n="customWormDesc">Clique sur une boule, puis choisis sa couleur dans la palette.</p>
     <div class="worm-pattern-preview" id="wormPatternPreview"></div>
     <div class="palette-grid" id="wormPaletteGrid"></div>
     <div class="worm-custom-actions">
-      <button class="btn btn-secondary" id="wormRandomBtn" type="button">🎲 Aléatoire</button>
-      <button class="btn btn-secondary" id="wormResetBtn" type="button">↺ Uni</button>
+      <button class="btn btn-secondary" id="wormRandomBtn" type="button" data-i18n="random">🎲 Aléatoire</button>
+      <button class="btn btn-secondary" id="wormResetBtn" type="button" data-i18n="solid">↺ Uni</button>
     </div>
     <div class="worm-custom-actions">
-      <button class="btn btn-secondary" id="wormCancelBtn" type="button">Annuler</button>
-      <button class="btn" id="wormSaveBtn" type="button">Enregistrer</button>
+      <button class="btn btn-secondary" id="wormCancelBtn" type="button" data-i18n="cancel">Annuler</button>
+      <button class="btn" id="wormSaveBtn" type="button" data-i18n="save">Enregistrer</button>
     </div>
   </div>
 </div>
 
 <div class="overlay" id="shopOverlay">
   <div class="card">
-    <h2>🛒 Boutique</h2>
-    <p>Bientôt disponible !</p>
-    <button class="btn" id="shopCloseBtn" type="button">Fermer</button>
+    <h2 data-i18n="shopTitle">🛒 Boutique</h2>
+    <p data-i18n="comingSoon">Bientôt disponible !</p>
+    <button class="btn" id="shopCloseBtn" type="button" data-i18n="close">Fermer</button>
   </div>
 </div>
 
 <div class="overlay" id="onboardOverlay">
   <div class="card">
-    <h2>👋 Bienvenue</h2>
-    <p>Connecte-toi pour garder ton meilleur score, ou joue directement en invité.</p>
-    <button class="btn" id="discordLoginBtn" type="button">🎮 Discord <span class="reco">(recommandé)</span></button>
-    <div class="divider"><span>ou</span></div>
-    <label class="input-label" style="text-align:left;">Pseudo</label>
+    <h2 data-i18n="welcome">👋 Bienvenue</h2>
+    <p data-i18n="welcomeDesc">Connecte-toi pour garder ton meilleur score, ou joue directement en invité.</p>
+    <button class="btn" id="discordLoginBtn" type="button">🎮 Discord <span class="reco" data-i18n="recommended">(recommandé)</span></button>
+    <div class="divider"><span data-i18n="or">ou</span></div>
+    <label class="input-label" style="text-align:left;" data-i18n="pseudo">Pseudo</label>
     <input type="text" class="nickname-input" id="guestNicknameInput" placeholder="Entre ton pseudo..." maxlength="20">
-    <button class="btn btn-secondary" id="guestPlayBtn" type="button">Jouer en invité</button>
+    <button class="btn btn-secondary" id="guestPlayBtn" type="button" data-i18n="playGuest">Jouer en invité</button>
   </div>
 </div>
 
 <div class="overlay" id="pauseOverlay">
   <div class="card">
-    <h2>⏸ Pause</h2>
-    <p>Appuie sur K pour reprendre.</p>
-    <button class="btn" id="resumeBtn">Reprendre</button>
-    <button class="btn btn-secondary" id="leaveBtn">Retour au menu</button>
+    <h2 data-i18n="pause">⏸ Pause</h2>
+    <p data-i18n="pauseDesc">Appuie sur K pour reprendre.</p>
+    <button class="btn" id="resumeBtn" data-i18n="resume">Reprendre</button>
+    <button class="btn btn-secondary" id="leaveBtn" data-i18n="mainMenu">Retour au menu</button>
   </div>
 </div>
 
 <div class="overlay" id="endOverlay">
   <div class="card">
     <button class="card-corner-btn" id="menuFromDeathBtn" title="Retour au menu" type="button">🏠</button>
-    <h2>💥 Écrasé!</h2>
+    <h2 data-i18n="crashed">💥 Écrasé!</h2>
     <p id="endSubtitle">Classement final</p>
     <div id="endResults"></div>
-    <button class="btn" id="restartBtn">🔁 Rejouer</button>
-    <button class="btn btn-secondary" id="reviveBtn" type="button">📺 Revivre</button>
+    <button class="btn" id="restartBtn" data-i18n="replay">🔁 Rejouer</button>
+    <button class="btn btn-secondary" id="reviveBtn" type="button" data-i18n="revive">📺 Revivre</button>
     <div class="revive-timer-track" id="reviveTimerTrack">
       <div class="revive-timer-fill" id="reviveTimerFill"></div>
     </div>
@@ -746,6 +998,331 @@
 
 <script>
 (function(){
+  // ========== SYSTÈME MULTILINGUE (I18N) ==========
+  const TRANSLATIONS = {
+    fr: {
+      color: "🎨 Couleur",
+      topScores: "🏆 Meilleurs scores",
+      loading: "Chargement...",
+      yourRecord: "⭐ Ton record",
+      bestDistLabel: "Meilleure distance parcourue",
+      totalScoreLabel: "Score cumulé total",
+      yourWorm: "Ton Ver",
+      play: "▶ Jouer",
+      privacy: "Confidentialité",
+      distance: "DISTANCE",
+      stage: "STAGE",
+      top: "🏆 Top",
+      rankRoadSubtitle: "Fais glisser horizontalement pour explorer la route des rangs !",
+      close: "Fermer",
+      customWormTitle: "🐛 Personnalise ton ver",
+      customWormDesc: "Clique sur une boule, puis choisis sa couleur dans la palette.",
+      random: "🎲 Aléatoire",
+      solid: "↺ Uni",
+      cancel: "Annuler",
+      save: "Enregistrer",
+      shopTitle: "🛒 Boutique",
+      comingSoon: "Bientôt disponible !",
+      welcome: "👋 Bienvenue",
+      welcomeDesc: "Connecte-toi pour garder ton meilleur score, ou joue directement en invité.",
+      recommended: "(recommandé)",
+      or: "ou",
+      pseudo: "Pseudo",
+      playGuest: "Jouer en invité",
+      pause: "⏸ Pause",
+      pauseDesc: "Appuie sur K pour reprendre.",
+      resume: "Reprendre",
+      mainMenu: "Retour au menu",
+      crashed: "💥 Écrasé!",
+      replay: "🔁 Rejouer",
+      revive: "📺 Revivre",
+      beFirst: "Sois le premier !",
+      noLeaderboard: "Classement indisponible",
+      chooseBonus: "🎁 Choisis un bonus !",
+      boostActivated: "⚡ BOOST activé !",
+      shieldActivated: "🛡️ BOUCLIER activé !",
+      shrinkActivated: "🤏 PETIT activé !",
+      touchHint: "👆 Glisse le doigt sur l'écran pour diriger ton ver",
+      keyHint: "⬅️ ➡️ Flèches ou A / D pour diriger ton ver",
+      rankBronze: "Bronze",
+      rankSilver: "Argent",
+      rankGold: "Or",
+      rankPlatinum: "Platine",
+      rankDiamond: "Diamant"
+    },
+    en: {
+      color: "🎨 Color",
+      topScores: "🏆 Top Scores",
+      loading: "Loading...",
+      yourRecord: "⭐ Your Record",
+      bestDistLabel: "Best distance reached",
+      totalScoreLabel: "Total accumulated score",
+      yourWorm: "Your Worm",
+      play: "▶ Play",
+      privacy: "Privacy Policy",
+      distance: "DISTANCE",
+      stage: "STAGE",
+      top: "🏆 Top",
+      rankRoadSubtitle: "Drag horizontally to explore the rank road!",
+      close: "Close",
+      customWormTitle: "🐛 Customize your worm",
+      customWormDesc: "Click a segment, then pick its color from the palette.",
+      random: "🎲 Random",
+      solid: "↺ Solid",
+      cancel: "Cancel",
+      save: "Save",
+      shopTitle: "🛒 Shop",
+      comingSoon: "Coming soon!",
+      welcome: "👋 Welcome",
+      welcomeDesc: "Log in to save your best score, or play directly as a guest.",
+      recommended: "(recommended)",
+      or: "or",
+      pseudo: "Nickname",
+      playGuest: "Play as guest",
+      pause: "⏸ Pause",
+      pauseDesc: "Press K to resume.",
+      resume: "Resume",
+      mainMenu: "Main menu",
+      crashed: "💥 Crashed!",
+      replay: "🔁 Play again",
+      revive: "📺 Revive",
+      beFirst: "Be the first!",
+      noLeaderboard: "Leaderboard unavailable",
+      chooseBonus: "🎁 Pick a bonus!",
+      boostActivated: "⚡ BOOST activated!",
+      shieldActivated: "🛡️ SHIELD activated!",
+      shrinkActivated: "🤏 TINY activated!",
+      touchHint: "👆 Drag your finger on the screen to steer your worm",
+      keyHint: "⬅️ ➡️ Arrow keys or A / D to steer your worm",
+      rankBronze: "Bronze",
+      rankSilver: "Silver",
+      rankGold: "Gold",
+      rankPlatinum: "Platinum",
+      rankDiamond: "Diamond"
+    },
+    es: {
+      color: "🎨 Color",
+      topScores: "🏆 Mejores Puntuaciones",
+      loading: "Cargando...",
+      yourRecord: "⭐ Tu RRecord",
+      bestDistLabel: "Mejor distancia recorrida",
+      totalScoreLabel: "Puntuación total acumulada",
+      yourWorm: "Tu Gusano",
+      play: "▶ Jugar",
+      privacy: "Privacidad",
+      distance: "DISTANCIA",
+      stage: "NIVEL",
+      top: "🏆 Top",
+      rankRoadSubtitle: "¡Desliza horizontalmente para explorar el camino de rangos!",
+      close: "Cerrar",
+      customWormTitle: "🐛 Personaliza tu gusano",
+      customWormDesc: "Haz clic en un segmento y elige su color de la paleta.",
+      random: "🎲 Aleatorio",
+      solid: "↺ Liso",
+      cancel: "Cancelar",
+      save: "Guardar",
+      shopTitle: "🛒 Tienda",
+      comingSoon: "¡Próximamente!",
+      welcome: "👋 Bienvenido",
+      welcomeDesc: "Inicia sesión para guardar tu mejor puntuación o juega como invitado.",
+      recommended: "(recomendado)",
+      or: "o",
+      pseudo: "Apodo",
+      playGuest: "Jugar como invitado",
+      pause: "⏸ Pausa",
+      pauseDesc: "Presiona K para reanudar.",
+      resume: "Reanudar",
+      mainMenu: "Menú principal",
+      crashed: "💥 ¡Estrellado!",
+      replay: "🔁 Reorganizar",
+      revive: "📺 Revivir",
+      beFirst: "¡Sé el primero!",
+      noLeaderboard: "Clasificación no disponible",
+      chooseBonus: "🎁 ¡Elige una bonificación!",
+      boostActivated: "⚡ ¡IMPULSO activado!",
+      shieldActivated: "🛡️ ¡ESCUDO activado!",
+      shrinkActivated: "🤏 ¡PEQUEÑO activado!",
+      touchHint: "👆 Arrastra el dedo en la pantalla para dirigir tu gusano",
+      keyHint: "⬅️ ➡️ Flechas o A / D para dirigir tu gusano",
+      rankBronze: "Bronce",
+      rankSilver: "Plata",
+      rankGold: "Oro",
+      rankPlatinum: "Platino",
+      rankDiamond: "Diamante"
+    },
+    de: {
+      color: "🎨 Farbe",
+      topScores: "🏆 Bestleistungen",
+      loading: "Laden...",
+      yourRecord: "⭐ Dein Rekord",
+      bestDistLabel: "Beste zurückgelegte Distanz",
+      totalScoreLabel: "Gesamte kumulierte Punkte",
+      yourWorm: "Dein Wurm",
+      play: "▶ Spielen",
+      privacy: "Datenschutz",
+      distance: "DISTANZ",
+      stage: "LEVEL",
+      top: "🏆 Top",
+      rankRoadSubtitle: "Wische horizontal, um den Rang-Pfad zu erkunden!",
+      close: "Schließen",
+      customWormTitle: "🐛 Passe deinen Wurm an",
+      customWormDesc: "Klicke auf ein Segment und wähle seine Farbe aus der Palette.",
+      random: "🎲 Zufall",
+      solid: "↺ Einfarbig",
+      cancel: "Abbrechen",
+      save: "Speichern",
+      shopTitle: "🛒 Shop",
+      comingSoon: "Demnächst verfügbar!",
+      welcome: "👋 Willkommen",
+      welcomeDesc: "Melde dich an, um deinen Rekord zu speichern, oder spiele als Gast.",
+      recommended: "(empfohlen)",
+      or: "oder",
+      pseudo: "Spitzname",
+      playGuest: "Als Gast spielen",
+      pause: "⏸ Pause",
+      pauseDesc: "Drücke K zum Fortsetzen.",
+      resume: "Fortsetzen",
+      mainMenu: "Hauptmenü",
+      crashed: "💥 Gecrasht!",
+      replay: "🔁 Nochmal spielen",
+      revive: "📺 Wiederbeleben",
+      beFirst: "Sei der Erste!",
+      noLeaderboard: "Bestenliste nicht verfügbar",
+      chooseBonus: "🎁 Wähle einen Bonus!",
+      boostActivated: "⚡ BOOST aktiviert!",
+      shieldActivated: "🛡️ SCHILD aktiviert!",
+      shrinkActivated: "🤏 WINZIG aktiviert!",
+      touchHint: "👆 Wische mit dem Finger, um deinen Wurm zu steuern",
+      keyHint: "⬅️ ➡️ Pfeiltasten oder A / D zum Steuern",
+      rankBronze: "Bronze",
+      rankSilver: "Silber",
+      rankGold: "Gold",
+      rankPlatinum: "Platin",
+      rankDiamond: "Diamant"
+    }
+  };
+
+  let currentLang = localStorage.getItem('burrowio_lang') || 'fr';
+
+  function t(key) {
+    return (TRANSLATIONS[currentLang] && TRANSLATIONS[currentLang][key]) || TRANSLATIONS['fr'][key] || key;
+  }
+
+  function applyTranslations() {
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      if (key) el.textContent = t(key);
+    });
+    const input = document.getElementById('guestNicknameInput');
+    if (input) input.placeholder = t('pseudo') + '...';
+  }
+
+  document.getElementById('langSelect').value = currentLang;
+  document.getElementById('langSelect').addEventListener('change', (e) => {
+    currentLang = e.target.value;
+    localStorage.setItem('burrowio_lang', currentLang);
+    applyTranslations();
+    renderMenuRecords();
+  });
+
+  // ========== SYSTÈME DE RANGS & PROGRESSION ==========
+  function getRankNames() {
+    return [
+      { name: t('rankBronze'), emoji: '🥉', minScore: 0 },
+      { name: t('rankSilver'), emoji: '🥈', minScore: 100000 },
+      { name: t('rankGold'), emoji: '🥇', minScore: 200000 },
+      { name: t('rankPlatinum'), emoji: '💎', minScore: 300000 },
+      { name: t('rankDiamond'), emoji: '👑', minScore: 400000 }
+    ];
+  }
+
+  function getRankForScore(score){
+    const RANKS = getRankNames();
+    let currentIdx = 0;
+    for(let i = 0; i < RANKS.length; i++){
+      if(score >= RANKS[i].minScore) currentIdx = i;
+      else break;
+    }
+    return {
+      current: RANKS[currentIdx],
+      next: RANKS[currentIdx + 1] || null,
+      index: currentIdx
+    };
+  }
+
+  function renderRankRoadModal(){
+    const track = document.getElementById('rankRoadTrack');
+    if(!track) return;
+
+    const RANKS = getRankNames();
+    const rankInfo = getRankForScore(totalPoints);
+    const maxScore = RANKS[RANKS.length - 1].minScore;
+    const clampedScore = Math.min(totalPoints, maxScore);
+    const globalPercent = (clampedScore / maxScore) * 100;
+
+    let html = `<div class="rank-road-continuous-line"><div class="rank-road-continuous-fill" style="width: ${globalPercent}%;"></div></div>`;
+
+    RANKS.forEach((r, idx) => {
+      const isActive = idx === rankInfo.index;
+      html += `
+        <div class="rank-node ${isActive ? 'active' : ''}" id="rankNode_${idx}">
+          <div class="rank-node-oval">
+            <span>${r.emoji}</span>
+            <span>${r.name}</span>
+          </div>
+          <div class="rank-node-score-box">${r.minScore / 1000}K pts</div>
+        </div>
+      `;
+    });
+
+    html += `
+      <div class="rank-player-marker-container" id="playerMarker" style="left: calc(40px + (100% - 80px) * ${globalPercent / 100});">
+        <div class="rank-player-score-box">${totalPoints.toLocaleString()} pts</div>
+        <div class="rank-player-pin"></div>
+      </div>
+    `;
+
+    track.innerHTML = html;
+
+    setTimeout(()=>{
+      const activeNode = document.getElementById(`rankNode_${rankInfo.index}`);
+      const wrapper = document.getElementById('rankRoadScrollWrapper');
+      if(activeNode && wrapper){
+        wrapper.scrollLeft = activeNode.offsetLeft - wrapper.clientWidth / 2 + activeNode.clientWidth / 2;
+      }
+    }, 50);
+  }
+
+  function updateRankUI(){
+    const rankInfo = getRankForScore(totalPoints);
+    const sqEl = document.getElementById('widgetRankSquare');
+    const leftEl = document.getElementById('widgetRankOvalLeft');
+    const rightEl = document.getElementById('widgetRankOvalRight');
+    const fillEl = document.getElementById('widgetRankFill');
+    const wormEmojiDisplay = document.getElementById('wormRankEmojiDisplay');
+
+    if(sqEl) sqEl.textContent = rankInfo.current.emoji;
+    if(leftEl) leftEl.textContent = rankInfo.current.emoji;
+    if(wormEmojiDisplay) wormEmojiDisplay.textContent = rankInfo.current.emoji;
+
+    if(rankInfo.next){
+      if(rightEl) rightEl.textContent = rankInfo.next.emoji;
+      const progress = Math.min(100, Math.max(0, ((totalPoints - rankInfo.current.minScore) / (rankInfo.next.minScore - rankInfo.current.minScore)) * 100));
+      if(fillEl) fillEl.style.width = progress + '%';
+    } else {
+      if(rightEl) rightEl.textContent = '👑';
+      if(fillEl) fillEl.style.width = '100%';
+    }
+  }
+
+  document.getElementById('openRankModalBtn').addEventListener('click', ()=>{
+    renderRankRoadModal();
+    document.getElementById('rankProgressionOverlay').classList.add('show');
+  });
+  document.getElementById('closeRankModalBtn').addEventListener('click', ()=>{
+    document.getElementById('rankProgressionOverlay').classList.remove('show');
+  });
+
   // ========== PLAYER CUSTOMIZATION STATE ==========
   let playerState = {
     nickname: 'Anonyme',
@@ -763,13 +1340,12 @@
     return String(str).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
 
-  // ========== RECORDS (localStorage perso + Firebase mondial) ==========
+  // ========== RECORDS & POINTS ==========
   const SCORE_ID_KEY = 'burrowio_score_id';
   const PERSONAL_BEST_KEY = 'burrowio_personal_best';
   const POINTS_KEY = 'burrowio_points';
-  const POINTS_PER_STAGE = 50; // gagnés à chaque nouveau stage atteint
   const COINS_KEY = 'burrowio_coins';
-  const COINS_PER_STAGE = 10; // gagnées à chaque nouveau stage atteint (monnaie de la future boutique)
+  const COINS_PER_STAGE = 10; 
 
   let discordUser = null;
   let currentBestDist = 0;
@@ -803,24 +1379,22 @@
   function saveLocalCoins(v){
     try{ localStorage.setItem(COINS_KEY, String(v)); }catch(e){}
   }
-  // Envoie le total de points courant sur Firebase, rattaché à l'identité
-  // (compte Discord ou appareil invité) — même principe que les scores.
+
   function syncPointsToFirebase(){
     if(!db) return;
     db.ref('points/' + getScoreId()).set({
       nickname: playerState.nickname,
       points: totalPoints,
       ts: Date.now()
-    }).catch(err=> console.error('Écriture des points refusée (vérifie les règles Firebase pour le chemin "points") :', err));
+    }).catch(err=> {});
   }
-  // Même principe pour les pièces (monnaie séparée, pour la future boutique).
   function syncCoinsToFirebase(){
     if(!db) return;
     db.ref('coins/' + getScoreId()).set({
       nickname: playerState.nickname,
       coins: totalCoins,
       ts: Date.now()
-    }).catch(err=> console.error('Écriture des pièces refusée (vérifie les règles Firebase pour le chemin "coins") :', err));
+    }).catch(err=> {});
   }
 
   let globalTopScores = [];
@@ -835,18 +1409,19 @@
             <span class="mini-dist">${Math.floor(s.dist)}m</span>
           </div>`).join('');
       } else {
-        listEl.innerHTML = '<div class="mini-empty">Sois le premier !</div>';
+        listEl.innerHTML = `<div class="mini-empty">${t('beFirst')}</div>`;
       }
     }
     const pbEl = document.getElementById('personalBestVal');
     if(pbEl) pbEl.textContent = currentBestDist + ' m';
     const ptsEl = document.getElementById('personalPointsVal');
-    if(ptsEl) ptsEl.textContent = totalPoints;
+    if(ptsEl) ptsEl.textContent = totalPoints.toLocaleString();
     const coinsEl = document.getElementById('coinsVal');
     if(coinsEl) coinsEl.textContent = totalCoins;
+    updateRankUI();
   }
 
-  // ========== MULTIJOUEUR (Firebase Realtime Database) ==========
+  // ========== MULTIJOUEUR ==========
   const firebaseConfig = {
     apiKey: "AIzaSyD4gWV0Jqz7daOKNTWgsyFBBeJoErHjndM",
     authDomain: "burrow-c3f39.firebaseapp.com",
@@ -871,7 +1446,6 @@
       && firebaseConfig.databaseURL
       && firebaseConfig.databaseURL.indexOf('COLLE_ICI') === -1;
     if(!configured || typeof firebase === 'undefined'){
-      console.info('Multijoueur : firebaseConfig non renseigné, utilisation de bots de démo.');
       return;
     }
     try{
@@ -899,15 +1473,12 @@
         globalTopScores = Object.values(val).sort((a,b)=>b.dist-a.dist);
         renderMenuRecords();
       }, (err)=>{
-        console.error('Lecture du classement mondial refusée (vérifie les règles Firebase pour le chemin "scores") :', err);
         const listEl = document.getElementById('globalScoresList');
-        if(listEl) listEl.innerHTML = '<div class="mini-empty">Classement indisponible</div>';
+        if(listEl) listEl.innerHTML = `<div class="mini-empty">${t('noLeaderboard')}</div>`;
       });
 
       mpReady = true;
-      console.info('Multijoueur : connecté à Firebase.');
     }catch(e){
-      console.warn('Multijoueur indisponible :', e);
       mpReady = false;
     }
   }
@@ -926,9 +1497,7 @@
           dist: rounded,
           ts: Date.now(),
           discord: !!discordUser
-        }).catch((err)=>{
-          console.error('Écriture du score mondial refusée (vérifie les règles Firebase pour le chemin "scores") :', err);
-        });
+        }).catch((err)=>{});
       }
     }
     renderMenuRecords();
@@ -963,7 +1532,7 @@
     }
   }
 
-  // ========== AUTHENTIFICATION DISCORD (OAuth2 implicite, 100% côté client) ==========
+  // ========== AUTHENTIFICATION DISCORD ==========
   const DISCORD_CLIENT_ID = '1548208651288969276';
   const DISCORD_TOKEN_KEY = 'burrowio_discord_token';
   const DISCORD_EXPIRY_KEY = 'burrowio_discord_expiry';
@@ -1075,16 +1644,11 @@
         currentBestDist = remoteBest;
       }
     }catch(e){
-      console.warn('Synchronisation du record Discord impossible :', e);
       currentBestDist = localBest;
     }
     renderMenuRecords();
   }
 
-  // Même logique que syncPersonalBestAfterLogin, appliquée aux points : on
-  // garde le total le plus élevé entre l'appareil courant et le compte
-  // Discord (approche simple, cohérente avec le reste du code — pas un
-  // vrai système de somme distribuée, mais suffisant ici).
   async function syncPointsAfterLogin(){
     const localPoints = loadLocalPoints();
     if(!discordUser || !db){
@@ -1108,13 +1672,11 @@
         totalPoints = remotePoints;
       }
     }catch(e){
-      console.warn('Synchronisation des points Discord impossible :', e);
       totalPoints = localPoints;
     }
     renderMenuRecords();
   }
 
-  // Même logique pour les pièces.
   async function syncCoinsAfterLogin(){
     const localCoins = loadLocalCoins();
     if(!discordUser || !db){
@@ -1138,7 +1700,6 @@
         totalCoins = remoteCoins;
       }
     }catch(e){
-      console.warn('Synchronisation des pièces Discord impossible :', e);
       totalCoins = localCoins;
     }
     renderMenuRecords();
@@ -1170,7 +1731,6 @@
     });
   }
 
-  // ========== IDENTITÉ OBLIGATOIRE (Discord ou pseudo invité) ==========
   function hasIdentity(){
     return !!(discordUser || guestPseudo);
   }
@@ -1225,9 +1785,7 @@
       syncPersonalBestAfterLogin();
       syncPointsAfterLogin();
       syncCoinsAfterLogin();
-    }catch(e){
-      console.warn('Connexion Discord impossible :', e);
-    }
+    }catch(e){}
   }
 
   async function verifyStoredDiscordSession(){
@@ -1246,7 +1804,6 @@
       syncPointsAfterLogin();
       syncCoinsAfterLogin();
     }catch(e){
-      console.warn('Session Discord invalide ou expirée, reconnexion nécessaire :', e);
       clearDiscordSession();
       checkIdentityGate();
     }
@@ -1260,6 +1817,7 @@
     totalPoints = loadLocalPoints();
     totalCoins = loadLocalCoins();
 
+    applyTranslations();
     checkIdentityGate();
     if(discordUser) verifyStoredDiscordSession();
     handleDiscordRedirect();
@@ -1268,7 +1826,6 @@
     if(discordBtn){
       discordBtn.addEventListener('click', ()=>{
         if(discordConfigured()) window.location.href = discordLoginUrl();
-        else console.warn('Discord non configuré (DISCORD_CLIENT_ID manquant).');
       });
     }
     const guestInput = document.getElementById('guestNicknameInput');
@@ -1364,8 +1921,6 @@
       const offsetY = i * segmentSpacing + Math.sin(wormTime + i * 0.4) * 4;
       const offsetX = Math.cos(wormTime + i * 0.3) * 3;
 
-      const perspective = 1 + (1 - scale) * 0.3;
-
       const base3D = wormPattern.length ? wormPattern[i % wormPattern.length] : playerState.wormColor;
       const hue = i % 2 === 0 ? base3D : adjustBrightness(base3D, -20);
 
@@ -1423,7 +1978,6 @@
   }
   draw3DWorm();
 
-  // ========== PERSONNALISATION DU VER (couleur simple + motif avancé) ==========
   function colorForSegment(i){
     const palette = wormPattern.length ? wormPattern : [playerState.wormColor];
     const base = palette[i % palette.length];
@@ -1447,7 +2001,7 @@
       db.ref('skins/' + discordUser.id).set({
         pattern: wormPattern,
         ts: Date.now()
-      }).catch(e=> console.warn('Sauvegarde du skin Discord impossible :', e));
+      }).catch(e=>{});
     }
   }
 
@@ -1462,9 +2016,7 @@
           applyWormPatternSelectionUI();
           return;
         }
-      }catch(e){
-        console.warn('Lecture du skin Discord impossible :', e);
-      }
+      }catch(e){}
     }
     const local = loadWormPatternLocal();
     if(local){
@@ -1565,7 +2117,6 @@
     renderWormPalette();
   });
 
-  // ========== MAIN MENU ==========
   const mainMenu = document.getElementById('mainMenu');
   const menuStartBtn = document.getElementById('menuStartBtn');
 
@@ -1612,7 +2163,6 @@
   window.addEventListener('webkitfullscreenchange', ()=> setTimeout(resize, 150));
   resize();
 
-  // ---------- Procedural tunnel ----------
   const CONTROL_SPACING = 130;
   const BASE_HALF_WIDTH = 78;
   const MIN_HALF_WIDTH = 48;
@@ -1835,16 +2385,18 @@
 
   function showStageToast(stage, theme, hasGate){
     const el = document.getElementById('stageToast');
-    el.textContent = hasGate ? `Stage ${stage} — ${theme.name} · 🎁 Choisis un bonus !` : `Stage ${stage} — ${theme.name}`;
+    el.textContent = hasGate ? `${t('stage')} ${stage} — ${theme.name} · ${t('chooseBonus')}` : `${t('stage')} ${stage} — ${theme.name}`;
     el.classList.add('show');
     clearTimeout(el._t);
     el._t = setTimeout(()=> el.classList.remove('show'), 2400);
   }
 
   function showPickupToast(kind){
-    const info = POWERUP_INFO[kind];
     const el = document.getElementById('stageToast');
-    el.textContent = `${info.emoji} ${info.label} activé !`;
+    if(kind === 'boost') el.textContent = t('boostActivated');
+    else if(kind === 'shield') el.textContent = t('shieldActivated');
+    else if(kind === 'shrink') el.textContent = t('shrinkActivated');
+
     el.classList.add('show');
     clearTimeout(el._t);
     el._t = setTimeout(()=> el.classList.remove('show'), 1600);
@@ -1899,9 +2451,7 @@
     const el = document.getElementById('controlsHint');
     if(!el) return;
     const isTouch = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
-    el.textContent = isTouch
-      ? '👆 Glisse le doigt sur l\'écran pour diriger ton ver'
-      : '⬅️ ➡️ Flèches ou A / D pour diriger ton ver';
+    el.textContent = isTouch ? t('touchHint') : t('keyHint');
     setTimeout(()=>{
       el.classList.add('show');
       setTimeout(()=> el.classList.remove('show'), 4500);
@@ -1945,9 +2495,10 @@
       ...others
     ];
     all.sort((a,b)=>b.dist-a.dist);
+    const myRankInfo = getRankForScore(totalPoints);
     document.getElementById('lbList').innerHTML = all.map((p,i)=>`
       <div class="lb-row ${p.me?'me':''}">
-        <span class="lb-name"><span class="dot" style="background:${p.hex}"></span>${(i+1)}. ${escapeHtml(p.name)}</span>
+        <span class="lb-name"><span class="dot" style="background:${p.hex}"></span>${p.me ? myRankInfo.current.emoji+' ' : ''}${i+1}. ${escapeHtml(p.name)}</span>
         <span>${Math.floor(p.dist)}m</span>
       </div>`).join('');
     return all;
@@ -2146,12 +2697,10 @@
         const newTheme = themeForStage(newStage);
         themeBlend = { from: themeBlend.to, to: newTheme, t: 0 };
         document.getElementById('stageVal').textContent = newStage;
-        // Points gagnés à chaque nouveau stage atteint (jamais au tout début,
-        // puisque currentStage démarre déjà à 1).
-        totalPoints += POINTS_PER_STAGE;
+        
+        totalPoints += 50;
         saveLocalPoints(totalPoints);
         syncPointsToFirebase();
-        // Pièces (même déclencheur, monnaie séparée pour la future boutique).
         totalCoins += COINS_PER_STAGE;
         saveLocalCoins(totalCoins);
         syncCoinsToFirebase();
@@ -2169,8 +2718,6 @@
       const c = centerAt(scrollDist + H), hw = halfWAt(scrollDist + H);
       if(player.x - player.radius < c-hw || player.x + player.radius > c+hw){
         if(reviveInvulnTimer > 0){
-          // Immortalité post-revive : la collision est ignorée, le ver reste
-          // exactement où il est (pas de recentrage, contrairement au bouclier).
         } else if(effects.shieldCharges > 0){
           effects.shieldCharges--;
           player.x = centerAt(scrollDist + H);
@@ -2220,7 +2767,7 @@
     if(fill){
       fill.style.transition = 'none';
       fill.style.width = '100%';
-      void fill.offsetWidth; // force reflow avant de relancer la transition
+      void fill.offsetWidth;
       fill.style.transition = 'width 5s linear';
       fill.style.width = '0%';
     }
@@ -2238,7 +2785,13 @@
   function showGameOver(){
     if(gameOverShown) return;
     gameOverShown = true;
-    submitScoreIfHigher(scrollDist/8);
+    
+    const finalDist = Math.floor(scrollDist/8);
+    totalPoints += finalDist;
+    saveLocalPoints(totalPoints);
+    syncPointsToFirebase();
+
+    submitScoreIfHigher(finalDist);
     const ranked = renderLeaderboard();
     document.getElementById('endResults').innerHTML = ranked.map((p,i)=>`
       <div class="result-row ${p.me?'me':''}">
@@ -2247,19 +2800,13 @@
       </div>`).join('');
     const place = ranked.findIndex(p=>p.me)+1;
     document.getElementById('endSubtitle').textContent =
-      `${Math.floor(scrollDist/8)}m parcourus — ${place===1?'1er !':(place+'e sur '+ranked.length)}`;
+      `${finalDist}m — ${place===1?'1er !':(place+'e')}`;
     updateReviveButtonVisibility();
     document.getElementById('endOverlay').classList.add('show');
 
-    // Un seul revive par partie : au-delà, pas de minuteur automatique, le
-    // joueur choisit lui-même Rejouer ou Menu quand il veut.
     if(!reviveUsedThisRun) startReviveCountdown();
   }
 
-  // Revient exactement là où le joueur est mort (aucune remise à 0m), avec
-  // 3 secondes d'immortalité pour repartir sans se refaire percuter aussitôt.
-  // Point d'accroche pour une pub récompensée : appeler doRevive() une fois
-  // la pub terminée/validée, plutôt que directement au clic sur le bouton.
   function doRevive(){
     if(reviveUsedThisRun || !gameOverShown) return;
     reviveUsedThisRun = true;

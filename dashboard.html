@@ -24,12 +24,16 @@ input{width:100%;margin:7px 0 12px;padding:11px 12px;border-radius:9px;border:1p
 <body>
 
 <section id="login" class="login">
-  <div class="panel">
+  <form id="loginForm" class="panel">
     <h1>Burrow.io</h1>
     <div class="muted">Dashboard administrateur privé</div>
-    <div id="error" class="error" style="margin-top:14px"></div>
-    <button id="discordBtn" type="button" style="width:100%;background:#5865F2;color:#fff;border:0;font-weight:800;padding:12px">Se connecter avec Discord</button>
-  </div>
+    <label for="email">E-mail</label>
+    <input id="email" type="email" autocomplete="username" required>
+    <label for="password">Mot de passe</label>
+    <input id="password" type="password" autocomplete="current-password" required>
+    <div id="error" class="error"></div>
+    <button type="submit">Se connecter</button>
+  </form>
 </section>
 
 <main id="app" class="wrap">
@@ -130,39 +134,28 @@ async function loadStats(){
  $("status").textContent="Mis à jour à "+new Date().toLocaleTimeString("fr-FR");
 }
 
-const WORKER_URL="https://burrow-admin.TON-COMPTE.workers.dev"; // URL de ton Worker
-const DISCORD_CLIENT_ID="1548208651288969276";
-const REDIRECT_URI=location.origin+location.pathname;
+function showAuthError(e){
+ console.error(e);
+ const messages={
+  "auth/invalid-credential":"E-mail ou mot de passe incorrect.",
+  "auth/invalid-email":"L'adresse e-mail n'est pas valide.",
+  "auth/user-disabled":"Ce compte est désactivé.",
+  "auth/too-many-requests":"Trop de tentatives. Réessaie plus tard.",
+  "auth/operation-not-allowed":"La connexion E-mail/Mot de passe n'est pas activée dans Firebase."
+ };
+ $("error").textContent=messages[e.code]||("Erreur Firebase : "+(e.code||e.message||"inconnue"));
+}
 
-function startDiscord(){
- const st=crypto.randomUUID();sessionStorage.setItem("oauth_state",st);
- location.href="https://discord.com/oauth2/authorize?"+new URLSearchParams({client_id:DISCORD_CLIENT_ID,response_type:"code",scope:"identify",redirect_uri:REDIRECT_URI,state:st});
-}
-async function finishDiscord(){
- const p=new URLSearchParams(location.search),code=p.get("code"),state=p.get("state");
- if(!code)return;
- history.replaceState({},"",location.pathname);
- if(state!==sessionStorage.getItem("oauth_state")){$("error").textContent="Session invalide, réessaie.";return}
- sessionStorage.removeItem("oauth_state");
- try{
-  const r=await fetch(WORKER_URL+"/auth",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code,redirect_uri:REDIRECT_URI})});
-  const j=await r.json();
-  if(!r.ok)throw new Error(j.error||"erreur");
-  await auth.signInWithCustomToken(j.token);
- }catch(e){$("error").textContent=e.message==="forbidden"?"Ce compte Discord n'est pas autorisé.":"Erreur : "+e.message}
-}
-$("discordBtn").onclick=startDiscord;
-finishDiscord();
+$("loginForm").addEventListener("submit",async e=>{
+ e.preventDefault();$("error").textContent="";
+ try{await auth.signInWithEmailAndPassword($("email").value.trim(),$("password").value)}
+ catch(e){showAuthError(e)}
+});
 $("logout").onclick=()=>auth.signOut();
 document.querySelectorAll("[data-days]").forEach(b=>b.onclick=()=>{selectedDays=Number(b.dataset.days);document.querySelectorAll("[data-days]").forEach(x=>x.classList.remove("active"));b.classList.add("active");loadStats().catch(e=>{$("status").textContent="Erreur de chargement";console.error(e)})});
-auth.onAuthStateChanged(async user=>{
- let ok=false;
- if(user){try{ok=(await user.getIdTokenResult()).claims.admin===true}catch(e){}}
- if(ok){$("login").style.display="none";$("app").style.display="block";loadStats().catch(e=>{$("status").textContent="Erreur de chargement";console.error(e)})}
- else{
-  $("login").style.display="grid";$("app").style.display="none";
-  if(user&&!$("error").textContent)$("error").textContent="Ce compte n'a pas accès au dashboard."
- }
+auth.onAuthStateChanged(user=>{
+ if(user){$("login").style.display="none";$("app").style.display="block";loadStats().catch(e=>{$("status").textContent="Erreur de chargement";console.error(e)})}
+ else{$("login").style.display="grid";$("app").style.display="none"}
 });
 </script>
 </body>

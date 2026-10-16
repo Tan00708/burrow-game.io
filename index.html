@@ -1444,7 +1444,7 @@
   let powerInventory = { scoreX2:0, wideTunnel:0, shield:0 };
 
   function getScoreId(){
-    // Identité = uid Firebase (anonyme pour les invités, discord_<id> pour Discord, vérifié par le serveur)
+    // Identité = uid Firebase (session anonyme créée automatiquement)
     return (fbAuth && fbAuth.currentUser) ? fbAuth.currentUser.uid : null;
   }
   function loadLocalBest(){
@@ -1600,7 +1600,6 @@
             fbAuth.signInAnonymously().catch(()=>{ if(first){ first = false; resolve(null); } });
             return;
           }
-          if(myPlayerRef){ try{ myPlayerRef.remove(); }catch(e){} }
           myPlayerId = u.uid;
           myPlayerRef = db.ref('players/' + myPlayerId);
           myPlayerRef.onDisconnect().remove();
@@ -1650,7 +1649,7 @@
           color: playerState.wormColor,
           dist: rounded,
           ts: Date.now(),
-          discord: sid.indexOf('discord_') === 0
+          discord: !!discordUser
         }).catch((err)=>{});
       }
     }
@@ -1697,7 +1696,6 @@
 
   // ========== AUTHENTIFICATION DISCORD ==========
   const DISCORD_CLIENT_ID = '1548208651288969276';
-  const AUTH_WORKER_URL = 'https://burrow-admin.TON-COMPTE.workers.dev'; // URL de ton Worker Cloudflare
   const DISCORD_TOKEN_KEY = 'burrowio_discord_token';
   const DISCORD_EXPIRY_KEY = 'burrowio_discord_expiry';
   const DISCORD_USER_KEY = 'burrowio_discord_user';
@@ -1714,14 +1712,11 @@
   }
 
   function discordLoginUrl(){
-    const state = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Math.random()).slice(2);
-    try{ sessionStorage.setItem('burrowio_oauth_state', state); }catch(e){}
     const params = new URLSearchParams({
       client_id: DISCORD_CLIENT_ID,
       redirect_uri: discordRedirectUri(),
-      response_type: 'code',
-      scope: 'identify',
-      state: state
+      response_type: 'token',
+      scope: 'identify'
     });
     return 'https://discord.com/oauth2/authorize?' + params.toString();
   }
@@ -1906,7 +1901,6 @@
   }
 
   function resetIdentity(){
-    if(discordUser && fbAuth){ try{ fbAuth.signOut(); }catch(e){} }
     clearDiscordSession();
     clearGuestPseudo();
     currentBestDist = 0;
@@ -1919,26 +1913,16 @@
   }
 
   async function handleDiscordRedirect(){
-    const params = new URLSearchParams(location.search);
-    const code = params.get('code');
-    const state = params.get('state');
-    if(!code) return;
-    history.replaceState(null, '', location.pathname);
-    let expected = null;
-    try{ expected = sessionStorage.getItem('burrowio_oauth_state'); sessionStorage.removeItem('burrowio_oauth_state'); }catch(e){}
-    if(!state || state !== expected) return;
+    if(!location.hash || location.hash.indexOf('access_token') === -1) return;
+    const params = new URLSearchParams(location.hash.slice(1));
+    const token = params.get('access_token');
+    const expiresIn = parseInt(params.get('expires_in') || '0', 10);
+    if(!token) return;
+    history.replaceState(null, '', location.pathname + location.search);
     try{
-      const res = await fetch(AUTH_WORKER_URL + '/auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code, redirect_uri: discordRedirectUri() })
-      });
-      const data = await res.json();
-      if(!res.ok || !data.token) throw new Error(data.error || 'auth');
-      await authReady;
-      await fbAuth.signInWithCustomToken(data.token);
-      discordUser = data.user;
-      saveDiscordSession(data.user);
+      const user = await fetchDiscordUser(token);
+      discordUser = user;
+      saveDiscordSession(user, token, expiresIn);
       checkIdentityGate();
       syncPersonalBestAfterLogin();
       syncPointsAfterLogin();
@@ -1946,18 +1930,25 @@
     }catch(e){}
   }
 
-  // Le profil Discord stocké dans le navigateur n'est jamais cru sur parole :
-  // il doit correspondre à la session Firebase signée par le serveur.
   async function verifyStoredDiscordSession(){
-    const u = await authReady;
-    if(!u || !discordUser || u.uid !== 'discord_' + discordUser.id){
-      clearDiscordSession();
-      checkIdentityGate();
+    const token = loadStoredDiscordToken();
+    const expiry = loadStoredDiscordExpiry();
+    if(!token || !expiry || Date.now() > expiry){
+      if(discordUser){ clearDiscordSession(); checkIdentityGate(); }
       return;
     }
-    syncPersonalBestAfterLogin();
-    syncPointsAfterLogin();
-    syncAcornsAfterLogin();
+    try{
+      const freshUser = await fetchDiscordUser(token);
+      discordUser = freshUser;
+      saveDiscordSession(freshUser, token, Math.max(0, Math.floor((expiry - Date.now())/1000)));
+      checkIdentityGate();
+      syncPersonalBestAfterLogin();
+      syncPointsAfterLogin();
+      syncAcornsAfterLogin();
+    }catch(e){
+      clearDiscordSession();
+      checkIdentityGate();
+    }
   }
 
   function initIdentityAndAuth(){
@@ -1971,8 +1962,7 @@
 
     applyTranslations();
     checkIdentityGate();
-    try{ localStorage.removeItem(DISCORD_TOKEN_KEY); localStorage.removeItem(DISCORD_EXPIRY_KEY); }catch(e){}
-    if(discordUser && location.search.indexOf('code=') === -1) verifyStoredDiscordSession();
+    if(discordUser) verifyStoredDiscordSession();
     handleDiscordRedirect();
 
     const discordBtn = document.getElementById('discordLoginBtn');
@@ -2151,7 +2141,7 @@
   function saveWormPattern(){
     saveWormPatternLocal();
     if(discordUser && db){
-      db.ref('skins/' + discordUser.id).set({
+      db.ref('skins/' + getScoreId()).set({
         pattern: wormPattern,
         ts: Date.now()
       }).catch(e=>{});
@@ -2161,7 +2151,8 @@
   async function loadWormPatternForCurrentIdentity(){
     if(discordUser && db){
       try{
-        const snap = await db.ref('skins/' + discordUser.id).once('value');
+        await authReady;
+        const snap = await db.ref('skins/' + getScoreId()).once('value');
         const val = snap.val();
         if(val && Array.isArray(val.pattern) && val.pattern.length){
           wormPattern = val.pattern;

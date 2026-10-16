@@ -1,162 +1,329 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="robots" content="noindex,nofollow">
-<title>Burrow.io — Admin</title>
-<style>
-:root{--bg:#07111f;--panel:#0d1b2e;--panel2:#10243c;--text:#edf5ff;--muted:#91a7be;--line:#1c3552;--accent:#ff9d2e}
-*{box-sizing:border-box}body{margin:0;background:linear-gradient(145deg,#06101d,#0a1728);color:var(--text);font:15px system-ui,-apple-system,Segoe UI,sans-serif}
-.wrap{max-width:1200px;margin:auto;padding:28px 18px 50px}.panel,.card{background:rgba(13,27,46,.94);border:1px solid var(--line);border-radius:16px;box-shadow:0 10px 30px #0004}
-.panel{padding:18px}.top{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:18px}h1{margin:0 0 4px;font-size:26px}h2{font-size:17px;margin:0 0 14px}.muted{color:var(--muted)}
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.card{padding:17px}.label{color:var(--muted);font-size:13px}.value{font-size:30px;font-weight:800;margin-top:5px}.orange{color:var(--accent)}
-.controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:15px}button{border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:9px;padding:9px 13px;cursor:pointer}button:hover,button.active{border-color:var(--accent);color:var(--accent)}
-.columns{display:grid;grid-template-columns:1.35fr 1fr;gap:14px;margin-top:14px}.bar{display:flex;align-items:center;gap:10px;margin:9px 0}.bar>span:first-child{width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.track{flex:1;height:9px;background:#172a40;border-radius:99px;overflow:hidden}.fill{height:100%;background:var(--accent)}
-table{width:100%;border-collapse:collapse}th,td{padding:9px 6px;border-bottom:1px solid var(--line);text-align:left;font-size:13px}th{color:var(--muted)}
-.login{min-height:100vh;display:grid;place-items:center;padding:20px}.login .panel{width:min(420px,100%)}label{display:block;color:var(--muted);font-size:13px;margin-top:10px}
-input{width:100%;margin:7px 0 12px;padding:11px 12px;border-radius:9px;border:1px solid var(--line);background:#081525;color:white;outline:none}input:focus{border-color:var(--accent)}
-.login button[type=submit]{width:100%;background:var(--accent);color:#101010;border:0;font-weight:800}.error{color:#ff8585;min-height:20px;margin:5px 0 10px;line-height:1.4}
-#app{display:none}.danger{color:#ff9a9a;border-color:#6d3030}
-@media(max-width:800px){.grid{grid-template-columns:repeat(2,1fr)}.columns{grid-template-columns:1fr}}@media(max-width:480px){.value{font-size:23px}}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex,nofollow">
+    <title>Admin Dashboard - Analytics</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js pour l'affichage graphique -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body>
+<body class="bg-slate-900 text-slate-100 font-sans min-h-screen">
 
-<section id="login" class="login">
-  <form id="loginForm" class="panel">
-    <h1>Burrow.io</h1>
-    <div class="muted">Dashboard administrateur privé</div>
-    <label for="email">E-mail</label>
-    <input id="email" type="email" autocomplete="username" required>
-    <label for="password">Mot de passe</label>
-    <input id="password" type="password" autocomplete="current-password" required>
-    <div id="error" class="error"></div>
-    <button type="submit">Se connecter</button>
-  </form>
-</section>
+    <!-- Écran de connexion -->
+    <div id="login" class="min-h-screen flex items-center justify-center p-6">
+        <form id="loginForm" class="bg-slate-800 p-8 rounded-xl border border-slate-700 shadow-lg w-full max-w-sm space-y-4">
+            <h1 class="text-xl font-bold text-indigo-400">⚡ Admin Panel</h1>
+            <p class="text-sm text-slate-400">Accès réservé à l'administrateur</p>
+            <input id="email" type="email" autocomplete="username" required placeholder="E-mail" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 outline-none focus:border-indigo-500">
+            <input id="password" type="password" autocomplete="current-password" required placeholder="Mot de passe" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 outline-none focus:border-indigo-500">
+            <p id="loginError" class="text-red-400 text-sm min-h-[1.25rem]"></p>
+            <button type="submit" class="w-full py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 font-medium transition">Se connecter</button>
+        </form>
+    </div>
 
-<main id="app" class="wrap">
-  <div class="top">
-    <div><h1>📊 Burrow.io Analytics</h1><div class="muted">Statistiques anonymes</div></div>
-    <button id="logout" class="danger">Déconnexion</button>
-  </div>
 
-  <div class="controls">
-    <button data-days="1">24 h</button>
-    <button data-days="7" class="active">7 jours</button>
-    <button data-days="30">30 jours</button>
-    <button data-days="0">Tout</button>
-    <span id="status" class="muted" style="padding:9px">Chargement…</span>
-  </div>
+    <div id="app" class="flex h-screen overflow-hidden" style="display:none">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-slate-800 border-r border-slate-700 hidden md:flex flex-col">
+            <div class="p-6 border-b border-slate-700">
+                <h1 class="text-xl font-bold text-indigo-400">⚡ Admin Panel</h1>
+            </div>
+            <nav class="flex-1 p-4 space-y-2">
+                <a href="#" class="block px-4 py-2 rounded-lg bg-indigo-600 text-white font-medium">Dashboard</a>
+            </nav>
+        </aside>
 
-  <section class="grid">
-    <div class="card"><div class="label">Visites</div><div id="visits" class="value">—</div></div>
-    <div class="card"><div class="label">Visiteurs uniques</div><div id="unique" class="value orange">—</div></div>
-    <div class="card"><div class="label">Sessions</div><div id="sessions" class="value">—</div></div>
-    <div class="card"><div class="label">En ligne</div><div id="online" class="value orange">—</div></div>
-  </section>
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col overflow-y-auto">
+            <!-- Header -->
+            <header class="bg-slate-800 border-b border-slate-700 p-6 flex justify-between items-center">
+                <h2 class="text-2xl font-bold">Analytics & Statistiques Réelles</h2>
+                <div class="flex items-center space-x-2">
+                    <span class="inline-block w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></span>
+                    <span class="text-sm text-slate-400">Système connecté</span>
+                    <button id="logout" class="ml-4 px-3 py-1 text-sm rounded-md border border-slate-600 text-slate-300 hover:text-white hover:border-red-400 transition">Déconnexion</button>
+                </div>
+            </header>
 
-  <div class="columns">
-    <section class="panel"><h2>Visites par jour</h2><div id="daysChart"></div></section>
-    <section class="panel"><h2>Appareils</h2><div id="devices"></div><h2 style="margin-top:24px">Navigateurs</h2><div id="browsers"></div></section>
-  </div>
+            <!-- Dashboard Body -->
+            <div class="p-6 space-y-6">
+                <!-- Cartes de stats -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg">
+                        <p class="text-sm text-slate-400">Joueurs actuellement connectés</p>
+                        <h3 id="stat-online" class="text-3xl font-bold text-indigo-400 mt-2">0</h3>
+                    </div>
+                    <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg">
+                        <p class="text-sm text-slate-400">Meilleur Score Global</p>
+                        <h3 id="stat-highscore" class="text-3xl font-bold text-emerald-400 mt-2">0 m</h3>
+                    </div>
+                    <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg">
+                        <p class="text-sm text-slate-400">Total Joueurs Inscrits / Comptes</p>
+                        <h3 id="stat-total-players" class="text-3xl font-bold text-amber-400 mt-2">0</h3>
+                    </div>
+                    <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg">
+                        <p class="text-sm text-slate-400">Total Pièces en circulation</p>
+                        <h3 id="stat-total-coins" class="text-3xl font-bold text-purple-400 mt-2">0</h3>
+                    </div>
+                </div>
 
-  <div class="columns">
-    <section class="panel"><h2>Pages</h2><div id="pages"></div></section>
-    <section class="panel"><h2>Provenance</h2><div id="referrers"></div></section>
-  </div>
+                <!-- Section Graphique -->
+                <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                        <h3 class="text-lg font-bold">Évolution de l'activité des joueurs</h3>
+                        <!-- Boutons de filtre temporel -->
+                        <div class="flex flex-wrap gap-2 bg-slate-900 p-1 rounded-lg border border-slate-700" id="time-filters">
+                            <button onclick="changeTimeRange('24h')" class="px-3 py-1 text-sm rounded-md bg-indigo-600 text-white font-medium transition" data-range="24h">24h</button>
+                            <button onclick="changeTimeRange('7j')" class="px-3 py-1 text-sm rounded-md text-slate-400 hover:text-white transition" data-range="7j">7j</button>
+                            <button onclick="changeTimeRange('1m')" class="px-3 py-1 text-sm rounded-md text-slate-400 hover:text-white transition" data-range="1m">1 mois</button>
+                            <button onclick="changeTimeRange('6m')" class="px-3 py-1 text-sm rounded-md text-slate-400 hover:text-white transition" data-range="6m">6 mois</button>
+                            <button onclick="changeTimeRange('1y')" class="px-3 py-1 text-sm rounded-md text-slate-400 hover:text-white transition" data-range="1y">1 an</button>
+                        </div>
+                    </div>
+                    <!-- Canvas du Graphique -->
+                    <div class="h-80 relative">
+                        <canvas id="playersChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
 
-  <section class="panel" style="margin-top:14px">
-    <h2>Dernières visites</h2>
-    <div style="overflow:auto"><table>
-      <thead><tr><th>Date</th><th>Page</th><th>Appareil</th><th>Navigateur</th><th>Provenance</th></tr></thead>
-      <tbody id="recent"></tbody>
-    </table></div>
-  </section>
-</main>
+    <!-- Script Firebase & Logique Dashboard -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, get, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-database-compat.js"></script>
-<script>
-const firebaseConfig={
- apiKey:"AIzaSyD4gWV0Jqz7daOKNTWgsyFBBeJoErHjndM",
- authDomain:"burrow-c3f39.firebaseapp.com",
- databaseURL:"https://burrow-c3f39-default-rtdb.europe-west1.firebasedatabase.app",
- projectId:"burrow-c3f39",
- storageBucket:"burrow-c3f39.firebasestorage.app",
- messagingSenderId:"290540859884",
- appId:"1:290540859884:web:75b91e48b2ae5e6ace10c9"
-};
-firebase.initializeApp(firebaseConfig);
-const auth=firebase.auth(),db=firebase.database(),$=id=>document.getElementById(id);
-let selectedDays=7;
+        // Configuration Firebase réelle de ton projet "burrow"
+        const firebaseConfig = {
+            apiKey: "AIzaSyD4gWV0Jqz7daOKNTWgsyFBBeJoErHjndM",
+            authDomain: "burrow-c3f39.firebaseapp.com",
+            databaseURL: "https://burrow-c3f39-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "burrow-c3f39",
+            storageBucket: "burrow-c3f39.firebasestorage.app",
+            messagingSenderId: "290540859884",
+            appId: "1:290540859884:web:75b91e48b2ae5e6ace10c9"
+        };
 
-const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
-const fmt=n=>Number(n||0).toLocaleString("fr-FR");
-const dayOf=ts=>{const d=new Date(ts);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`};
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const auth = getAuth(app);
+        const ADMIN_UID = '29KbnHKCEMY5EebjBZrMgvLWZEr1'; // affichage uniquement : la vraie protection est dans les règles Firebase
 
-function bars(id,map){
- const rows=Object.entries(map).sort((a,b)=>b[1]-a[1]),root=$(id);
- if(!rows.length){root.innerHTML='<span class="muted">Aucune donnée</span>';return}
- const max=Math.max(...rows.map(x=>x[1]),1);
- root.innerHTML=rows.slice(0,8).map(([n,v])=>`<div class="bar"><span title="${esc(n)}">${esc(n)}</span><div class="track"><div class="fill" style="width:${Math.max(3,v/max*100)}%"></div></div><b>${fmt(v)}</b></div>`).join("");
-}
+        // Initialisation de Chart.js
+        const ctx = document.getElementById('playersChart').getContext('2d');
+        let playersChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Parties / Activité réelle enregistrée',
+                    data: [],
+                    borderColor: '#6366f1',
+                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' } },
+                    y: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' }, beginAtZero: true, precision: 0 }
+                }
+            }
+        });
 
-async function loadStats(){
- $("status").textContent="Chargement…";
- const since=selectedDays?Date.now()-selectedDays*86400000:0;
- const [vs,ds,ps]=await Promise.all([
-  db.ref("analytics/visits").orderByChild("timestamp").startAt(since).once("value"),
-  db.ref("analytics/daily").once("value"),
-  db.ref("analytics/presence").once("value")
- ]);
- const visits=Object.values(vs.val()||{}).filter(v=>v&&typeof v.timestamp==="number");
- const daily=ds.val()||{},unique=new Set(),sessions=new Set(),devices={},browsers={},pages={},refs={};
- visits.forEach(v=>{
-  if(v.visitorId)unique.add(v.visitorId); if(v.sessionId)sessions.add(v.sessionId);
-  const inc=(o,k)=>o[k]=(o[k]||0)+1;
-  inc(devices,v.device||"Autre");inc(browsers,v.browser||"Autre");inc(pages,v.path||"/");inc(refs,v.referrer||"Direct");
- });
- let online=0;const cutoff=Date.now()-60000;
- Object.values(ps.val()||{}).forEach(p=>{if(p&&p.lastSeen>cutoff)online++});
- $("visits").textContent=fmt(visits.length);$("unique").textContent=fmt(unique.size);$("sessions").textContent=fmt(sessions.size);$("online").textContent=fmt(online);
+        // Fonction globale pour changer la période du graphique
+        window.changeTimeRange = function(range) {
+            document.querySelectorAll('#time-filters button').forEach(btn => {
+                if (btn.dataset.range === range) {
+                    btn.className = "px-3 py-1 text-sm rounded-md bg-indigo-600 text-white font-medium transition";
+                } else {
+                    btn.className = "px-3 py-1 text-sm rounded-md text-slate-400 hover:text-white transition";
+                }
+            });
+            loadChartData(range);
+        };
 
- const dm={};Object.entries(daily).forEach(([d,x])=>{const t=new Date(d+"T12:00:00").getTime();if(t>=since)dm[d]=Number(x?.visits||0)});
- visits.forEach(v=>{const d=dayOf(v.timestamp);if(!(d in dm))dm[d]=0});
- const days=Object.keys(dm).sort(),max=Math.max(...days.map(d=>dm[d]),1);
- $("daysChart").innerHTML=days.length?days.slice(-31).map(d=>`<div class="bar"><span>${esc(d.slice(5))}</span><div class="track"><div class="fill" style="width:${Math.max(2,dm[d]/max*100)}%"></div></div><b>${fmt(dm[d])}</b></div>`).join(""):'<span class="muted">Aucune donnée</span>';
- bars("devices",devices);bars("browsers",browsers);bars("pages",pages);bars("referrers",refs);
+        // Chargement 100% RÉEL des données graphiques depuis Firebase (sans donnée fictive)
+        async function loadChartData(range) {
+            try {
+                const scoresRef = ref(db, 'scores');
+                const snapshot = await get(scoresRef);
+                const scoresData = snapshot.exists() ? snapshot.val() : {};
 
- const recent=visits.sort((a,b)=>b.timestamp-a.timestamp).slice(0,100);
- $("recent").innerHTML=recent.length?recent.map(v=>`<tr><td>${new Date(v.timestamp).toLocaleString("fr-FR")}</td><td>${esc(v.path||"/")}</td><td>${esc(v.device||"-")}</td><td>${esc(v.browser||"-")}</td><td>${esc(v.referrer||"Direct")}</td></tr>`).join(""):'<tr><td colspan="5" class="muted">Aucune visite</td></tr>';
- $("status").textContent="Mis à jour à "+new Date().toLocaleTimeString("fr-FR");
-}
+                let labels = [];
+                let data = [];
+                const now = new Date();
 
-function showAuthError(e){
- console.error(e);
- const messages={
-  "auth/invalid-credential":"E-mail ou mot de passe incorrect.",
-  "auth/invalid-email":"L'adresse e-mail n'est pas valide.",
-  "auth/user-disabled":"Ce compte est désactivé.",
-  "auth/too-many-requests":"Trop de tentatives. Réessaie plus tard.",
-  "auth/operation-not-allowed":"La connexion E-mail/Mot de passe n'est pas activée dans Firebase."
- };
- $("error").textContent=messages[e.code]||("Erreur Firebase : "+(e.code||e.message||"inconnue"));
-}
+                // On extrait uniquement les vrais horodatages (timestamps) des parties jouées enregistrées dans Firebase
+                const timestamps = Object.values(scoresData)
+                    .map(s => s.ts)
+                    .filter(ts => typeof ts === 'number' && ts > 0);
 
-$("loginForm").addEventListener("submit",async e=>{
- e.preventDefault();$("error").textContent="";
- try{await auth.signInWithEmailAndPassword($("email").value.trim(),$("password").value)}
- catch(e){showAuthError(e)}
-});
-$("logout").onclick=()=>auth.signOut();
-document.querySelectorAll("[data-days]").forEach(b=>b.onclick=()=>{selectedDays=Number(b.dataset.days);document.querySelectorAll("[data-days]").forEach(x=>x.classList.remove("active"));b.classList.add("active");loadStats().catch(e=>{$("status").textContent="Erreur de chargement";console.error(e)})});
-auth.onAuthStateChanged(user=>{
- if(user){$("login").style.display="none";$("app").style.display="block";loadStats().catch(e=>{$("status").textContent="Erreur de chargement";console.error(e)})}
- else{$("login").style.display="grid";$("app").style.display="none"}
-});
-</script>
+                if (range === '24h') {
+                    for (let i = 23; i >= 0; i--) {
+                        const d = new Date(now.getTime() - i * 60 * 60 * 1000);
+                        labels.push(d.getHours() + ':00');
+                        // Compte exact des parties enregistrées pendant cette heure précise
+                        const count = timestamps.filter(ts => {
+                            const tDate = new Date(ts);
+                            return tDate.getDate() === d.getDate() &&
+                                   tDate.getMonth() === d.getMonth() &&
+                                   tDate.getFullYear() === d.getFullYear() &&
+                                   tDate.getHours() === d.getHours();
+                        }).length;
+                        data.push(count);
+                    }
+                } else if (range === '7j') {
+                    for (let i = 6; i >= 0; i--) {
+                        const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+                        labels.push(d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' }));
+                        const count = timestamps.filter(ts => {
+                            const tDate = new Date(ts);
+                            return tDate.getDate() === d.getDate() &&
+                                   tDate.getMonth() === d.getMonth() &&
+                                   tDate.getFullYear() === d.getFullYear();
+                        }).length;
+                        data.push(count);
+                    }
+                } else if (range === '1m') {
+                    for (let i = 29; i >= 0; i--) {
+                        const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+                        labels.push(d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }));
+                        const count = timestamps.filter(ts => {
+                            const tDate = new Date(ts);
+                            return tDate.getDate() === d.getDate() &&
+                                   tDate.getMonth() === d.getMonth() &&
+                                   tDate.getFullYear() === d.getFullYear();
+                        }).length;
+                        data.push(count);
+                    }
+                } else if (range === '6m') {
+                    for (let i = 5; i >= 0; i--) {
+                        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                        labels.push(d.toLocaleDateString('fr-FR', { month: 'short' }));
+                        const count = timestamps.filter(ts => {
+                            const tDate = new Date(ts);
+                            return tDate.getMonth() === d.getMonth() && tDate.getFullYear() === d.getFullYear();
+                        }).length;
+                        data.push(count);
+                    }
+                } else if (range === '1y') {
+                    for (let i = 11; i >= 0; i--) {
+                        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                        labels.push(d.toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' }));
+                        const count = timestamps.filter(ts => {
+                            const tDate = new Date(ts);
+                            return tDate.getMonth() === d.getMonth() && tDate.getFullYear() === d.getFullYear();
+                        }).length;
+                        data.push(count);
+                    }
+                }
+
+                playersChart.data.labels = labels;
+                playersChart.data.datasets[0].data = data;
+                playersChart.update();
+            } catch (e) {
+                console.error("Erreur lors de la récupération des données réelles Firebase:", e);
+            }
+        }
+
+        // Récupération en temps réel des statistiques exactes de Firebase
+        function initRealtimeStats() {
+            // Nombre de joueurs actifs en temps réel (dans le nœud /players)
+            const playersRef = ref(db, 'players');
+            onValue(playersRef, (snapshot) => {
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    const now = Date.now();
+                    // Filtre pour ne garder que les joueurs actifs lors des 10 dernières secondes
+                    const activeOnline = Object.values(data).filter(p => p.ts && (now - p.ts < 10000)).length;
+                    document.getElementById('stat-online').innerText = activeOnline;
+                } else {
+                    document.getElementById('stat-online').innerText = "0";
+                }
+            });
+
+            // Meilleur score absolu et total d'enregistrements (dans le nœud /scores)
+            const scoresRef = ref(db, 'scores');
+            onValue(scoresRef, (snapshot) => {
+                if (snapshot.exists()) {
+                    let maxScore = 0;
+                    let totalScores = 0;
+                    snapshot.forEach((child) => {
+                        totalScores++;
+                        const val = child.val();
+                        const dist = val.dist || 0;
+                        if (dist > maxScore) maxScore = dist;
+                    });
+                    document.getElementById('stat-highscore').innerText = maxScore.toLocaleString() + " m";
+                    document.getElementById('stat-total-players').innerText = totalScores;
+                } else {
+                    document.getElementById('stat-highscore').innerText = "0 m";
+                    document.getElementById('stat-total-players').innerText = "0";
+                }
+            });
+
+            // Total des pièces enregistrées (dans le nœud /coins)
+            const coinsRef = ref(db, 'coins');
+            onValue(coinsRef, (snapshot) => {
+                if (snapshot.exists()) {
+                    let totalCoins = 0;
+                    snapshot.forEach((child) => {
+                        const val = child.val();
+                        totalCoins += (typeof val === 'number' ? val : (val.coins || 0));
+                    });
+                    document.getElementById('stat-total-coins').innerText = totalCoins.toLocaleString();
+                } else {
+                    document.getElementById('stat-total-coins').innerText = "0";
+                }
+            }, () => { document.getElementById('stat-total-coins').innerText = "0"; });
+        }
+
+        // Connexion administrateur
+        const $ = id => document.getElementById(id);
+        let started = false;
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            $('loginError').textContent = '';
+            try {
+                await signInWithEmailAndPassword(auth, $('email').value.trim(), $('password').value);
+            } catch (err) {
+                const m = {
+                    'auth/invalid-credential': 'E-mail ou mot de passe incorrect.',
+                    'auth/invalid-email': "L'adresse e-mail n'est pas valide.",
+                    'auth/too-many-requests': 'Trop de tentatives. Réessaie plus tard.'
+                };
+                $('loginError').textContent = m[err.code] || ('Erreur : ' + (err.code || err.message));
+            }
+        });
+        $('logout').addEventListener('click', () => signOut(auth));
+
+        onAuthStateChanged(auth, (user) => {
+            if (user && !user.isAnonymous && user.uid === ADMIN_UID) {
+                $('login').style.display = 'none';
+                $('app').style.display = 'flex';
+                if (!started) {
+                    started = true;
+                    initRealtimeStats();
+                    loadChartData('24h');
+                }
+            } else {
+                $('app').style.display = 'none';
+                $('login').style.display = 'flex';
+                if (user && !user.isAnonymous) $('loginError').textContent = "Ce compte n'a pas accès au dashboard.";
+            }
+        });
+    </script>
 </body>
 </html>

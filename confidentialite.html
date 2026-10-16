@@ -65,7 +65,7 @@
 <div class="wrap">
   <a class="back" href="index.html">← Retour au jeu</a>
   <h1>Politique de confidentialité</h1>
-  <p class="updated">Dernière mise à jour : 13 septembre 2026</p>
+  <p class="updated">Dernière mise à jour : 16 octobre 2026</p>
 
   <p>Burrow.io est un jeu gratuit, jouable directement dans le navigateur. Cette page explique simplement quelles données sont utilisées, pourquoi, et comment les faire supprimer.</p>
 
@@ -86,6 +86,12 @@
       <li>Ta meilleure distance parcourue (ton score).</li>
       <li>La couleur ou le motif personnalisé de ton ver.</li>
       <li>Quelques préférences techniques stockées dans ton navigateur (ex : si tu as déjà vu l'explication des contrôles).</li>
+      <li>Un identifiant de session anonyme créé par Google Firebase Authentication, nécessaire pour que seul toi puisses modifier ton score.</li>
+    </ul>
+    <p><strong>Statistiques de fréquentation (anonymes) :</strong></p>
+    <ul>
+      <li>Page visitée, type d'appareil, navigateur, système, langue, taille d'écran et site d'origine.</li>
+      <li>Un identifiant aléatoire stocké dans ton navigateur, pour compter les visiteurs uniques. Il n'est lié ni à ton pseudo ni à ton compte Discord, et n'est utilisé que pour des statistiques d'audience du site. Tu peux le supprimer en vidant les données du site.</li>
     </ul>
   </div>
 
@@ -108,7 +114,8 @@
   <p>Aucune donnée n'est vendue ni partagée à des fins commerciales ou publicitaires. Les seuls services externes utilisés sont :</p>
   <ul>
     <li><strong>Discord</strong>, uniquement si tu choisis de te connecter avec ;</li>
-    <li><strong>Google Firebase</strong>, pour stocker le classement mondial ;</li>
+    <li><strong>Google Firebase</strong>, pour stocker le classement mondial, gérer les sessions et mesurer la fréquentation ;</li>
+    <li><strong>Cloudflare Workers</strong>, qui vérifie ta connexion Discord (il ne conserve aucune donnée) ;</li>
     <li><strong>GitHub Pages</strong>, pour héberger le site.</li>
   </ul>
 
@@ -116,7 +123,7 @@
   <p>Les données stockées dans ton navigateur restent jusqu'à ce que tu vides les données de ce site, ou que tu cliques sur le bouton <code>✕</code> de déconnexion. Les données sur Firebase (classement) restent en ligne tant que le jeu est actif ; tu peux en demander la suppression à tout moment (voir contact ci-dessous).</p>
 
   <h2>6. Sécurité</h2>
-  <p>Des mesures raisonnables sont prises pour protéger les données (règles d'accès sur la base de données, vérification de la session Discord). Burrow.io reste toutefois un projet gratuit sans infrastructure de sécurité de niveau professionnel : évite d'utiliser un pseudo ou des informations que tu ne souhaiterais pas voir apparaître publiquement dans un classement de jeu.</p>
+  <p>Des mesures raisonnables sont prises pour protéger les données (règles d'accès sur la base de données liées à ta session, vérification de la connexion Discord par un serveur). Burrow.io reste toutefois un projet gratuit sans infrastructure de sécurité de niveau professionnel : évite d'utiliser un pseudo ou des informations que tu ne souhaiterais pas voir apparaître publiquement dans un classement de jeu.</p>
 
   <h2>7. Tes droits</h2>
   <p>Tu peux à tout moment :</p>
@@ -134,7 +141,7 @@
 
   <div class="contact">
     <h2>Contact</h2>
-    <p>Pour toute question ou demande de suppression de données : <strong>[ Disocrd : onizuk_a ]</strong></p>
+    <p>Pour toute question ou demande de suppression de données : <strong>Discord : onizuk_a</strong></p>
   </div>
 </div>
 </body>

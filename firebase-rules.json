@@ -2,43 +2,90 @@
   "rules": {
 
     "players": {
-      "$playerId": {
-        ".read": true,
-        ".write": true,
+      ".read": true,
+      "$uid": {
+        ".write": "auth != null && auth.uid === $uid",
         ".validate": "newData.hasChildren(['nickname','color','dist','ts'])",
-        "nickname": { ".validate": "newData.isString() && newData.val().length <= 20" },
+        "nickname": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 20 && (auth.token.discord !== true || newData.val() === auth.token.dname)" },
         "color":    { ".validate": "newData.isString() && newData.val().length <= 9" },
-        "dist":     { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000000" },
+        "dist":     { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000000 && newData.val() <= (root.child('runs').child(auth.uid).child('start').exists() ? ((now - root.child('runs').child(auth.uid).child('start').val()) / 1000 * 110 + 50) : 50)" },
         "ts":       { ".validate": "newData.isNumber() && newData.val() <= now + 5000" },
         "$other":   { ".validate": false }
       }
     },
 
     "scores": {
-      "$scoreId": {
-        ".read": true,
-        ".write": "!data.exists() || (newData.hasChild('dist') && newData.child('dist').val() > data.child('dist').val())",
-        ".validate": "newData.hasChildren(['nickname','dist','ts'])",
-        "nickname": { ".validate": "newData.isString() && newData.val().length <= 20" },
+      ".read": true,
+      ".indexOn": ["dist"],
+      "$uid": {
+        ".write": "auth != null && auth.uid === $uid && newData.exists() && (!data.exists() || newData.child('dist').val() > data.child('dist').val())",
+        ".validate": "newData.hasChildren(['nickname','dist','ts','discord'])",
+        "nickname": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 20 && (auth.token.discord !== true || newData.val() === auth.token.dname)" },
         "color":    { ".validate": "newData.isString() && newData.val().length <= 9" },
-        "dist":     { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000000" },
+        "dist":     { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000000 && root.child('runs').child(auth.uid).child('start').exists() && newData.val() <= ((now - root.child('runs').child(auth.uid).child('start').val()) / 1000 * 110 + 50)" },
         "ts":       { ".validate": "newData.isNumber() && newData.val() <= now + 5000" },
-        "discord":  { ".validate": "newData.isBoolean()" },
+        "discord":  { ".validate": "newData.isBoolean() && newData.val() === (auth.token.discord === true)" },
+        "$other":   { ".validate": false }
+      }
+    },
+
+    "runs": {
+      "$uid": {
+        ".write": "auth != null && auth.uid === $uid",
+        "start":  { ".validate": "newData.isNumber() && newData.val() === now" },
+        "$other": { ".validate": false }
+      }
+    },
+
+    "points": {
+      "$uid": {
+        ".read":  "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid",
+        ".validate": "newData.hasChildren(['nickname','points','ts'])",
+        "nickname": { ".validate": "newData.isString() && newData.val().length <= 20" },
+        "points":   { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000000000" },
+        "ts":       { ".validate": "newData.isNumber() && newData.val() <= now + 5000" },
         "$other":   { ".validate": false }
       }
     },
 
     "skins": {
       "$discordId": {
-        ".read": true,
-        ".write": true,
+        ".read":  "auth != null && auth.uid === 'discord_' + $discordId",
+        ".write": "auth != null && auth.uid === 'discord_' + $discordId",
         ".validate": "newData.hasChildren(['pattern','ts'])",
         "pattern": {
-          ".validate": "newData.hasChildren()",
+          ".validate": "newData.hasChildren() && newData.numChildren() <= 32",
           "$index": { ".validate": "newData.isString() && newData.val().length <= 9" }
         },
         "ts":     { ".validate": "newData.isNumber() && newData.val() <= now + 5000" },
         "$other": { ".validate": false }
+      }
+    },
+
+    "analytics": {
+      ".read": "auth != null && auth.token.admin === true",
+      "visits": {
+        ".indexOn": ["timestamp"],
+        "$id": {
+          ".write": "auth != null && !data.exists() && newData.exists()",
+          ".validate": "newData.hasChildren(['visitorId','sessionId','timestamp','path'])",
+          "$f": { ".validate": "(newData.isString() && newData.val().length <= 200) || ($f === 'timestamp' && newData.isNumber())" }
+        }
+      },
+      "daily": {
+        "$day": {
+          ".validate": "$day.matches(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/)",
+          "visits": { ".write": "auth != null && newData.isNumber() && newData.val() === (data.exists() ? data.val() : 0) + 1" },
+          "visitors": { "$vid": { ".write": "auth != null && newData.val() === true" } }
+        }
+      },
+      "presence": {
+        "$sid": {
+          ".write": "auth != null",
+          ".validate": "newData.hasChildren(['lastSeen'])",
+          "$f": { ".validate": "(newData.isString() && newData.val().length <= 200) || ($f === 'lastSeen' && newData.isNumber())" }
+        }
       }
     },
 

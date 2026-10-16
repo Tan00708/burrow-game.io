@@ -735,6 +735,33 @@
     font-weight:600; font-size:13px; color:var(--ink); backdrop-filter:blur(8px);
     box-shadow:0 4px 12px rgba(0,0,0,0.25);
   }
+  .ability-hud{
+    position:fixed; right:18px; bottom:18px; z-index:6;
+    display:flex; flex-direction:column; gap:7px; pointer-events:none;
+    font-family:'Fredoka',sans-serif;
+  }
+  .ability-slot{
+    min-width:148px; padding:7px 10px; border-radius:10px;
+    background:rgba(27,36,73,0.88); border:2px solid rgba(255,107,53,0.3);
+    color:var(--ink); font-size:12px; font-weight:600; backdrop-filter:blur(8px);
+  }
+  .ability-slot kbd{
+    display:inline-flex; align-items:center; justify-content:center; width:19px; height:19px;
+    margin-right:5px; border-radius:5px; background:var(--accent-primary); color:#fff;
+    font:700 12px 'Fredoka',sans-serif;
+  }
+  .shop-balance{ color:var(--accent-secondary); font-family:'Fredoka',sans-serif; font-weight:800; }
+  .shop-items{ display:grid; gap:10px; text-align:center; }
+  .shop-item{ padding:12px; border-radius:12px; border:1px solid rgba(255,107,53,0.3); background:rgba(10,14,39,0.32); text-align:center; }
+  .shop-item h3{ margin:0 0 3px; color:var(--ink); font:700 16px 'Fredoka',sans-serif; }
+  .shop-item p{ margin:0 0 9px; font-size:12px; line-height:1.35; }
+  .shop-buy{ width:100%; margin:0; padding:9px 12px; font-size:13px; text-align:center; position:relative; }
+  .shop-buy.is-locked{
+    background:rgba(255,255,255,0.10); border-color:rgba(255,255,255,0.18);
+    box-shadow:none; color:rgba(255,255,255,0.52); cursor:not-allowed;
+  }
+  .shop-buy.is-locked:hover{ transform:none; }
+  .shop-buy.is-locked::after{ content:'🔒'; position:absolute; right:14px; top:50%; transform:translateY(-50%); font-size:16px; }
 
   @media (pointer: coarse){
     .pause-btn{ display:flex; top:calc(14px + env(safe-area-inset-top)); }
@@ -793,6 +820,8 @@
     .hud-value{ font-size:18px; }
     .stage-toast{ top:calc(96px + env(safe-area-inset-top)); font-size:15px; padding:8px 16px; }
     .effects-hud{ top:calc(150px + env(safe-area-inset-top)); }
+    .ability-hud{ right:10px; bottom:10px; gap:5px; }
+    .ability-slot{ min-width:128px; padding:5px 7px; font-size:10px; }
     .controls-hint{ top:calc(190px + env(safe-area-inset-top)); font-size:14px; padding:10px 16px; }
     .effect-chip{ font-size:11px; padding:4px 8px; }
     .leaderboard{
@@ -851,7 +880,7 @@
 
   <h1 class="title" id="gameTitle">BURROW.IO</h1>
   <button class="shop-widget" id="shopBtn" type="button" title="Boutique">
-    🛒 <span id="coinsVal">0</span> 🪙
+    🛒 <span id="acornsVal">0</span> 🌰
   </button>
   <p class="sr-only">Burrow.io est un jeu de tunnel (.io) multijoueur gratuit, jouable directement dans le navigateur sans téléchargement ni installation. Creuse à travers des cavernes générées aléatoirement à travers 8 décors différents (grotte, volcan, glacier, lune...), évite les obstacles, ramasse des bonus (boost de vitesse, bouclier, réduction de taille) et va le plus loin possible pour grimper dans le classement mondial des meilleurs scores.</p>
   <div class="menu-content">
@@ -933,6 +962,7 @@
 <div class="stage-toast" id="stageToast"></div>
 <div class="controls-hint" id="controlsHint"></div>
 <div class="effects-hud" id="effectsHud"></div>
+<div class="ability-hud" id="abilityHud"></div>
 
 <div class="auth-widget" id="authWidget" title="Connexion Discord"></div>
 
@@ -982,8 +1012,9 @@
 
 <div class="overlay dismissable-overlay" id="shopOverlay">
   <div class="card">
-    <h2 data-i18n="shopTitle">🛒 Boutique</h2>
-    <p data-i18n="comingSoon">Bientôt disponible !</p>
+    <h2>🌰 Boutique des glands</h2>
+    <p class="shop-balance" id="shopBalance">0 glands</p>
+    <div class="shop-items" id="shopItems"></div>
     <button class="btn" id="shopCloseBtn" type="button" data-i18n="close">Fermer</button>
   </div>
 </div>
@@ -1024,6 +1055,7 @@
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-database-compat.js"></script>
 
 <script>
@@ -1078,7 +1110,8 @@
       rankSilver: "Argent",
       rankGold: "Or",
       rankPlatinum: "Platine",
-      rankDiamond: "Diamant"
+      rankDiamond: "Diamant",
+      rankMaster: "Maître"
     },
     en: {
       color: "🎨 Color",
@@ -1128,7 +1161,8 @@
       rankSilver: "Silver",
       rankGold: "Gold",
       rankPlatinum: "Platinum",
-      rankDiamond: "Diamond"
+      rankDiamond: "Diamond",
+      rankMaster: "Master"
     },
     es: {
       color: "🎨 Color",
@@ -1178,7 +1212,8 @@
       rankSilver: "Plata",
       rankGold: "Oro",
       rankPlatinum: "Platino",
-      rankDiamond: "Diamante"
+      rankDiamond: "Diamante",
+      rankMaster: "Maestro"
     },
     de: {
       color: "🎨 Farbe",
@@ -1228,7 +1263,8 @@
       rankSilver: "Silber",
       rankGold: "Gold",
       rankPlatinum: "Platin",
-      rankDiamond: "Diamant"
+      rankDiamond: "Diamant",
+      rankMaster: "Meister"
     }
   };
 
@@ -1258,11 +1294,12 @@
   // ========== SYSTÈME DE RANGS & PROGRESSION ==========
   function getRankNames() {
     return [
-      { name: t('rankBronze'), emoji: '🥉', minScore: 0 },
-      { name: t('rankSilver'), emoji: '🥈', minScore: 100000 },
-      { name: t('rankGold'), emoji: '🥇', minScore: 200000 },
-      { name: t('rankPlatinum'), emoji: '💎', minScore: 300000 },
-      { name: t('rankDiamond'), emoji: '👑', minScore: 400000 }
+      { name: t('rankBronze'), emoji: '🥉', minScore: 5000 },
+      { name: t('rankSilver'), emoji: '🥈', minScore: 10000 },
+      { name: t('rankGold'), emoji: '🥇', minScore: 25000 },
+      { name: t('rankPlatinum'), emoji: '💎', minScore: 50000 },
+      { name: t('rankDiamond'), emoji: '👑', minScore: 75000 },
+      { name: t('rankMaster'), emoji: '🌳', minScore: 100000 }
     ];
   }
 
@@ -1390,22 +1427,25 @@
   const SCORE_ID_KEY = 'burrowio_score_id';
   const PERSONAL_BEST_KEY = 'burrowio_personal_best';
   const POINTS_KEY = 'burrowio_points';
-  const COINS_KEY = 'burrowio_coins';
-  const COINS_PER_STAGE = 10;
+  const ACORNS_KEY = 'burrowio_acorns';
+  const LEGACY_COINS_KEY = 'burrowio_coins';
+  const INVENTORY_KEY = 'burrowio_power_inventory';
+  const ACORNS_PER_STAGE = 10;
+  const SHOP_POWERS = {
+    scoreX2: { key:'1', emoji:'✖️', name:'Score x2', price:35, unlockRank:0 },
+    wideTunnel: { key:'2', emoji:'🧪', name:'Potion grand tunnel', price:25, unlockRank:1 },
+    shield: { key:'3', emoji:'🛡️', name:'Bouclier', price:20, unlockRank:2 }
+  };
 
   let discordUser = null;
   let currentBestDist = 0;
   let totalPoints = 0;
-  let totalCoins = 0;
+  let totalAcorns = 0;
+  let powerInventory = { scoreX2:0, wideTunnel:0, shield:0 };
 
   function getScoreId(){
-    if(discordUser) return 'discord_' + discordUser.id;
-    let id = localStorage.getItem(SCORE_ID_KEY);
-    if(!id){
-      id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ('s' + Math.random().toString(36).slice(2));
-      localStorage.setItem(SCORE_ID_KEY, id);
-    }
-    return id;
+    // Identité = uid Firebase (anonyme pour les invités, discord_<id> pour Discord, vérifié par le serveur)
+    return (fbAuth && fbAuth.currentUser) ? fbAuth.currentUser.uid : null;
   }
   function loadLocalBest(){
     return parseInt(localStorage.getItem(PERSONAL_BEST_KEY) || '0', 10);
@@ -1419,26 +1459,29 @@
   function saveLocalPoints(v){
     try{ localStorage.setItem(POINTS_KEY, String(v)); }catch(e){}
   }
-  function loadLocalCoins(){
-    return parseInt(localStorage.getItem(COINS_KEY) || '0', 10);
+  function loadLocalAcorns(){
+    // Les anciennes pièces sont automatiquement converties en glands une seule fois.
+    return parseInt(localStorage.getItem(ACORNS_KEY) || localStorage.getItem(LEGACY_COINS_KEY) || '0', 10);
   }
-  function saveLocalCoins(v){
-    try{ localStorage.setItem(COINS_KEY, String(v)); }catch(e){}
+  function saveLocalAcorns(v){
+    try{ localStorage.setItem(ACORNS_KEY, String(v)); }catch(e){}
+  }
+  function loadPowerInventory(){
+    try{
+      const saved = JSON.parse(localStorage.getItem(INVENTORY_KEY) || '{}');
+      return { scoreX2:Number(saved.scoreX2) || 0, wideTunnel:Number(saved.wideTunnel) || 0, shield:Number(saved.shield) || 0 };
+    }catch(e){ return { scoreX2:0, wideTunnel:0, shield:0 }; }
+  }
+  function savePowerInventory(){
+    try{ localStorage.setItem(INVENTORY_KEY, JSON.stringify(powerInventory)); }catch(e){}
   }
 
   function syncPointsToFirebase(){
-    if(!db) return;
-    db.ref('points/' + getScoreId()).set({
+    const sid = getScoreId();
+    if(!db || !sid) return;
+    db.ref('points/' + sid).set({
       nickname: playerState.nickname,
       points: totalPoints,
-      ts: Date.now()
-    }).catch(err=> {});
-  }
-  function syncCoinsToFirebase(){
-    if(!db) return;
-    db.ref('coins/' + getScoreId()).set({
-      nickname: playerState.nickname,
-      coins: totalCoins,
       ts: Date.now()
     }).catch(err=> {});
   }
@@ -1462,9 +1505,59 @@
     if(pbEl) pbEl.textContent = currentBestDist + ' m';
     const ptsEl = document.getElementById('personalPointsVal');
     if(ptsEl) ptsEl.textContent = totalPoints.toLocaleString();
-    const coinsEl = document.getElementById('coinsVal');
-    if(coinsEl) coinsEl.textContent = totalCoins;
+    const acornsEl = document.getElementById('acornsVal');
+    if(acornsEl) acornsEl.textContent = totalAcorns;
     updateRankUI();
+  }
+
+  function renderShop(){
+    const balance = document.getElementById('shopBalance');
+    const items = document.getElementById('shopItems');
+    if(balance) balance.textContent = `${totalAcorns} gland${totalAcorns === 1 ? '' : 's'} disponible${totalAcorns === 1 ? '' : 's'}`;
+    if(!items) return;
+    const rankInfo = getRankForScore(totalPoints);
+    items.innerHTML = Object.keys(SHOP_POWERS).map(id => {
+      const basePower = SHOP_POWERS[id];
+      const power = getShopPowerConfig(id);
+      const unlocked = rankInfo.index >= basePower.unlockRank;
+      const unlockRank = getRankNames()[basePower.unlockRank];
+      return `
+      <div class="shop-item">
+        <h3>${power.emoji} ${power.name}</h3>
+        <p>${power.description}<br><strong>${unlocked ? `Touche ${power.key} · En stock : ${powerInventory[id]}` : `🔒 Débloqué au rang ${unlockRank.name} (${unlockRank.minScore / 1000}K)`}</strong></p>
+        <button class="btn shop-buy ${unlocked ? '' : 'is-locked'}" type="button" data-power-buy="${id}" ${!unlocked || totalAcorns < power.price ? 'disabled' : ''}>${unlocked ? `Acheter — ${power.price} 🌰` : 'Verrouillé'}</button>
+      </div>`;
+    }).join('');
+    items.querySelectorAll('[data-power-buy]').forEach(btn => btn.addEventListener('click', ()=> buyShopPower(btn.dataset.powerBuy)));
+  }
+
+  function buyShopPower(id){
+    const power = getShopPowerConfig(id);
+    if(!power || getRankForScore(totalPoints).index < power.unlockRank || totalAcorns < power.price) return;
+    totalAcorns -= power.price;
+    powerInventory[id]++;
+    saveLocalAcorns(totalAcorns);
+    savePowerInventory();
+    renderMenuRecords();
+    renderShop();
+    renderAbilityHud();
+  }
+
+  function getShopPowerConfig(id){
+    const power = SHOP_POWERS[id];
+    if(!power) return null;
+    const rank = getRankForScore(totalPoints).index;
+    if(id === 'scoreX2'){
+      const duration = rank >= 3 ? 30 : 20;
+      return { ...power, duration, description:`Double les points gagnés pendant ${duration} secondes.${rank >= 3 ? ' Amélioré au rang Platine.' : ''}` };
+    }
+    if(id === 'wideTunnel'){
+      const duration = rank >= 4 ? 15 : 10;
+      const width = rank >= 4 ? 46 : 34;
+      return { ...power, duration, width, description:`Élargit le tunnel pendant ${duration} secondes.${rank >= 4 ? ' Améliorée au rang Diamant.' : ''}` };
+    }
+    const charges = rank >= 5 ? 2 : 1;
+    return { ...power, charges, description:`Absorbe ${charges} choc${charges > 1 ? 's' : ''} contre la paroi.${rank >= 5 ? ' Renforcé au rang Maître.' : ''}` };
   }
 
   // ========== MULTIJOUEUR ==========
@@ -1483,6 +1576,8 @@
   let myPlayerId = null;
   let myPlayerRef = null;
   let db = null;
+  let fbAuth = null;
+  let authReady = Promise.resolve(null);
   let lastMpWrite = 0;
   const MP_WRITE_INTERVAL = 300;
 
@@ -1497,9 +1592,21 @@
     try{
       firebase.initializeApp(firebaseConfig);
       db = firebase.database();
-      myPlayerId = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ('p' + Math.random().toString(36).slice(2));
-      myPlayerRef = db.ref('players/' + myPlayerId);
-      myPlayerRef.onDisconnect().remove();
+      fbAuth = firebase.auth();
+      authReady = new Promise((resolve)=>{
+        let first = true;
+        fbAuth.onAuthStateChanged((u)=>{
+          if(!u){
+            fbAuth.signInAnonymously().catch(()=>{ if(first){ first = false; resolve(null); } });
+            return;
+          }
+          if(myPlayerRef){ try{ myPlayerRef.remove(); }catch(e){} }
+          myPlayerId = u.uid;
+          myPlayerRef = db.ref('players/' + myPlayerId);
+          myPlayerRef.onDisconnect().remove();
+          if(first){ first = false; resolve(u); }
+        });
+      });
       window.addEventListener('beforeunload', ()=>{ try{ myPlayerRef.remove(); }catch(e){} });
 
       db.ref('players').on('value', (snap)=>{
@@ -1536,17 +1643,27 @@
     if(isNewBest){
       currentBestDist = rounded;
       saveLocalBest(rounded);
-      if(db){
-        db.ref('scores/' + getScoreId()).set({
+      const sid = getScoreId();
+      if(db && sid){
+        db.ref('scores/' + sid).set({
           nickname: playerState.nickname,
           color: playerState.wormColor,
           dist: rounded,
           ts: Date.now(),
-          discord: !!discordUser
+          discord: sid.indexOf('discord_') === 0
         }).catch((err)=>{});
       }
     }
     renderMenuRecords();
+  }
+
+  // Horodatage serveur du début de run : les règles Firebase s'en servent pour borner le score
+  function markRunStart(){
+    authReady.then(()=>{
+      const sid = getScoreId();
+      if(!db || !sid) return;
+      db.ref('runs/' + sid).set({ start: firebase.database.ServerValue.TIMESTAMP }).catch(()=>{});
+    });
   }
 
   function mpForceUpdate(){
@@ -1580,6 +1697,7 @@
 
   // ========== AUTHENTIFICATION DISCORD ==========
   const DISCORD_CLIENT_ID = '1548208651288969276';
+  const AUTH_WORKER_URL = 'https://burrow-admin.TON-COMPTE.workers.dev'; // URL de ton Worker Cloudflare
   const DISCORD_TOKEN_KEY = 'burrowio_discord_token';
   const DISCORD_EXPIRY_KEY = 'burrowio_discord_expiry';
   const DISCORD_USER_KEY = 'burrowio_discord_user';
@@ -1596,11 +1714,14 @@
   }
 
   function discordLoginUrl(){
+    const state = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Math.random()).slice(2);
+    try{ sessionStorage.setItem('burrowio_oauth_state', state); }catch(e){}
     const params = new URLSearchParams({
       client_id: DISCORD_CLIENT_ID,
       redirect_uri: discordRedirectUri(),
-      response_type: 'token',
-      scope: 'identify'
+      response_type: 'code',
+      scope: 'identify',
+      state: state
     });
     return 'https://discord.com/oauth2/authorize?' + params.toString();
   }
@@ -1673,6 +1794,7 @@
       return;
     }
     try{
+      await authReady;
       const ref = db.ref('scores/' + getScoreId());
       const snap = await ref.once('value');
       const cur = snap.val();
@@ -1703,6 +1825,7 @@
       return;
     }
     try{
+      await authReady;
       const ref = db.ref('points/' + getScoreId());
       const snap = await ref.once('value');
       const cur = snap.val();
@@ -1723,31 +1846,9 @@
     renderMenuRecords();
   }
 
-  async function syncCoinsAfterLogin(){
-    const localCoins = loadLocalCoins();
-    if(!discordUser || !db){
-      totalCoins = localCoins;
-      renderMenuRecords();
-      return;
-    }
-    try{
-      const ref = db.ref('coins/' + getScoreId());
-      const snap = await ref.once('value');
-      const cur = snap.val();
-      const remoteCoins = cur ? (cur.coins || 0) : 0;
-      if(localCoins > remoteCoins){
-        await ref.set({
-          nickname: playerState.nickname,
-          coins: localCoins,
-          ts: Date.now()
-        });
-        totalCoins = localCoins;
-      } else {
-        totalCoins = remoteCoins;
-      }
-    }catch(e){
-      totalCoins = localCoins;
-    }
+  function syncAcornsAfterLogin(){
+    totalAcorns = loadLocalAcorns();
+    powerInventory = loadPowerInventory();
     renderMenuRecords();
   }
 
@@ -1805,11 +1906,12 @@
   }
 
   function resetIdentity(){
+    if(discordUser && fbAuth){ try{ fbAuth.signOut(); }catch(e){} }
     clearDiscordSession();
     clearGuestPseudo();
     currentBestDist = 0;
     totalPoints = 0;
-    totalCoins = 0;
+    totalAcorns = 0;
     const guestInput = document.getElementById('guestNicknameInput');
     if(guestInput) guestInput.value = '';
     renderMenuRecords();
@@ -1817,42 +1919,45 @@
   }
 
   async function handleDiscordRedirect(){
-    if(!location.hash || location.hash.indexOf('access_token') === -1) return;
-    const params = new URLSearchParams(location.hash.slice(1));
-    const token = params.get('access_token');
-    const expiresIn = parseInt(params.get('expires_in') || '0', 10);
-    if(!token) return;
-    history.replaceState(null, '', location.pathname + location.search);
+    const params = new URLSearchParams(location.search);
+    const code = params.get('code');
+    const state = params.get('state');
+    if(!code) return;
+    history.replaceState(null, '', location.pathname);
+    let expected = null;
+    try{ expected = sessionStorage.getItem('burrowio_oauth_state'); sessionStorage.removeItem('burrowio_oauth_state'); }catch(e){}
+    if(!state || state !== expected) return;
     try{
-      const user = await fetchDiscordUser(token);
-      discordUser = user;
-      saveDiscordSession(user, token, expiresIn);
+      const res = await fetch(AUTH_WORKER_URL + '/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, redirect_uri: discordRedirectUri() })
+      });
+      const data = await res.json();
+      if(!res.ok || !data.token) throw new Error(data.error || 'auth');
+      await authReady;
+      await fbAuth.signInWithCustomToken(data.token);
+      discordUser = data.user;
+      saveDiscordSession(data.user);
       checkIdentityGate();
       syncPersonalBestAfterLogin();
       syncPointsAfterLogin();
-      syncCoinsAfterLogin();
+      syncAcornsAfterLogin();
     }catch(e){}
   }
 
+  // Le profil Discord stocké dans le navigateur n'est jamais cru sur parole :
+  // il doit correspondre à la session Firebase signée par le serveur.
   async function verifyStoredDiscordSession(){
-    const token = loadStoredDiscordToken();
-    const expiry = loadStoredDiscordExpiry();
-    if(!token || !expiry || Date.now() > expiry){
-      if(discordUser){ clearDiscordSession(); checkIdentityGate(); }
-      return;
-    }
-    try{
-      const freshUser = await fetchDiscordUser(token);
-      discordUser = freshUser;
-      saveDiscordSession(freshUser, token, Math.max(0, Math.floor((expiry - Date.now())/1000)));
-      checkIdentityGate();
-      syncPersonalBestAfterLogin();
-      syncPointsAfterLogin();
-      syncCoinsAfterLogin();
-    }catch(e){
+    const u = await authReady;
+    if(!u || !discordUser || u.uid !== 'discord_' + discordUser.id){
       clearDiscordSession();
       checkIdentityGate();
+      return;
     }
+    syncPersonalBestAfterLogin();
+    syncPointsAfterLogin();
+    syncAcornsAfterLogin();
   }
 
   function initIdentityAndAuth(){
@@ -1861,11 +1966,13 @@
     guestPseudo = loadGuestPseudo();
     currentBestDist = loadLocalBest();
     totalPoints = loadLocalPoints();
-    totalCoins = loadLocalCoins();
+    totalAcorns = loadLocalAcorns();
+    powerInventory = loadPowerInventory();
 
     applyTranslations();
     checkIdentityGate();
-    if(discordUser) verifyStoredDiscordSession();
+    try{ localStorage.removeItem(DISCORD_TOKEN_KEY); localStorage.removeItem(DISCORD_EXPIRY_KEY); }catch(e){}
+    if(discordUser && location.search.indexOf('code=') === -1) verifyStoredDiscordSession();
     handleDiscordRedirect();
 
     const discordBtn = document.getElementById('discordLoginBtn');
@@ -2172,6 +2279,7 @@
   });
 
   document.getElementById('shopBtn').addEventListener('click', ()=>{
+    renderShop();
     document.getElementById('shopOverlay').classList.add('show');
   });
   document.getElementById('shopCloseBtn').addEventListener('click', ()=>{
@@ -2231,7 +2339,7 @@
   let postGateEase = { active:false, remaining:0 };
   let frozenCx = null;
   const EXIT_EASE_SEGMENTS = 3;
-  let effects = { boostTimer:0, shieldCharges:0, shrinkTimer:0 };
+  let effects = { boostTimer:0, shieldCharges:0, shrinkTimer:0, scoreX2Timer:0, wideTunnelTimer:0, wideTunnelBonus:0 };
   const BASE_RADIUS = 10;
 
   function spawnGatePickups(depth, cx, halfW){
@@ -2365,7 +2473,8 @@
     const i = Math.max(0, Math.floor(d/CONTROL_SPACING));
     const a = controls[i], b = controls[i+1] || a;
     const t = smooth(clamp((d - a.depth)/CONTROL_SPACING, 0, 1));
-    return a.halfW + (b.halfW-a.halfW)*t;
+    const baseWidth = a.halfW + (b.halfW-a.halfW)*t;
+    return baseWidth + (effects.wideTunnelTimer > 0 ? effects.wideTunnelBonus : 0);
   }
 
   function pruneBehind(minDepth){
@@ -2458,13 +2567,43 @@
 
   function renderEffectsHud(){
     const chips = [];
+    if(effects.scoreX2Timer > 0) chips.push(`<div class="effect-chip">✖️ Score x2 · ${effects.scoreX2Timer.toFixed(1)}s</div>`);
+    if(effects.wideTunnelTimer > 0) chips.push(`<div class="effect-chip">🧪 Tunnel large · ${effects.wideTunnelTimer.toFixed(1)}s</div>`);
     if(effects.boostTimer > 0) chips.push(`<div class="effect-chip">⚡ ${effects.boostTimer.toFixed(1)}s</div>`);
     if(effects.shieldCharges > 0) chips.push(`<div class="effect-chip">🛡️ ×${effects.shieldCharges}</div>`);
     if(effects.shrinkTimer > 0) chips.push(`<div class="effect-chip">🤏 ${effects.shrinkTimer.toFixed(1)}s</div>`);
     document.getElementById('effectsHud').innerHTML = chips.join('');
   }
 
-  let scrollDist = 0, speed = 95, running = false, gameOverShown = false, paused = false;
+  function renderAbilityHud(){
+    const el = document.getElementById('abilityHud');
+    if(!el) return;
+    const rank = getRankForScore(totalPoints).index;
+    el.innerHTML = Object.entries(SHOP_POWERS).filter(([, power]) => rank >= power.unlockRank).map(([id, power]) =>
+      `<div class="ability-slot"><kbd>${power.key}</kbd>${power.emoji} ${power.name} ×${powerInventory[id]}</div>`
+    ).join('');
+  }
+
+  function useShopPower(id){
+    const power = getShopPowerConfig(id);
+    if(!power || !running || paused || gameOverShown || getRankForScore(totalPoints).index < power.unlockRank || !powerInventory[id]) return;
+    powerInventory[id]--;
+    if(id === 'scoreX2') effects.scoreX2Timer = Math.max(effects.scoreX2Timer, power.duration);
+    else if(id === 'wideTunnel'){
+      effects.wideTunnelTimer = Math.max(effects.wideTunnelTimer, power.duration);
+      effects.wideTunnelBonus = power.width;
+    } else if(id === 'shield') effects.shieldCharges += power.charges;
+    savePowerInventory();
+    const toast = document.getElementById('stageToast');
+    toast.textContent = `${power.emoji} ${power.name} activé !`;
+    toast.classList.add('show');
+    clearTimeout(toast._t);
+    toast._t = setTimeout(()=> toast.classList.remove('show'), 1600);
+    renderAbilityHud();
+    renderEffectsHud();
+  }
+
+  let scrollDist = 0, speed = 95, running = false, gameOverShown = false, paused = false, bonusScore = 0;
   let reviveUsedThisRun = false;
   let reviveInvulnTimer = 0;
   let reviveCountdownTimeoutId = null;
@@ -2509,9 +2648,9 @@
     pickups = []; genStage = 1; gateState = { active:false, remaining:0 };
     postGateEase = { active:false, remaining:0 }; frozenCx = null;
     announcedStage = 1;
-    effects = { boostTimer:0, shieldCharges:0, shrinkTimer:0 };
+    effects = { boostTimer:0, shieldCharges:0, shrinkTimer:0, scoreX2Timer:0, wideTunnelTimer:0, wideTunnelBonus:0 };
     player.radius = BASE_RADIUS;
-    scrollDist = 0; speed = 95; trail = []; particles = [];
+    scrollDist = 0; speed = 95; trail = []; particles = []; bonusScore = 0;
     ensureGenerated(H*2 + 300);
     player.x = centerAt(H);
     gameOverShown = false;
@@ -2522,6 +2661,7 @@
     keys.left = false; keys.right = false;
     document.getElementById('pauseOverlay').classList.remove('show');
     document.getElementById('effectsHud').innerHTML = '';
+    renderAbilityHud();
     currentStage = 1;
     themeBlend = { from: THEMES[0], to: THEMES[0], t: 1 };
     document.getElementById('stageVal').textContent = '1';
@@ -2529,6 +2669,7 @@
     showControlsHintIfFirstTime();
     running = true;
     for(const b of demoBots){ b.dist = 0; b.speed = rand(70,120); b.crashTimer = rand(4,14); }
+    markRunStart();
     mpForceUpdate();
   }
 
@@ -2570,6 +2711,9 @@
     if(e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A'){ keys.left = true; pointerControlEnabled = false; e.preventDefault(); }
     if(e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D'){ keys.right = true; pointerControlEnabled = false; e.preventDefault(); }
     if(e.key === 'k' || e.key === 'K'){ togglePause(); }
+    if(e.key === '1' || e.code === 'Digit1'){ useShopPower('scoreX2'); e.preventDefault(); }
+    if(e.key === '2' || e.code === 'Digit2'){ useShopPower('wideTunnel'); e.preventDefault(); }
+    if(e.key === '3' || e.code === 'Digit3'){ useShopPower('shield'); e.preventDefault(); }
   });
   window.addEventListener('keyup', e=>{
     const tag = document.activeElement && document.activeElement.tagName;
@@ -2722,12 +2866,16 @@
 
       if(effects.boostTimer > 0) effects.boostTimer -= dt;
       if(effects.shrinkTimer > 0) effects.shrinkTimer -= dt;
+      if(effects.scoreX2Timer > 0) effects.scoreX2Timer -= dt;
+      if(effects.wideTunnelTimer > 0) effects.wideTunnelTimer -= dt;
       player.radius = effects.shrinkTimer > 0 ? BASE_RADIUS*0.6 : BASE_RADIUS;
       const speedMul = effects.boostTimer > 0 ? 1.6 : 1;
 
       const metersNow = scrollDist/8;
       speed = Math.min(480, 95 + 220*(1 - Math.exp(-metersNow/500)) + metersNow*0.02);
-      scrollDist += speed*dt*speedMul;
+      const distanceGained = speed*dt*speedMul;
+      scrollDist += distanceGained;
+      if(effects.scoreX2Timer > 0) bonusScore += distanceGained/8;
 
       const meters = scrollDist/8;
 
@@ -2747,9 +2895,8 @@
         totalPoints += 50;
         saveLocalPoints(totalPoints);
         syncPointsToFirebase();
-        totalCoins += COINS_PER_STAGE;
-        saveLocalCoins(totalCoins);
-        syncCoinsToFirebase();
+        totalAcorns += ACORNS_PER_STAGE;
+        saveLocalAcorns(totalAcorns);
       }
 
       for(const pu of pickups){
@@ -2833,7 +2980,7 @@
     gameOverShown = true;
 
     const finalDist = Math.floor(scrollDist/8);
-    totalPoints += finalDist;
+    totalPoints += finalDist + Math.floor(bonusScore);
     saveLocalPoints(totalPoints);
     syncPointsToFirebase();
 

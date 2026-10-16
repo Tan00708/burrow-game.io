@@ -9,6 +9,14 @@
   let db;
   try { db = firebase.database(); } catch (_) { return; }
 
+  // Les règles exigent une session Firebase (anonyme) : on attend qu'elle existe
+  const whenAuthed = cb => {
+    try {
+      const unsub = firebase.auth().onAuthStateChanged(u => { if (u) { unsub(); cb(); } });
+    } catch (_) {}
+  };
+
+  function start() {
   const VKEY = "burrowio_visitor_v1";
   const SKEY = "burrowio_session_v1";
   const SESSION_MS = 30 * 60 * 1000;
@@ -79,4 +87,6 @@
     clearInterval(timer);
     presence.remove().catch(() => {});
   });
+  }
+  whenAuthed(start);
 })();

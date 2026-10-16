@@ -94,31 +94,89 @@
   }
 
   .title{
-    position:absolute; top:30px; left:50%; transform:translateX(-50%);
-    font-family:'Fredoka',sans-serif; font-size:48px; font-weight:800;
-    color:var(--ink); z-index:2; margin:0;
+    position:absolute; top:16px; left:50%; transform:translateX(-50%);
+    font-family:'Fredoka',sans-serif; font-size:40px; font-weight:800;
+    color:var(--ink); z-index:2; margin:0; line-height:38px;
     text-shadow:0 4px 16px rgba(255,107,53,0.5);
+    pointer-events:none;
   }
 
-  /* SÉLECTEUR DE LANGUE (ESPACÉ POUR ÉVITER LA SUPERPOSITION) */
-  .lang-select-widget {
+  /* BARRE SUPÉRIEURE : ALIGNEMENT STRICT ET PARFAIT */
+  .top-bar-left {
     position: fixed;
     top: 16px;
-    left: 175px;
+    left: 18px;
     z-index: 20;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 38px;
+  }
+
+  .top-bar-right {
+    position: fixed;
+    top: 16px;
+    right: 18px;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    gap: 10px; /* <--- Ajoute de l'espace entre les boutons */
+    height: 38px;
+  }
+
+  /* STYLES UNIFIÉS DE TOUS LES BOUTONS HAUTS */
+  .auth-widget, .lang-select-widget, .audio-widget, .shop-widget {
+    height: 38px !important;
+    max-height: 38px !important;
+    min-height: 38px !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
     background: rgba(27,36,73,0.8);
     border: 2px solid rgba(255,107,53,0.3);
     border-radius: 999px;
-    padding: 6px 12px;
     color: var(--ink);
     font-family: 'Fredoka', sans-serif;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+    transition: transform .15s ease;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    vertical-align: middle;
+  }
+
+  .auth-widget{
+    padding: 0 12px 0 6px;
+    gap: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+  }
+  .auth-widget:hover{ transform:translateY(-1px); }
+  .auth-widget .auth-discord-icon{ font-size:16px; line-height:1; }
+  .auth-widget .auth-avatar{
+    width:24px; height:24px; border-radius:50%; object-fit:cover;
+    border:2px solid rgba(255,107,53,0.5); flex-shrink:0;
+  }
+  .auth-widget .auth-name{
+    max-width:110px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    line-height:1;
+  }
+  .auth-widget .auth-logout{
+    border:none; background:rgba(255,107,53,0.25); color:var(--ink);
+    border-radius:50%; width:18px; height:18px; font-size:10px;
+    cursor:pointer; display:inline-flex; align-items:center; justify-content:center;
+    padding:0; line-height:1; flex-shrink:0; margin-left:2px;
+  }
+
+  .lang-select-widget {
+    padding: 0 12px;
     font-weight: 700;
     font-size: 13px;
     outline: none;
     cursor: pointer;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 4px 14px rgba(0,0,0,0.3);
-    transition: transform .15s ease;
+    appearance: none;
+    -webkit-appearance: none;
   }
   .lang-select-widget:hover { transform: translateY(-1px); }
   .lang-select-widget option {
@@ -126,14 +184,21 @@
     color: var(--ink);
   }
 
+  .audio-widget{
+    padding: 0 14px;
+    font-weight: 700;
+    font-size: 13px;
+    outline: none;
+    cursor: pointer;
+  }
+  .audio-widget:hover { transform: translateY(-1px); }
+
   .shop-widget{
-    position:absolute; top:20px; right:20px; z-index:3;
-    display:flex; align-items:center; gap:6px;
-    background:rgba(27,36,73,0.8); border:2px solid rgba(255,107,53,0.3);
-    border-radius:999px; padding:9px 16px;
-    font-family:'Fredoka',sans-serif; font-weight:700; font-size:14px;
-    color:var(--ink); cursor:pointer; backdrop-filter:blur(10px);
-    box-shadow:0 4px 14px rgba(0,0,0,0.3); transition:transform .15s ease;
+    padding: 0 16px;
+    gap: 6px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
   }
   .shop-widget:hover{ transform:translateY(-1px); }
   .shop-widget:active{ transform:scale(0.96); }
@@ -144,7 +209,7 @@
     justify-content:center;
     grid-template-rows:auto 1fr auto; gap:24px;
     width:90vw; max-width:1080px; height:auto; max-height:640px;
-    padding:24px 0;
+    padding:60px 0 24px 0;
   }
 
   .menu-top-left{
@@ -227,7 +292,7 @@
     height:1px; background:rgba(255,107,53,0.2); margin:14px 0;
   }
 
-  /* ========== WIDGET RANK ========== */
+  /* WIDGET RANK */
   .rank-widget-btn {
     display: flex;
     align-items: center;
@@ -295,7 +360,7 @@
     border-radius: 2px;
   }
 
-  /* ========== RANK ROAD AMÉLIORÉE (MISE EN VALEUR ÉLÉGANTE) ========== */
+  /* RANK ROAD */
   .rank-road-scroll-wrapper {
     width: 100%;
     overflow-x: auto;
@@ -430,7 +495,6 @@
     border-radius: 3px;
   }
 
-  /* Boutons séparés 75% / 25% dans le modal Rank Road */
   .rank-modal-actions {
     display: flex;
     gap: 10px;
@@ -553,32 +617,6 @@
   }
   .hud-label{font-family:'Fredoka',sans-serif; font-size:11px; letter-spacing:0.03em; color:var(--ink-dim); margin:0;}
   .hud-value{font-family:'Fredoka',sans-serif; font-size:28px; font-weight:700; color:var(--accent-primary); margin:0; line-height:1;}
-
-  .auth-widget{
-    position:fixed; top:16px; left:18px; z-index:20;
-    display:flex; align-items:center; gap:8px;
-    background:rgba(27,36,73,0.8); border:2px solid rgba(255,107,53,0.3);
-    border-radius:999px; padding:6px 14px 6px 6px;
-    backdrop-filter:blur(10px); cursor:pointer; user-select:none;
-    font-family:'Fredoka',sans-serif; font-weight:600; font-size:13px;
-    color:var(--ink); box-shadow:0 4px 14px rgba(0,0,0,0.3);
-    transition:transform .15s ease; min-height:28px;
-  }
-  .auth-widget:hover{ transform:translateY(-1px); }
-  .auth-widget .auth-discord-icon{ font-size:16px; }
-  .auth-widget .auth-avatar{
-    width:28px; height:28px; border-radius:50%; object-fit:cover;
-    border:2px solid rgba(255,107,53,0.5); flex-shrink:0;
-  }
-  .auth-widget .auth-name{
-    max-width:110px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-  }
-  .auth-widget .auth-logout{
-    border:none; background:rgba(255,107,53,0.25); color:var(--ink);
-    border-radius:50%; width:20px; height:20px; font-size:11px;
-    cursor:pointer; display:flex; align-items:center; justify-content:center;
-    padding:0; line-height:1; flex-shrink:0;
-  }
 
   .leaderboard{
     position:fixed; top:74px; left:18px; width:200px;
@@ -766,35 +804,47 @@
   @media (pointer: coarse){
     .pause-btn{ display:flex; top:calc(14px + env(safe-area-inset-top)); }
     .key-badge{ display:none; }
-    .auth-widget{
-      top:calc(14px + env(safe-area-inset-top)); left:10px;
-      padding:5px 10px 5px 5px; font-size:11px;
+    .top-bar-left{
+      top:calc(12px + env(safe-area-inset-top)); left:10px; gap:6px; height:32px;
     }
-    .auth-widget .auth-avatar{ width:22px; height:22px; }
-    .auth-widget .auth-name{ max-width:64px; }
+    .top-bar-right{
+      top:calc(12px + env(safe-area-inset-top)); right:10px; height:32px;
+    }
+    .auth-widget, .lang-select-widget, .audio-widget, .shop-widget{
+      height: 32px !important;
+      max-height: 32px !important;
+      min-height: 32px !important;
+    }
+    .auth-widget{
+      padding:0 8px 0 4px; font-size:11px;
+    }
+    .auth-widget .auth-avatar{ width:20px; height:20px; }
+    .auth-widget .auth-name{ max-width:60px; }
     .lang-select-widget{
-      top:calc(14px + env(safe-area-inset-top)); left:130px;
-      padding:5px 8px; font-size:11px;
+      padding:0 6px; font-size:11px;
+    }
+    .audio-widget{
+      padding:0 8px; font-size:11px;
     }
     .shop-widget{
-      top:calc(14px + env(safe-area-inset-top)); right:10px;
-      padding:6px 12px; font-size:12px;
+      padding:0 10px; font-size:12px;
     }
 
     .main-menu{
       align-items:flex-start;
       overflow-y:auto;
       -webkit-overflow-scrolling:touch;
-      padding:calc(78px + env(safe-area-inset-top)) 16px calc(20px + env(safe-area-inset-bottom));
+      padding:calc(64px + env(safe-area-inset-top)) 16px calc(20px + env(safe-area-inset-bottom));
     }
     .title{
-      top:calc(14px + env(safe-area-inset-top)); font-size:28px;
+      top:calc(12px + env(safe-area-inset-top)); font-size:24px; line-height:32px;
     }
 
     .menu-content{
       grid-template-columns:1fr 1fr;
       grid-template-rows:auto auto auto;
       gap:14px; width:100%; height:auto; max-height:none;
+      padding-top:20px;
     }
     .menu-top-left{ grid-column:1; grid-row:1; flex-direction:column; align-items:stretch; gap:10px; }
     .menu-top-right{ grid-column:2; grid-row:1; flex-direction:column; align-items:stretch; gap:10px; }
@@ -834,7 +884,7 @@
   }
 
   @media (pointer: coarse) and (max-width: 400px){
-    .title{ font-size:24px; }
+    .title{ font-size:20px; }
     .menu-content{ gap:10px; }
     .customize-section{ padding:10px; }
     .color-grid{ gap:6px; }
@@ -844,11 +894,12 @@
 
   @media (pointer: coarse) and (orientation: landscape) and (max-height: 500px){
     .main-menu{ padding:calc(10px + env(safe-area-inset-top)) 16px calc(10px + env(safe-area-inset-bottom)); }
-    .title{ font-size:20px; top:calc(8px + env(safe-area-inset-top)); }
+    .title{ font-size:18px; top:calc(8px + env(safe-area-inset-top)); }
     .menu-content{
       grid-template-columns:1fr 1fr 1fr;
       grid-template-rows:1fr 1fr;
       gap:10px; height:calc(100vh - 40px); max-height:none;
+      padding-top:10px;
     }
     .menu-top-left{ grid-column:1; grid-row:1; }
     .menu-top-right{ grid-column:1; grid-row:2; }
@@ -871,17 +922,26 @@
     <canvas id="bgCanvas"></canvas>
   </div>
 
-  <select class="lang-select-widget" id="langSelect">
-    <option value="fr">🇫🇷 FR</option>
-    <option value="en">🇬🇧 EN</option>
-    <option value="es">🇪🇸 ES</option>
-    <option value="de">🇩🇪 DE</option>
-  </select>
+ <!-- LEADER ET BOUTONS STRICTEMENT ALIGNÉS -->
+  <div class="top-bar-left">
+    <div class="auth-widget" id="authWidget" title="Connexion Discord"></div>
+    <select class="lang-select-widget" id="langSelect">
+      <option value="fr">🇫🇷 FR</option>
+      <option value="en">🇬🇧 EN</option>
+      <option value="es">🇪🇸 ES</option>
+      <option value="de">🇩🇪 DE</option>
+    </select>
+  </div>
 
   <h1 class="title" id="gameTitle">BURROW.IO</h1>
-  <button class="shop-widget" id="shopBtn" type="button" title="Boutique">
-    🛒 <span id="acornsVal">0</span> 🌰
-  </button>
+
+  <div class="top-bar-right">
+    <button class="audio-widget" id="audioToggleBtn" type="button" title="Activer/Désactiver le son">🔊 Son</button>
+    <button class="shop-widget" id="shopBtn" type="button" title="Boutique">
+      🛒 <span id="acornsVal">0</span> 🌰
+    </button>
+  </div>
+
   <p class="sr-only">Burrow.io est un jeu de tunnel (.io) multijoueur gratuit, jouable directement dans le navigateur sans téléchargement ni installation. Creuse à travers des cavernes générées aléatoirement à travers 8 décors différents (grotte, volcan, glacier, lune...), évite les obstacles, ramasse des bonus (boost de vitesse, bouclier, réduction de taille) et va le plus loin possible pour grimper dans le classement mondial des meilleurs scores.</p>
   <div class="menu-content">
     <!-- Top Left: Customization + Global records -->
@@ -964,8 +1024,6 @@
 <div class="effects-hud" id="effectsHud"></div>
 <div class="ability-hud" id="abilityHud"></div>
 
-<div class="auth-widget" id="authWidget" title="Connexion Discord"></div>
-
 <div class="key-badge" id="keyBadge">K</div>
 <button class="pause-btn" id="pauseBtn" title="Pause">⏸</button>
 
@@ -974,16 +1032,14 @@
   <div id="lbList"></div>
 </div>
 
-<!-- POP-UP RANK ROAD AVEC BOUTON JOUER (75%) ET FERMER (25%) -->
+<!-- POP-UP RANK ROAD -->
 <div class="overlay dismissable-overlay" id="rankProgressionOverlay">
   <div class="card wide-card">
     <h2>📈 Rank Road</h2>
     <p data-i18n="rankRoadSubtitle">Fais glisser horizontalement pour explorer la route des rangs !</p>
 
     <div class="rank-road-scroll-wrapper" id="rankRoadScrollWrapper">
-      <div class="rank-road-track-continuous" id="rankRoadTrack">
-        <!-- Généré dynamiquement en JS -->
-      </div>
+      <div class="rank-road-track-continuous" id="rankRoadTrack"></div>
     </div>
 
     <div class="rank-modal-actions">
@@ -1060,6 +1116,148 @@
 
 <script>
 (function(){
+  // ========== SYSTÈME AUDIO (WEB AUDIO API) ==========
+  let audioCtx = null;
+  let masterGain = null;
+  let ambienceNode = null;
+  let ambienceGain = null;
+  let ambienceFilter = null;
+  let isMuted = localStorage.getItem('burrowio_audio_muted') === 'true';
+
+  function updateAudioButtonUI(){
+    const btn = document.getElementById('audioToggleBtn');
+    if(btn) btn.textContent = isMuted ? '🔇 Mute' : '🔊 Son';
+  }
+  updateAudioButtonUI();
+
+  function initAudio(){
+    if(audioCtx) return;
+    try {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      masterGain = audioCtx.createGain();
+      masterGain.gain.value = isMuted ? 0 : 1.8;
+      masterGain.connect(audioCtx.destination);
+
+      const bufferSize = audioCtx.sampleRate * 2;
+      const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      for(let i=0; i<bufferSize; i++){
+        output[i] = Math.random() * 2 - 1;
+      }
+      ambienceNode = audioCtx.createBufferSource();
+      ambienceNode.buffer = noiseBuffer;
+      ambienceNode.loop = true;
+
+      ambienceFilter = audioCtx.createBiquadFilter();
+      ambienceFilter.type = 'lowpass';
+      ambienceFilter.frequency.value = 180;
+
+      ambienceGain = audioCtx.createGain();
+      ambienceGain.gain.value = 0.05;
+
+      ambienceNode.connect(ambienceFilter);
+      ambienceFilter.connect(ambienceGain);
+      ambienceGain.connect(masterGain);
+      ambienceNode.start();
+    } catch(e){}
+  }
+
+  ['pointerdown', 'keydown'].forEach(ev => {
+    window.addEventListener(ev, () => {
+      if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+      else initAudio();
+    }, { once: true });
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if(!audioCtx) return;
+    if(document.hidden) audioCtx.suspend();
+    else if(!isMuted) audioCtx.resume();
+  });
+
+  document.getElementById('audioToggleBtn').addEventListener('click', () => {
+    isMuted = !isMuted;
+    localStorage.setItem('burrowio_audio_muted', isMuted);
+    updateAudioButtonUI();
+    if(masterGain){
+      masterGain.gain.setValueAtTime(isMuted ? 0 : 1.8, audioCtx ? audioCtx.currentTime : 0);
+    }
+    playSFX('click');
+  });
+
+  function playSFX(type){
+    if(!audioCtx || isMuted || audioCtx.state !== 'running') return;
+    try {
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(masterGain);
+
+      if(type === 'pickup'){
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(440, now);
+        osc.frequency.exponentialRampToValueAtTime(880, now + 0.12);
+        gain.gain.setValueAtTime(0.6, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+        osc.start(now);
+        osc.stop(now + 0.12);
+      } else if(type === 'powerup'){
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(300, now);
+        osc.frequency.linearRampToValueAtTime(750, now + 0.22);
+        gain.gain.setValueAtTime(0.7, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+        osc.start(now);
+        osc.stop(now + 0.25);
+      } else if(type === 'shieldBreak'){
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(180, now);
+        osc.frequency.linearRampToValueAtTime(60, now + 0.22);
+        gain.gain.setValueAtTime(0.8, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+        osc.start(now);
+        osc.stop(now + 0.22);
+      } else if(type === 'death'){
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(140, now);
+        osc.frequency.linearRampToValueAtTime(30, now + 0.38);
+        gain.gain.setValueAtTime(0.9, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
+        osc.start(now);
+        osc.stop(now + 0.38);
+      } else if(type === 'stage'){
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(523.25, now);
+        osc.frequency.setValueAtTime(659.25, now + 0.1);
+        osc.frequency.setValueAtTime(783.99, now + 0.2);
+        gain.gain.setValueAtTime(0.5, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+        osc.start(now);
+        osc.stop(now + 0.35);
+      } else if(type === 'click'){
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(650, now);
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+        osc.start(now);
+        osc.stop(now + 0.05);
+      }
+    } catch(e){}
+  }
+
+  function updateAmbienceSound(currentSpeed, isRunning){
+    if(!audioCtx || isMuted || !ambienceGain || !ambienceFilter) return;
+    try {
+      if(isRunning && audioCtx.state === 'running'){
+        ambienceGain.gain.setValueAtTime(0.04 + (currentSpeed / 480) * 0.06, audioCtx.currentTime);
+        ambienceFilter.frequency.setValueAtTime(160 + (currentSpeed / 480) * 200, audioCtx.currentTime);
+      } else {
+        ambienceGain.gain.setValueAtTime(0.01, audioCtx.currentTime);
+      }
+    } catch(e){}
+  }
+
   // ========== SYSTÈME MULTILINGUE (I18N) ==========
   const TRANSLATIONS = {
     fr: {
@@ -1168,7 +1366,7 @@
       color: "🎨 Color",
       topScores: "🏆 Mejores Puntuaciones",
       loading: "Cargando...",
-      yourRecord: "⭐ Tu RRecord",
+      yourRecord: "⭐ Tu Récord",
       bestDistLabel: "Mejor distancia recorrida",
       totalScoreLabel: "Puntuación total acumulada",
       yourWorm: "Tu Gusano",
@@ -1198,7 +1396,7 @@
       resume: "Reanudar",
       mainMenu: "Menú principal",
       crashed: "💥 ¡Estrellado!",
-      replay: "🔁 Reorganizar",
+      replay: "🔁 Rezar",
       revive: "📺 Revivir",
       beFirst: "¡Sé el primero!",
       noLeaderboard: "Clasificación no disponible",
@@ -1250,7 +1448,7 @@
       mainMenu: "Hauptmenü",
       crashed: "💥 Gecrasht!",
       replay: "🔁 Nochmal spielen",
-      revive: "📺 Wiederbeleben",
+      revive: "Wiederbeleben",
       beFirst: "Sei der Erste!",
       noLeaderboard: "Bestenliste nicht verfügbar",
       chooseBonus: "🎁 Wähle einen Bonus!",
@@ -1289,6 +1487,7 @@
     localStorage.setItem('burrowio_lang', currentLang);
     applyTranslations();
     renderMenuRecords();
+    playSFX('click');
   });
 
   // ========== SYSTÈME DE RANGS & PROGRESSION ==========
@@ -1385,19 +1584,20 @@
   document.getElementById('openRankModalBtn').addEventListener('click', ()=>{
     renderRankRoadModal();
     document.getElementById('rankProgressionOverlay').classList.add('show');
+    playSFX('click');
   });
   document.getElementById('closeRankModalBtn').addEventListener('click', ()=>{
     document.getElementById('rankProgressionOverlay').classList.remove('show');
+    playSFX('click');
   });
 
-  // Action bouton Jouer depuis la Rank Road
   document.getElementById('roadPlayBtn').addEventListener('click', ()=>{
     document.getElementById('rankProgressionOverlay').classList.remove('show');
     mainMenu.classList.add('hidden');
     resetGame();
+    playSFX('click');
   });
 
-  // Gestion clic en dehors des popups (fermeture / retour menu)
   document.querySelectorAll('.overlay.dismissable-overlay').forEach(overlay => {
     overlay.addEventListener('click', (e) => {
       if(e.target === overlay){
@@ -1424,7 +1624,6 @@
   }
 
   // ========== RECORDS & POINTS ==========
-  const SCORE_ID_KEY = 'burrowio_score_id';
   const PERSONAL_BEST_KEY = 'burrowio_personal_best';
   const POINTS_KEY = 'burrowio_points';
   const ACORNS_KEY = 'burrowio_acorns';
@@ -1444,7 +1643,6 @@
   let powerInventory = { scoreX2:0, wideTunnel:0, shield:0 };
 
   function getScoreId(){
-    // Identité = uid Firebase (session anonyme créée automatiquement)
     return (fbAuth && fbAuth.currentUser) ? fbAuth.currentUser.uid : null;
   }
   function loadLocalBest(){
@@ -1460,7 +1658,6 @@
     try{ localStorage.setItem(POINTS_KEY, String(v)); }catch(e){}
   }
   function loadLocalAcorns(){
-    // Les anciennes pièces sont automatiquement converties en glands une seule fois.
     return parseInt(localStorage.getItem(ACORNS_KEY) || localStorage.getItem(LEGACY_COINS_KEY) || '0', 10);
   }
   function saveLocalAcorns(v){
@@ -1528,7 +1725,10 @@
         <button class="btn shop-buy ${unlocked ? '' : 'is-locked'}" type="button" data-power-buy="${id}" ${!unlocked || totalAcorns < power.price ? 'disabled' : ''}>${unlocked ? `Acheter — ${power.price} 🌰` : 'Verrouillé'}</button>
       </div>`;
     }).join('');
-    items.querySelectorAll('[data-power-buy]').forEach(btn => btn.addEventListener('click', ()=> buyShopPower(btn.dataset.powerBuy)));
+    items.querySelectorAll('[data-power-buy]').forEach(btn => btn.addEventListener('click', ()=> {
+      buyShopPower(btn.dataset.powerBuy);
+      playSFX('click');
+    }));
   }
 
   function buyShopPower(id){
@@ -1541,6 +1741,7 @@
     renderMenuRecords();
     renderShop();
     renderAbilityHud();
+    playSFX('powerup');
   }
 
   function getShopPowerConfig(id){
@@ -1656,7 +1857,6 @@
     renderMenuRecords();
   }
 
-  // Horodatage serveur du début de run : les règles Firebase s'en servent pour borner le score
   function markRunStart(){
     authReady.then(()=>{
       const sid = getScoreId();
@@ -1851,13 +2051,13 @@
     const el = document.getElementById('authWidget');
     if(!el) return;
     if(discordUser){
-      el.style.display = 'flex';
+      el.style.display = 'inline-flex';
       el.innerHTML = `
         <img class="auth-avatar" src="${discordAvatarUrl(discordUser)}" alt="">
         <span class="auth-name">${escapeHtml(discordUser.username)}</span>
         <button class="auth-logout" id="identityLogoutBtn" title="Se déconnecter" type="button">✕</button>`;
     } else if(guestPseudo){
-      el.style.display = 'flex';
+      el.style.display = 'inline-flex';
       el.innerHTML = `
         <span class="auth-discord-icon">👤</span>
         <span class="auth-name">${escapeHtml(guestPseudo)}</span>
@@ -1870,6 +2070,7 @@
     if(logoutBtn) logoutBtn.addEventListener('click', (e)=>{
       e.stopPropagation();
       resetIdentity();
+      playSFX('click');
     });
   }
 
@@ -1968,6 +2169,7 @@
     const discordBtn = document.getElementById('discordLoginBtn');
     if(discordBtn){
       discordBtn.addEventListener('click', ()=>{
+        playSFX('click');
         if(discordConfigured()) window.location.href = discordLoginUrl();
       });
     }
@@ -1979,6 +2181,7 @@
       guestPseudo = name.slice(0, 20);
       saveGuestPseudo(guestPseudo);
       checkIdentityGate();
+      playSFX('click');
     }
     if(guestBtn) guestBtn.addEventListener('click', submitGuestPseudo);
     if(guestInput) guestInput.addEventListener('keydown', (e)=>{
@@ -2185,6 +2388,7 @@
       playerState.wormColor = option.dataset.color;
       applyWormPatternSelectionUI();
       saveWormPattern();
+      playSFX('click');
     });
   });
 
@@ -2199,6 +2403,7 @@
         selectedSlotIndex = parseInt(slot.dataset.index, 10);
         renderWormPreview();
         renderWormPalette();
+        playSFX('click');
       });
     });
   }
@@ -2215,6 +2420,7 @@
         wormPattern[selectedSlotIndex] = sw.dataset.color;
         renderWormPreview();
         renderWormPalette();
+        playSFX('click');
       });
     });
   }
@@ -2232,10 +2438,12 @@
     renderWormPreview();
     renderWormPalette();
     document.getElementById('wormCustomOverlay').classList.add('show');
+    playSFX('click');
   }
   function cancelWormCustomizer(){
     if(wormPatternBackup) wormPattern = wormPatternBackup;
     document.getElementById('wormCustomOverlay').classList.remove('show');
+    playSFX('click');
   }
   function saveWormCustomizer(){
     const allSame = wormPattern.every(c => c === wormPattern[0]);
@@ -2244,6 +2452,7 @@
     applyWormPatternSelectionUI();
     saveWormPattern();
     document.getElementById('wormCustomOverlay').classList.remove('show');
+    playSFX('click');
   }
 
   document.getElementById('wormCustomizeBtn').addEventListener('click', openWormCustomizer);
@@ -2253,12 +2462,14 @@
     wormPattern = wormPattern.map(()=> WORM_PALETTE[Math.floor(Math.random()*WORM_PALETTE.length)]);
     renderWormPreview();
     renderWormPalette();
+    playSFX('click');
   });
   document.getElementById('wormResetBtn').addEventListener('click', ()=>{
     const base = playerState.wormColor || WORM_PALETTE[0];
     wormPattern = Array(WORM_SLOT_COUNT).fill(base);
     renderWormPreview();
     renderWormPalette();
+    playSFX('click');
   });
 
   const mainMenu = document.getElementById('mainMenu');
@@ -2267,14 +2478,17 @@
   menuStartBtn.addEventListener('click', () => {
     mainMenu.classList.add('hidden');
     resetGame();
+    playSFX('click');
   });
 
   document.getElementById('shopBtn').addEventListener('click', ()=>{
     renderShop();
     document.getElementById('shopOverlay').classList.add('show');
+    playSFX('click');
   });
   document.getElementById('shopCloseBtn').addEventListener('click', ()=>{
     document.getElementById('shopOverlay').classList.remove('show');
+    playSFX('click');
   });
 
   renderMenuRecords();
@@ -2535,6 +2749,7 @@
     el.classList.add('show');
     clearTimeout(el._t);
     el._t = setTimeout(()=> el.classList.remove('show'), 2400);
+    playSFX('stage');
   }
 
   function showPickupToast(kind){
@@ -2546,6 +2761,7 @@
     el.classList.add('show');
     clearTimeout(el._t);
     el._t = setTimeout(()=> el.classList.remove('show'), 1600);
+    playSFX('powerup');
   }
 
   function applyPowerup(kind){
@@ -2592,6 +2808,7 @@
     toast._t = setTimeout(()=> toast.classList.remove('show'), 1600);
     renderAbilityHud();
     renderEffectsHud();
+    playSFX('powerup');
   }
 
   let scrollDist = 0, speed = 95, running = false, gameOverShown = false, paused = false, bonusScore = 0;
@@ -2609,6 +2826,7 @@
       const ang = Math.random()*Math.PI*2, spd = 60+Math.random()*220;
       particles.push({x,y,vx:Math.cos(ang)*spd, vy:Math.sin(ang)*spd, life:1, size:2+Math.random()*4, hex: Math.random()<0.5?playerState.wormColor:rockColor});
     }
+    playSFX('death');
   }
 
   function explodeShieldBreak(x,y){
@@ -2616,6 +2834,7 @@
       const ang = Math.random()*Math.PI*2, spd = 40+Math.random()*140;
       particles.push({x,y,vx:Math.cos(ang)*spd, vy:Math.sin(ang)*spd, life:1, size:2+Math.random()*3, hex:'#6BC6F2'});
     }
+    playSFX('shieldBreak');
   }
 
   const CONTROLS_SEEN_KEY = 'burrowio_controls_seen';
@@ -2715,7 +2934,10 @@
 
   const KEY_SPEED = 300;
 
-  document.getElementById('pauseBtn').addEventListener('click', togglePause);
+  document.getElementById('pauseBtn').addEventListener('click', ()=>{
+    togglePause();
+    playSFX('click');
+  });
 
   function drawWallSlice(y, leftEdge, rightEdge, wallColor){
     ctx.fillStyle = wallColor;
@@ -2896,6 +3118,7 @@
         if(Math.abs(sy - playerY) < 16 && Math.abs(player.x - pu.x) < player.radius + pu.r){
           pu.collected = true;
           applyPowerup(pu.kind);
+          playSFX('pickup');
         }
       }
 
@@ -2919,6 +3142,9 @@
       document.getElementById('distVal').textContent = Math.floor(scrollDist/8)+' m';
       renderLeaderboard();
       renderEffectsHud();
+      updateAmbienceSound(speed, true);
+    } else {
+      updateAmbienceSound(speed, false);
     }
 
     drawWorm();
@@ -2999,6 +3225,7 @@
     gameOverShown = false;
     running = true;
     reviveInvulnTimer = 3;
+    playSFX('powerup');
   }
 
   document.getElementById('reviveBtn').addEventListener('click', doRevive);
@@ -3010,6 +3237,7 @@
     mpLeave();
     mainMenu.classList.remove('hidden');
     renderMenuRecords();
+    playSFX('click');
   });
 
   function togglePause(){
@@ -3021,6 +3249,7 @@
   document.getElementById('resumeBtn').addEventListener('click', ()=>{
     paused = false;
     document.getElementById('pauseOverlay').classList.remove('show');
+    playSFX('click');
   });
   document.getElementById('leaveBtn').addEventListener('click', ()=>{
     paused = false;
@@ -3029,12 +3258,14 @@
     document.getElementById('pauseOverlay').classList.remove('show');
     mainMenu.classList.remove('hidden');
     renderMenuRecords();
+    playSFX('click');
   });
 
   document.getElementById('restartBtn').addEventListener('click', ()=>{
     clearReviveCountdown();
     document.getElementById('endOverlay').classList.remove('show');
     resetGame();
+    playSFX('click');
   });
 
 })();

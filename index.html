@@ -300,11 +300,11 @@
   .rank-widget-btn {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
     background: rgba(15, 22, 48, 0.7);
     border: 2px solid rgba(255, 107, 53, 0.35);
     border-radius: 14px;
-    padding: 8px;
+    padding: 8px 12px;
     width: 100%;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -332,36 +332,37 @@
     flex: 1;
     display: flex;
     align-items: center;
+    justify-content: space-between;
     position: relative;
-    padding: 0 4px;
+    gap: 6px;
   }
   .rank-oval {
     width: 26px;
-    height: 18px;
-    border-radius: 999px;
-    background: rgba(27, 36, 73, 0.9);
+    height: 26px;
+    border-radius: 50%;
+    background: rgba(27, 36, 73, 0.95);
     border: 2px solid var(--accent-primary);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 10px;
+    font-size: 11px;
     z-index: 2;
     flex-shrink: 0;
   }
   .rank-progress-bar-bg {
-    position: absolute;
-    left: 13px;
-    right: 13px;
-    height: 4px;
+    flex: 1;
+    height: 6px;
     background: rgba(255, 255, 255, 0.15);
-    border-radius: 2px;
+    border-radius: 3px;
     z-index: 1;
+    overflow: hidden;
+    position: relative;
   }
   .rank-progress-bar-fill {
     height: 100%;
     width: 0%;
     background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
-    border-radius: 2px;
+    border-radius: 3px;
   }
 
   /* RANK ROAD */
@@ -370,7 +371,7 @@
     overflow-x: auto;
     overflow-y: hidden;
     white-space: nowrap;
-    padding: 55px 20px 30px 20px;
+    padding: 30px 20px 80px 20px;
     margin: 15px 0;
     scrollbar-width: thin;
     scrollbar-color: var(--accent-primary) rgba(27, 36, 73, 0.5);
@@ -389,6 +390,7 @@
     position: relative;
     padding: 0 40px;
     min-width: 100%;
+    height: 170px;
   }
 
   .rank-road-continuous-line {
@@ -422,17 +424,18 @@
     margin: 0 60px;
     z-index: 2;
     transition: transform 0.2s ease;
+    bottom: 24px;
   }
   .rank-node:hover {
     transform: translateY(-3px);
   }
 
   .rank-node-oval {
-    width: 108px;
-    height: 48px;
+    width: 110px;
+    height: 46px;
     border-radius: 999px;
     background: rgba(27, 36, 73, 0.95);
-    border: 2px solid rgba(255, 107, 53, 0.35);
+    border: 2px solid rgba(255, 107, 53, 0.4);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -453,50 +456,47 @@
   }
 
   .rank-node-score-box {
-    margin-top: 14px;
-    background: rgba(15, 22, 48, 0.85);
-    border: 1px solid rgba(255, 107, 53, 0.3);
-    border-radius: 8px;
-    padding: 5px 12px;
+    margin-top: 8px;
+    background: rgba(15, 22, 48, 0.9);
+    border: 1px solid rgba(255, 107, 53, 0.4);
+    border-radius: 12px;
+    padding: 4px 14px;
     font-family: 'Fredoka', sans-serif;
-    font-size: 11px;
-    color: var(--ink-dim);
-    white-space: nowrap;
-  }
-  .rank-node.active .rank-node-score-box {
-    border-color: var(--accent-primary);
-    color: var(--accent-primary);
+    font-size: 12px;
     font-weight: 700;
+    color: var(--accent-primary);
+    white-space: nowrap;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
   }
 
   .rank-player-marker-container {
     position: absolute;
     top: 50%;
-    transform: translate(-50%, -50%);
+    transform: translateX(-50%);
     display: flex;
     flex-direction: column;
     align-items: center;
-    z-index: 4;
+    z-index: 5;
     transition: left 0.3s ease;
+    pointer-events: none;
+  }
+  .rank-player-pin {
+    width: 5px;
+    height: 28px;
+    background: var(--accent-primary);
+    box-shadow: 0 0 10px var(--accent-primary);
+    border-radius: 2px;
   }
   .rank-player-score-box {
     background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
     color: var(--ink);
-    border-radius: 8px;
-    padding: 5px 12px;
+    border-radius: 12px;
+    padding: 6px 16px;
     font-family: 'Fredoka', sans-serif;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 800;
     white-space: nowrap;
     box-shadow: 0 4px 15px rgba(255, 107, 53, 0.7);
-    margin-bottom: 12px;
-  }
-  .rank-player-pin {
-    width: 6px;
-    height: 52px;
-    background: var(--accent-primary);
-    box-shadow: 0 0 14px var(--accent-primary);
-    border-radius: 3px;
   }
 
   .rank-modal-actions {
@@ -711,12 +711,14 @@
   .worm-custom-actions .btn-secondary{ margin-top:0; }
   .result-row{display:flex; justify-content:space-between; padding:8px; font-size:14px; color:var(--ink); border-bottom:1px solid rgba(255,107,53,0.2);}
   .result-row.me{color:var(--accent-primary); font-weight:700;}
+  
   .btn{
     margin-top:16px; width:100%; border:none; border-radius:12px;
     background:linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
     color:white; font-family:'Fredoka',sans-serif; font-weight:700; font-size:16px;
     padding:14px 0; cursor:pointer; box-shadow:0 8px 20px rgba(255,107,53,0.4);
-    transition:transform .12s ease; text-transform:uppercase;
+    transition:transform .12s ease, background .2s ease, border-color .2s ease, opacity .2s ease;
+    text-transform:uppercase;
   }
   .btn:active{transform:scale(0.96);}
   .btn-secondary{
@@ -798,11 +800,18 @@
   .shop-item h3{ margin:0 0 3px; color:var(--ink); font:700 16px 'Fredoka',sans-serif; }
   .shop-item p{ margin:0 0 9px; font-size:12px; line-height:1.35; }
   .shop-buy{ width:100%; margin:0; padding:9px 12px; font-size:13px; text-align:center; position:relative; }
-  .shop-buy.is-locked{
-    background:rgba(255,255,255,0.10); border-color:rgba(255,255,255,0.18);
-    box-shadow:none; color:rgba(255,255,255,0.52); cursor:not-allowed;
+  
+  /* STYLES BOUTIQUE GRIS SI PAS ASSEZ DE FONDS */
+  .shop-buy:disabled,
+  .shop-buy.is-locked {
+    background: #4a5568 !important;
+    border-color: #2d3748 !important;
+    box-shadow: none !important;
+    color: #a0aec0 !important;
+    cursor: not-allowed !important;
+    opacity: 0.65;
+    transform: none !important;
   }
-  .shop-buy.is-locked:hover{ transform:none; }
   .shop-buy.is-locked::after{ content:'🔒'; position:absolute; right:14px; top:50%; transform:translateY(-50%); font-size:16px; }
 
   @media (pointer: coarse){
@@ -1312,7 +1321,9 @@
       rankGold: "Or",
       rankPlatinum: "Platine",
       rankDiamond: "Diamant",
-      rankMaster: "Maître"
+      rankMaster: "Maître",
+      rankGrandmaster: "Grand Maître",
+      rankLegend: "Légende"
     },
     en: {
       color: "🎨 Color",
@@ -1363,7 +1374,9 @@
       rankGold: "Gold",
       rankPlatinum: "Platinum",
       rankDiamond: "Diamond",
-      rankMaster: "Master"
+      rankMaster: "Master",
+      rankGrandmaster: "Grandmaster",
+      rankLegend: "Legend"
     },
     es: {
       color: "🎨 Color",
@@ -1414,7 +1427,9 @@
       rankGold: "Oro",
       rankPlatinum: "Platino",
       rankDiamond: "Diamante",
-      rankMaster: "Maestro"
+      rankMaster: "Maestro",
+      rankGrandmaster: "Gran Maestro",
+      rankLegend: "Leyenda"
     },
     de: {
       color: "🎨 Farbe",
@@ -1465,7 +1480,9 @@
       rankGold: "Gold",
       rankPlatinum: "Platin",
       rankDiamond: "Diamant",
-      rankMaster: "Meister"
+      rankMaster: "Meister",
+      rankGrandmaster: "Großmeister",
+      rankLegend: "Legende"
     }
   };
 
@@ -1493,16 +1510,24 @@
     playSFX('click');
   });
 
-  // ========== SYSTÈME DE RANGS & PROGRESSION ==========
+  // ========== SYSTÈME DE RANGS & PROGRESSION MIS À JOUR ==========
   function getRankNames() {
     return [
-      { name: t('rankBronze'), emoji: '🥉', minScore: 5000 },
-      { name: t('rankSilver'), emoji: '🥈', minScore: 10000 },
-      { name: t('rankGold'), emoji: '🥇', minScore: 25000 },
-      { name: t('rankPlatinum'), emoji: '💎', minScore: 50000 },
-      { name: t('rankDiamond'), emoji: '👑', minScore: 75000 },
-      { name: t('rankMaster'), emoji: '🌳', minScore: 100000 }
+      { name: t('rankBronze'), emoji: '🥉', minScore: 10000 },
+      { name: t('rankSilver'), emoji: '🥈', minScore: 25000 },
+      { name: t('rankGold'), emoji: '🥇', minScore: 50000 },
+      { name: t('rankPlatinum'), emoji: '💎', minScore: 100000 },
+      { name: t('rankDiamond'), emoji: '👑', minScore: 250000 },
+      { name: t('rankMaster'), emoji: '🌳', minScore: 500000 },
+      { name: t('rankGrandmaster'), emoji: '🔥', minScore: 1000000 }
     ];
+  }
+
+  function formatRankScore(score) {
+    if (score >= 1000000) {
+      return (score / 1000000) + 'M pts';
+    }
+    return (score / 1000) + 'K pts';
   }
 
   function getRankForScore(score){
@@ -1539,15 +1564,15 @@
             <span>${r.emoji}</span>
             <span>${r.name}</span>
           </div>
-          <div class="rank-node-score-box">${r.minScore / 1000}K pts</div>
+          <div class="rank-node-score-box">${formatRankScore(r.minScore)}</div>
         </div>
       `;
     });
 
     html += `
       <div class="rank-player-marker-container" id="playerMarker" style="left: calc(40px + (100% - 80px) * ${globalPercent / 100});">
-        <div class="rank-player-score-box">${totalPoints.toLocaleString()} pts</div>
         <div class="rank-player-pin"></div>
+        <div class="rank-player-score-box">${totalPoints.toLocaleString()} pts</div>
       </div>
     `;
 
@@ -1579,7 +1604,7 @@
       const progress = Math.min(100, Math.max(0, ((totalPoints - rankInfo.current.minScore) / (rankInfo.next.minScore - rankInfo.current.minScore)) * 100));
       if(fillEl) fillEl.style.width = progress + '%';
     } else {
-      if(rightEl) rightEl.textContent = '👑';
+      if(rightEl) rightEl.textContent = '🔥';
       if(fillEl) fillEl.style.width = '100%';
     }
   }
@@ -1720,14 +1745,20 @@
       const basePower = SHOP_POWERS[id];
       const power = getShopPowerConfig(id);
       const unlocked = rankInfo.index >= basePower.unlockRank;
+      const canAfford = totalAcorns >= power.price;
+      const canBuy = unlocked && canAfford;
       const unlockRank = getRankNames()[basePower.unlockRank];
+
       return `
       <div class="shop-item">
         <h3>${power.emoji} ${power.name}</h3>
-        <p>${power.description}<br><strong>${unlocked ? `Touche ${power.key} · En stock : ${powerInventory[id]}` : `🔒 Débloqué au rang ${unlockRank.name} (${unlockRank.minScore / 1000}K)`}</strong></p>
-        <button class="btn shop-buy ${unlocked ? '' : 'is-locked'}" type="button" data-power-buy="${id}" ${!unlocked || totalAcorns < power.price ? 'disabled' : ''}>${unlocked ? `Acheter — ${power.price} 🌰` : 'Verrouillé'}</button>
+        <p>${power.description}<br><strong>${unlocked ? `Touche ${power.key} · En stock : ${powerInventory[id]}` : `🔒 Débloqué au rang ${unlockRank.name} (${formatRankScore(unlockRank.minScore)})`}</strong></p>
+        <button class="btn shop-buy ${!unlocked ? 'is-locked' : ''}" type="button" data-power-buy="${id}" ${!canBuy ? 'disabled' : ''}>
+          ${!unlocked ? 'Verrouillé' : `Acheter — ${power.price} 🌰`}
+        </button>
       </div>`;
     }).join('');
+
     items.querySelectorAll('[data-power-buy]').forEach(btn => btn.addEventListener('click', ()=> {
       buyShopPower(btn.dataset.powerBuy);
       playSFX('click');
@@ -1753,15 +1784,15 @@
     const rank = getRankForScore(totalPoints).index;
     if(id === 'scoreX2'){
       const duration = rank >= 3 ? 30 : 20;
-      return { ...power, duration, description:`Double les points gagnés pendant ${duration} secondes.${rank >= 3 ? ' Amélioré au rang Platine.' : ''}` };
+      return { ...power, duration, description:`Double les points gagnés pendant ${duration} secondes.${rank >= 3 ? ' Amélioré au rang Or/Platine.' : ''}` };
     }
     if(id === 'wideTunnel'){
       const duration = rank >= 4 ? 15 : 10;
       const width = rank >= 4 ? 46 : 34;
-      return { ...power, duration, width, description:`Élargit le tunnel pendant ${duration} secondes.${rank >= 4 ? ' Améliorée au rang Diamant.' : ''}` };
+      return { ...power, duration, width, description:`Élargit le tunnel pendant ${duration} secondes.${rank >= 4 ? ' Améliorée au rang Platine.' : ''}` };
     }
     const charges = rank >= 5 ? 2 : 1;
-    return { ...power, charges, description:`Absorbe ${charges} choc${charges > 1 ? 's' : ''} contre la paroi.${rank >= 5 ? ' Renforcé au rang Maître.' : ''}` };
+    return { ...power, charges, description:`Absorbe ${charges} choc${charges > 1 ? 's' : ''} contre la paroi.${rank >= 5 ? ' Renforcé au rang Diamant.' : ''}` };
   }
 
   // ========== MULTIJOUEUR ==========
@@ -3259,7 +3290,7 @@
     running = false;
     mpLeave();
     document.getElementById('pauseOverlay').classList.remove('show');
-    mainMenu.classList.remove('hidden');
+    mainMenu.classList.add('hidden');
     renderMenuRecords();
     playSFX('click');
   });

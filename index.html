@@ -426,9 +426,7 @@
     margin: 0 60px;
     z-index: 2;
     transition: transform 0.2s ease;
-    bottom: 24px;
     bottom: 24px; /* Décalage vers le haut */
->>>>>>> 174a588 (2)
   }
   .rank-node:hover {
     transform: translateY(-3px);
@@ -476,7 +474,6 @@
   /* MARQUEUR JOUEUR EN DESSOUS DE LA LIGNE */
   .rank-player-marker-container {
     position: absolute;
-    top: 50%;
     top: 50%; /* Commence pile au niveau du rail */
     transform: translateX(-50%);
     display: flex;
@@ -615,7 +612,6 @@
     font-family:'Inter',sans-serif; font-size:11px;
     color:rgba(168,179,209,0.65); text-decoration:none;
     transition:color 0.2s ease;
-  }
   }
   .privacy-link-inline:hover{ color:rgba(168,179,209,1); text-decoration:underline; }
 
@@ -806,13 +802,6 @@
     margin-right:5px; border-radius:5px; background:var(--accent-primary); color:#fff;
     font:700 12px 'Fredoka',sans-serif;
   }
-  .shop-balance{ color:var(--accent-secondary); font-family:'Fredoka',sans-serif; font-weight:800; }
-  .shop-items{ display:grid; gap:10px; text-align:center; }
-  .shop-item{ padding:12px; border-radius:12px; border:1px solid rgba(255,107,53,0.3); background:rgba(10,14,39,0.32); text-align:center; }
-  .shop-item h3{ margin:0 0 3px; color:var(--ink); font:700 16px 'Fredoka',sans-serif; }
-  .shop-item p{ margin:0 0 9px; font-size:12px; line-height:1.35; }
-  .shop-buy{ width:100%; margin:0; padding:9px 12px; font-size:13px; text-align:center; position:relative; }
-=======
   .shop-card {
     width: min(720px, 94vw) !important;
     max-width: 720px !important;
@@ -928,7 +917,6 @@
     margin-top: 0;
     padding: 14px;
   }
->>>>>>> 174a588 (2)
   
   /* STYLES BOUTIQUE GRIS SI PAS ASSEZ DE FONDS */
   .shop-buy:disabled,
@@ -1463,8 +1451,6 @@
       rankMaster: "Maître",
       rankGrandmaster: "Grand Maître",
       rankLegend: "Légende"
-=======
-      rankGrandmaster: "Grand Maître"
     },
     en: {
       color: "🎨 Color",
@@ -1518,8 +1504,6 @@
       rankMaster: "Master",
       rankGrandmaster: "Grandmaster",
       rankLegend: "Legend"
-=======
-      rankGrandmaster: "Grandmaster"
     },
     es: {
       color: "🎨 Color",
@@ -1573,7 +1557,6 @@
       rankMaster: "Maestro",
       rankGrandmaster: "Gran Maestro",
       rankLegend: "Leyenda"
-      rankGrandmaster: "Gran Maestro"
     },
     de: {
       color: "🎨 Farbe",
@@ -1627,7 +1610,6 @@
       rankMaster: "Meister",
       rankGrandmaster: "Großmeister",
       rankLegend: "Legende"
-      rankGrandmaster: "Großmeister"
     }
   };
 
@@ -1665,7 +1647,6 @@
       { name: t('rankDiamond'), emoji: '👑', minScore: 250000 },
       { name: t('rankMaster'), emoji: '🌳', minScore: 500000 },
       { name: t('rankGrandmaster'), emoji: '🔥', minScore: 1000000 }
-      { name: t('rankGrandmaster'), emoji: '🌟', minScore: 1000000 }
     ];
   }
 
@@ -1712,7 +1693,6 @@
             <span>${r.name}</span>
           </div>
           <div class="rank-node-score-box">${formatRankScore(r.minScore)}</div>
-          <div class="rank-node-score-box">${scoreStr} pts</div>
         </div>
       `;
     });
@@ -1754,7 +1734,6 @@
       if(fillEl) fillEl.style.width = progress + '%';
     } else {
       if(rightEl) rightEl.textContent = '🔥';
-      if(rightEl) rightEl.textContent = '🌟';
       if(fillEl) fillEl.style.width = '100%';
     }
   }
@@ -1900,13 +1879,6 @@
       const unlockRank = getRankNames()[basePower.unlockRank];
 
       return `
-      <div class="shop-item">
-        <h3>${power.emoji} ${power.name}</h3>
-        <p>${power.description}<br><strong>${unlocked ? `Touche ${power.key} · En stock : ${powerInventory[id]}` : `🔒 Débloqué au rang ${unlockRank.name} (${formatRankScore(unlockRank.minScore)})`}</strong></p>
-        <button class="btn shop-buy ${!unlocked ? 'is-locked' : ''}" type="button" data-power-buy="${id}" ${!canBuy ? 'disabled' : ''}>
-          ${!unlocked ? 'Verrouillé' : `Acheter — ${power.price} 🌰`}
-        </button>
-=======
       <div class="shop-item-row">
         <div class="shop-preview-box">
           <div class="shop-preview-placeholder">
@@ -1918,13 +1890,12 @@
         <div class="shop-item-info">
           <div class="shop-item-text">
             <h3>${power.emoji} ${power.name}</h3>
-            <p>${power.description}<br><strong class="shop-key-stock">${unlocked ? `Touche ${power.key} · En stock : ${powerInventory[id]}` : `🔒 Débloqué au rang ${unlockRank.name} (${unlockRank.minScore >= 1000000 ? (unlockRank.minScore / 1000000) + 'M' : (unlockRank.minScore / 1000) + 'K'})`}</strong></p>
+            <p>${power.description}<br><strong class="shop-key-stock">${unlocked ? `Touche ${power.key} · En stock : ${powerInventory[id]}` : `🔒 Débloqué au rang ${unlockRank.name} (${formatRankScore(unlockRank.minScore)})`}</strong></p>
           </div>
           <button class="btn shop-buy ${!unlocked ? 'is-locked' : ''}" type="button" data-power-buy="${id}" ${!canBuy ? 'disabled' : ''}>
             ${!unlocked ? 'Verrouillé' : `Acheter — ${power.price} 🌰`}
           </button>
         </div>
->>>>>>> 174a588 (2)
       </div>`;
     }).join('');
 
@@ -2137,7 +2108,6 @@
     const rank = getRankForScore(totalPoints).index;
     if(id === 'scoreX2'){
       const duration = rank >= 3 ? 30 : 20;
-      return { ...power, duration, description:`Double les points gagnés pendant ${duration} secondes.${rank >= 3 ? ' Amélioré au rang Or/Platine.' : ''}` };
       return { ...power, duration, description:`Double les mètres parcourus et le score pendant ${duration} secondes, cumulable jusqu'à 60s.${rank >= 3 ? ' Amélioré au rang Platine.' : ''}` };
     }
     if(id === 'wideTunnel'){
@@ -3664,7 +3634,7 @@
     running = false;
     mpLeave();
     document.getElementById('pauseOverlay').classList.remove('show');
-    mainMenu.classList.add('hidden');
+    mainMenu.classList.remove('hidden');
     renderMenuRecords();
     playSFX('click');
   });

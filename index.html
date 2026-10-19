@@ -151,10 +151,11 @@
   .auth-widget{
     padding: 0 12px 0 6px;
     gap: 8px;
-    cursor: default;
+    cursor: pointer;
     font-weight: 600;
     font-size: 13px;
   }
+  .auth-widget:hover{ transform:translateY(-1px); }
   .auth-widget .auth-discord-icon{ font-size:16px; line-height:1; }
   .auth-widget .auth-avatar{
     width:24px; height:24px; border-radius:50%; object-fit:cover;
@@ -644,25 +645,6 @@
   #wormCustomOverlay{ z-index:20; }
   #shopOverlay{ z-index:20; }
   #rankProgressionOverlay{ z-index:25; }
-
-  /* Style du Compte à Rebours */
-  #countdownOverlay {
-    z-index: 30;
-    background: rgba(10, 14, 39, 0.7);
-  }
-  .countdown-number {
-    font-family: 'Fredoka', sans-serif;
-    font-size: 110px;
-    font-weight: 800;
-    color: var(--accent-primary);
-    text-shadow: 0 0 30px rgba(255, 107, 53, 0.8);
-    animation: pulseCount 1s infinite alternate;
-  }
-  @keyframes pulseCount {
-    0% { transform: scale(1); opacity: 0.8; }
-    100% { transform: scale(1.15); opacity: 1; }
-  }
-
   .card{
     background:linear-gradient(135deg, #1B2449 0%, #0F1630 100%);
     border-radius:20px; padding:32px 28px; width:min(360px, 90vw);
@@ -855,12 +837,12 @@
     margin-bottom: 16px;
   }
   .shop-item-row {
-  display: grid;
-  grid-template-columns: 260px 1fr;
-  gap: 14px;
-  align-items: stretch;
-  width: 100%;
-  height: 200px;
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 14px;
+    align-items: stretch;
+    width: 100%;
+    height: 200px;
   }
   .shop-preview-box {
     width: 260px;
@@ -871,10 +853,25 @@
     overflow: hidden;
     position: relative;
     background: rgba(10, 14, 39, 0.6);
-    border: 2px solid rgba(255,107,53,0.3);
+    border: 2px solid rgba(255, 107, 53, 0.3);
     box-shadow: 0 4px 14px rgba(0,0,0,0.3);
     flex-shrink: 0;
   }
+  .shop-preview-placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at center, #1E295C 0%, #0A0E27 100%);
+    color: var(--ink-dim);
+    z-index: 1;
+    gap: 6px;
+  }
+  .preview-placeholder-emoji { font-size: 28px; }
+  .preview-placeholder-text { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+
   .shop-preview-video {
     position: absolute;
     left: 0; top: 0;
@@ -893,7 +890,7 @@
     padding: 10px 14px;
     overflow: hidden;
     border-radius: 14px;
-    border: 2px solid rgba(255,107,53,0.3);
+    border: 2px solid rgba(255, 107, 53, 0.3);
     background: rgba(10, 14, 39, 0.4);
     box-shadow: 0 4px 14px rgba(0,0,0,0.25);
     text-align: center;
@@ -1094,7 +1091,6 @@
 
   <p class="sr-only">Burrow.io est un jeu de tunnel (.io) multijoueur gratuit, jouable directement dans le navigateur sans téléchargement ni installation. Creuse à travers des cavernes générées aléatoirement à travers 8 décors différents (grotte, volcan, glacier, lune...), évite les obstacles, ramasse des bonus (boost de vitesse, bouclier, réduction de taille) et va le plus loin possible pour grimper dans le classement mondial des meilleurs scores.</p>
   <div class="menu-content">
-    <!-- Top Left: Customization + Global records -->
     <div class="menu-top-left">
       <div class="customize-section">
         <h3 data-i18n="color">🎨 Couleur</h3>
@@ -1113,7 +1109,6 @@
       </div>
     </div>
 
-    <!-- Top Right: Personal record + WIDGET RANK -->
     <div class="menu-top-right">
       <div class="customize-section personal-section">
         <h3 data-i18n="yourRecord">⭐ Ton record</h3>
@@ -1123,7 +1118,6 @@
         <p class="personal-best-value" id="personalPointsVal">0</p>
         <p class="personal-best-label" data-i18n="totalScoreLabel">Score cumulé total</p>
 
-        <!-- WIDGET RANK -->
         <button class="rank-widget-btn" id="openRankModalBtn" type="button" title="Voir les rangs">
           <div class="rank-preview-square" id="widgetRankSquare">🥉</div>
           <div class="rank-track-line">
@@ -1137,7 +1131,6 @@
       </div>
     </div>
 
-    <!-- Center: 3D Worm -->
     <div class="menu-center">
       <div class="worm-container">
         <canvas id="wormCanvas3D"></canvas>
@@ -1148,7 +1141,6 @@
       </div>
     </div>
 
-    <!-- Bottom: Play Button & Privacy Link -->
     <div class="menu-bottom">
       <button class="menu-btn btn-play" id="menuStartBtn" data-i18n="play">▶ Jouer</button>
       <a class="privacy-link-inline" href="confidentialite.html" target="_blank" rel="noopener" data-i18n="privacy">Confidentialité</a>
@@ -1182,12 +1174,10 @@
   <div id="lbList"></div>
 </div>
 
-<!-- POP-UP COMPTE A REBOURS -->
 <div class="overlay" id="countdownOverlay">
   <div class="countdown-number" id="countdownNum">3</div>
 </div>
 
-<!-- POP-UP RANK ROAD -->
 <div class="overlay dismissable-overlay" id="rankProgressionOverlay">
   <div class="card wide-card">
     <h2>📈 Rank Road</h2>
@@ -1775,7 +1765,7 @@
   });
 
   let playerState = {
-    nickname: localStorage.getItem('burrowio_guest_pseudo') || 'player',
+    nickname: 'Anonyme',
     wormColor: '#FF6FA5'
   };
 
@@ -1912,6 +1902,179 @@
       buyShopPower(btn.dataset.powerBuy);
       playSFX('click');
     }));
+
+    const POWER_VIDEOS = {
+      scoreX2: [
+        'prewiew_power_up/prewiew_power_up_x2.mp4',
+        './prewiew_power_up/prewiew_power_up_x2.mp4',
+        'prewiew_power_up/preview_power_up_x2.mp4',
+        'preview_power_up/preview_power_up_x2.mp4',
+        'prewiew_power_up_x2.mp4',
+        'preview_power_up_x2.mp4'
+      ],
+      wideTunnel: [
+        'prewiew_power_up/prewiew_power_up_large_tunnel.mp4',
+        './prewiew_power_up/prewiew_power_up_large_tunnel.mp4',
+        'preview_power_up/preview_power_up_large_tunnel.mp4',
+        'prewiew_power_up/preview_power_up_large_tunnel.mp4',
+        'prewiew_power_up_large_tunnel.mp4',
+        'preview_power_up_large_tunnel.mp4'
+      ],
+      shield: [
+        'prewiew_power_up/preview_power_up_shield.mp4',
+        './prewiew_power_up/preview_power_up_shield.mp4',
+        'prewiew_power_up/prewiew_power_up_shield.mp4',
+        'preview_power_up/preview_power_up_shield.mp4',
+        'preview_power_up_shield.mp4',
+        'preview_power_up_shield.mp4'
+      ]
+    };
+
+    items.querySelectorAll('video[data-power-id]').forEach(vid => {
+      const id = vid.dataset.powerId;
+      const list = POWER_VIDEOS[id] || [];
+      const placeholder = vid.parentElement.querySelector('.shop-preview-placeholder');
+      let idx = 0;
+      vid.muted = true;
+      vid.defaultMuted = true;
+      vid.loop = true;
+      vid.playsInline = true;
+
+      const box = vid.parentElement;
+      let content = null;
+      let wormSamples = [];
+      let lastSample = 0;
+      const sCanvas = document.createElement('canvas');
+      const sCtx = sCanvas.getContext('2d', { willReadFrequently: true });
+
+      function detectContent(data, w, h){
+        const colBlack = new Array(w).fill(0), rowBlack = new Array(h).fill(0);
+        for(let y = 0; y < h; y++){
+          for(let x = 0; x < w; x++){
+            const i = (y * w + x) * 4;
+            if(data[i] + data[i+1] + data[i+2] <= 30){ colBlack[x]++; rowBlack[y]++; }
+          }
+        }
+        let x0 = 0, x1 = w - 1, y0 = 0, y1 = h - 1;
+        while(x0 < x1 && colBlack[x0] / h > 0.97) x0++;
+        while(x1 > x0 && colBlack[x1] / h > 0.97) x1--;
+        while(y0 < y1 && rowBlack[y0] / w > 0.97) y0++;
+        while(y1 > y0 && rowBlack[y1] / w > 0.97) y1--;
+        if(x0 > 0) x0++;
+        if(x1 < w - 1) x1--;
+        if(y0 > 0) y0++;
+        if(y1 < h - 1) y1--;
+        return { x: x0 / w, y: y0 / h, w: (x1 - x0 + 1) / w, h: (y1 - y0 + 1) / h };
+      }
+
+      function sampleFrame(){
+        if(!vid.videoWidth || vid.currentTime < 0.05) return;
+        try {
+          const w = 160, h = Math.max(2, Math.round(w * vid.videoHeight / vid.videoWidth));
+          sCanvas.width = w; sCanvas.height = h;
+          sCtx.drawImage(vid, 0, 0, w, h);
+          const data = sCtx.getImageData(0, 0, w, h).data;
+          if(!content){
+            const c = detectContent(data, w, h);
+            if(c.w > 0.3 && c.h > 0.3) content = c;
+          }
+          const c = content || { x:0, y:0, w:1, h:1 };
+          let sx = 0, sy = 0, n = 0;
+          const xa = Math.floor(c.x * w), xb = Math.ceil((c.x + c.w) * w);
+          const ya = Math.floor(c.y * h), yb = Math.ceil((c.y + c.h) * h);
+          for(let y = ya; y < yb; y++){
+            for(let x = xa; x < xb; x++){
+              const i = (y * w + x) * 4, r = data[i], g = data[i+1], b = data[i+2];
+              if(r > 190 && g > 60 && g < 150 && b > 100 && b < 190 && r - g > 90 && b > g){
+                sx += x; sy += y; n++;
+              }
+            }
+          }
+          if(n > 6) wormSamples.push({ x: sx / n / w, y: sy / n / h });
+        } catch(e){}
+      }
+
+      function layoutVideo(){
+        const vw = vid.videoWidth, vh = vid.videoHeight;
+        const bw = box.clientWidth, bh = box.clientHeight;
+        if(!vw || !vh || !bw || !bh) return;
+        const c = content || { x:0, y:0, w:1, h:1 };
+        const s = Math.max(bw / (c.w * vw), bh / (c.h * vh));
+        const Vw = vw * s, Vh = vh * s;
+        const cl = c.x * Vw, ct = c.y * Vh, cW = c.w * Vw, cH = c.h * Vh;
+        let f = null;
+        if(wormSamples.length){
+          f = {
+            x: wormSamples.reduce((a, p) => a + p.x, 0) / wormSamples.length,
+            y: wormSamples.reduce((a, p) => a + p.y, 0) / wormSamples.length
+          };
+        }
+        let left;
+        if(cW <= bw + 0.5) left = (bw - cW) / 2 - cl;
+        else {
+          const fx = f ? f.x * Vw : cl + cW / 2;
+          left = clamp(bw / 2 - fx, bw - (cl + cW), -cl);
+        }
+        let top;
+        if(cH <= bh + 0.5) top = (bh - cH) / 2 - ct;
+        else top = -ct;
+
+        vid.style.width = Vw + 'px';
+        vid.style.height = Vh + 'px';
+        vid.style.left = left + 'px';
+        vid.style.top = top + 'px';
+      }
+
+      function onReady(){
+        if(placeholder) placeholder.style.display = 'none';
+        const p = vid.play();
+        if(p && typeof p.catch === 'function') p.catch(()=>{});
+        layoutVideo();
+      }
+
+      vid.addEventListener('loadedmetadata', layoutVideo);
+      vid.addEventListener('loadeddata', onReady);
+      vid.addEventListener('canplay', onReady);
+      vid.addEventListener('playing', onReady);
+      vid.addEventListener('timeupdate', () => {
+        const now = performance.now();
+        if(wormSamples.length < 15 && now - lastSample > 200){
+          lastSample = now;
+          sampleFrame();
+          layoutVideo();
+        }
+      });
+        
+      async function tryLoad(urlIndex){
+        if(urlIndex >= list.length){
+          if(placeholder){
+            const txt = placeholder.querySelector('.preview-placeholder-text');
+            if(txt) txt.innerHTML = `<span style="font-size:10px; color:#ff9999;">Fichier introuvable</span>`;
+          }
+          return;
+        }
+        const url = list[urlIndex];
+        try {
+          const res = await fetch(url);
+          if(res.ok){
+            const blob = await res.blob();
+            const blobUrl = URL.createObjectURL(blob);
+            vid.src = blobUrl;
+            vid.play().catch(()=>{});
+            return;
+          }
+        } catch(e){}
+        vid.src = url;
+        vid.play().catch(()=>{});
+      }
+
+      vid.addEventListener('error', () => {
+        idx++;
+        tryLoad(idx);
+      });
+
+      tryLoad(0);
+    });
   }
 
   function buyShopPower(id){
@@ -2080,6 +2243,9 @@
   const DISCORD_TOKEN_KEY = 'burrowio_discord_token';
   const DISCORD_EXPIRY_KEY = 'burrowio_discord_expiry';
   const DISCORD_USER_KEY = 'burrowio_discord_user';
+  const GUEST_PSEUDO_KEY = 'burrowio_guest_pseudo';
+
+  let guestPseudo = null;
 
   function discordConfigured(){
     return DISCORD_CLIENT_ID && DISCORD_CLIENT_ID.indexOf('COLLE_TON_CLIENT_ID') === -1;
@@ -2125,6 +2291,16 @@
   function loadStoredDiscordExpiry(){
     try{ return parseInt(localStorage.getItem(DISCORD_EXPIRY_KEY) || '0', 10); }catch(e){ return 0; }
   }
+  function loadGuestPseudo(){
+    try{ return localStorage.getItem(GUEST_PSEUDO_KEY) || null; }catch(e){ return null; }
+  }
+  function saveGuestPseudo(name){
+    try{ localStorage.setItem(GUEST_PSEUDO_KEY, name); }catch(e){}
+  }
+  function clearGuestPseudo(){
+    try{ localStorage.removeItem(GUEST_PSEUDO_KEY); }catch(e){}
+    guestPseudo = null;
+  }
 
   function discordAvatarUrl(user){
     if(user.avatar){
@@ -2154,21 +2330,50 @@
         <img class="auth-avatar" src="${discordAvatarUrl(discordUser)}" alt="">
         <span class="auth-name">${escapeHtml(discordUser.username)}</span>
         <button class="auth-logout" id="identityLogoutBtn" title="Se déconnecter" type="button">✕</button>`;
-    } else {
+    } else if(guestPseudo){
       el.style.display = 'inline-flex';
       el.innerHTML = `
         <span class="auth-discord-icon">👤</span>
-        <span class="auth-name">${escapeHtml(playerState.nickname)}</span>`;
+        <span class="auth-name">${escapeHtml(guestPseudo)}</span>
+        <button class="auth-logout" id="identityLogoutBtn" title="Se déconnecter" type="button">✕</button>`;
+    } else {
+      el.style.display = 'none';
+      el.innerHTML = '';
     }
     const logoutBtn = document.getElementById('identityLogoutBtn');
     if(logoutBtn) logoutBtn.addEventListener('click', (e)=>{
       e.stopPropagation();
-      clearDiscordSession();
-      playerState.nickname = 'player';
-      localStorage.removeItem('burrowio_guest_pseudo');
-      renderAuthWidget();
+      resetIdentity();
       playSFX('click');
     });
+  }
+
+  function hasIdentity(){
+    return !!(discordUser || guestPseudo);
+  }
+  function applyIdentityToPlayerState(){
+    if(discordUser) playerState.nickname = discordUser.username;
+    else if(guestPseudo) playerState.nickname = guestPseudo;
+  }
+  function checkIdentityGate(){
+    if(hasIdentity()){
+      applyIdentityToPlayerState();
+      document.getElementById('onboardOverlay').classList.remove('show');
+    } else {
+      document.getElementById('onboardOverlay').classList.add('show');
+    }
+    renderAuthWidget();
+  }
+  function resetIdentity(){
+    clearDiscordSession();
+    clearGuestPseudo();
+    currentBestDist = 0;
+    totalPoints = 0;
+    totalAcorns = 0;
+    const guestInput = document.getElementById('guestNicknameInput');
+    if(guestInput) guestInput.value = '';
+    renderMenuRecords();
+    checkIdentityGate();
   }
 
   async function handleDiscordRedirect(){
@@ -2182,24 +2387,21 @@
       const user = await fetchDiscordUser(token);
       discordUser = user;
       saveDiscordSession(user, token, expiresIn);
-      playerState.nickname = user.username;
-      renderAuthWidget();
+      checkIdentityGate();
     }catch(e){}
   }
 
   function initIdentityAndAuth(){
     const stored = loadStoredDiscordUser();
-    if(stored) {
-      discordUser = stored;
-      playerState.nickname = stored.username;
-    }
+    if(stored) discordUser = stored;
+    guestPseudo = loadGuestPseudo();
     currentBestDist = loadLocalBest();
     totalPoints = loadLocalPoints();
     totalAcorns = loadLocalAcorns();
     powerInventory = loadPowerInventory();
 
     applyTranslations();
-    renderAuthWidget();
+    checkIdentityGate();
     handleDiscordRedirect();
 
     const discordLoginBtn = document.getElementById('discordLoginBtn');
@@ -2215,13 +2417,10 @@
     function submitGuest(){
       const val = (guestInput.value || '').trim();
       if(!val) return;
-      playerState.nickname = val.slice(0, 20);
-      localStorage.setItem('burrowio_guest_pseudo', playerState.nickname);
-      renderAuthWidget();
-      document.getElementById('onboardOverlay').classList.remove('show');
+      guestPseudo = val.slice(0, 20);
+      saveGuestPseudo(guestPseudo);
+      checkIdentityGate();
       playSFX('click');
-      gameOverShown = false; // Permet d'afficher correctement l'écran de fin
-      showGameOver(); // Affiche la pop-up de fin de partie classique (Écrasé! / Rejouer)
     }
     if(guestPlayBtn) guestPlayBtn.addEventListener('click', submitGuest);
     if(guestInput) guestInput.addEventListener('keydown', (e)=>{
@@ -2918,42 +3117,6 @@
     mpForceUpdate();
   }
 
-  function startCountdownAndGame() {
-    const overlay = document.getElementById('countdownOverlay');
-    const numEl = document.getElementById('countdownNum');
-    overlay.classList.add('show');
-    let count = 3;
-    numEl.textContent = count;
-
-    const interval = setInterval(() => {
-      count--;
-      if (count > 0) {
-        numEl.textContent = count;
-        playSFX('click');
-      } else if (count === 0) {
-        numEl.textContent = "GO !";
-        playSFX('stage');
-      } else {
-        clearInterval(interval);
-        overlay.classList.remove('show');
-        resetGame();
-      }
-    }, 1000);
-  }
-
-  // GESTION DU LANCEMENT INITIAL : Si déjà venu -> Menu, sinon Première visite -> Direct en jeu avec compte à rebours
-  const HAS_VISITED_KEY = 'burrowio_has_visited';
-  window.addEventListener('DOMContentLoaded', () => {
-    const hasVisited = localStorage.getItem(HAS_VISITED_KEY);
-    if (!hasVisited) {
-      localStorage.setItem(HAS_VISITED_KEY, 'true');
-      mainMenu.classList.add('hidden');
-      startCountdownAndGame();
-    } else {
-      mainMenu.classList.remove('hidden');
-    }
-  });
-
   function renderLeaderboard(){
     const others = mpReady
       ? Object.values(otherPlayers).map(p=>({ name: p.nickname || 'Joueur', dist: p.dist || 0, hex: p.color || '#C9B9A8' }))
@@ -3273,15 +3436,6 @@
     syncPointsToFirebase();
 
     submitScoreIfHigher(finalDist);
-
-    const isUnregistered = !discordUser && (!playerState.nickname || playerState.nickname === 'player' || playerState.nickname === 'anonyme');
-
-    if (isUnregistered) {
-      document.getElementById('onboardOverlay').classList.add('show');
-      updateAmbienceSound(0, false);
-      return;
-    }
-
     const ranked = renderLeaderboard();
     document.getElementById('endResults').innerHTML = ranked.map((p,i)=>`
       <div class="result-row ${p.me?'me':''}">

@@ -644,6 +644,24 @@
   #onboardOverlay{ z-index:20; }
   #wormCustomOverlay{ z-index:20; }
   #shopOverlay{ z-index:20; }
+
+  /* Compte à rebours (première partie) */
+  #countdownOverlay {
+    z-index: 30;
+    background: rgba(10, 14, 39, 0.7);
+  }
+  .countdown-number {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 110px;
+    font-weight: 800;
+    color: var(--accent-primary);
+    text-shadow: 0 0 30px rgba(255, 107, 53, 0.8);
+    animation: pulseCount 1s infinite alternate;
+  }
+  @keyframes pulseCount {
+    0% { transform: scale(1); opacity: 0.8; }
+    100% { transform: scale(1.15); opacity: 1; }
+  }
   #rankProgressionOverlay{ z-index:25; }
   .card{
     background:linear-gradient(135deg, #1B2449 0%, #0F1630 100%);
@@ -1174,6 +1192,11 @@
   <div id="lbList"></div>
 </div>
 
+<div class="overlay" id="countdownOverlay">
+  <div class="countdown-number" id="countdownNum">3</div>
+</div>
+
+<!-- POP-UP COMPTE A REBOURS -->
 <div class="overlay" id="countdownOverlay">
   <div class="countdown-number" id="countdownNum">3</div>
 </div>
@@ -1903,6 +1926,27 @@
       playSFX('click');
     }));
 
+    // Zone utile (sans les bandes noires) de chaque vidéo, en pixels sur la vidéo source 1920x1080.
+    // Mesurée sur toutes les images : le recadrage est donc immédiat et ne dépend plus de la lecture
+    // des pixels (bloquée par Brave Shields / Firefox anti-fingerprinting).
+    // Si tu remplaces une vidéo, supprime sa ligne ici : la détection automatique reprendra.
+    const POWER_VIDEO_SRC = { w:1920, h:1080 };
+    const FIXED_POWER_CROP = {
+      scoreX2:    { x0:632, y0:0, x1:1410, y1:730 },
+      wideTunnel: { x0:643, y0:0, x1:1314, y1:599 },
+      shield:     { x0:727, y0:0, x1:1484, y1:630 }
+    };
+    function getFixedCrop(id){
+      const c = FIXED_POWER_CROP[id];
+      if(!c) return null;
+      return {
+        x: c.x0 / POWER_VIDEO_SRC.w,
+        y: c.y0 / POWER_VIDEO_SRC.h,
+        w: (c.x1 - c.x0 + 1) / POWER_VIDEO_SRC.w,
+        h: (c.y1 - c.y0 + 1) / POWER_VIDEO_SRC.h
+      };
+    }
+
     const POWER_VIDEOS = {
       scoreX2: [
         'prewiew_power_up/prewiew_power_up_x2.mp4',
@@ -1941,7 +1985,8 @@
       vid.playsInline = true;
 
       const box = vid.parentElement;
-      let content = null;
+      const fixedContent = getFixedCrop(id);
+      let content = fixedContent;
       let wormSamples = [];
       let lastSample = 0;
       const sCanvas = document.createElement('canvas');
@@ -1968,6 +2013,7 @@
       }
 
       function sampleFrame(){
+        if(fixedContent) return; // zone connue : pas besoin de lire les pixels
         if(!vid.videoWidth || vid.currentTime < 0.05) return;
         try {
           const w = 160, h = Math.max(2, Math.round(w * vid.videoHeight / vid.videoWidth));
@@ -2246,6 +2292,26 @@
   const GUEST_PSEUDO_KEY = 'burrowio_guest_pseudo';
 
   let guestPseudo = null;
+  const PENDING_RUN_KEY = 'burrowio_pending_run';
+  let pendingRun = null;
+  let redirectPromise = Promise.resolve(false);
+
+  function savePendingRun(run){
+    try{ localStorage.setItem(PENDING_RUN_KEY, JSON.stringify(run)); }catch(e){}
+  }
+  function loadPendingRun(){
+    try{
+      const raw = localStorage.getItem(PENDING_RUN_KEY);
+      if(!raw) return null;
+      const r = JSON.parse(raw);
+      if(r && isFinite(r.dist)) return { dist: Math.max(0, Math.floor(r.dist)), bonus: Math.max(0, Math.floor(r.bonus || 0)) };
+    }catch(e){}
+    return null;
+  }
+  function clearPendingRun(){
+    pendingRun = null;
+    try{ localStorage.removeItem(PENDING_RUN_KEY); }catch(e){}
+  }
 
   function discordConfigured(){
     return DISCORD_CLIENT_ID && DISCORD_CLIENT_ID.indexOf('COLLE_TON_CLIENT_ID') === -1;
@@ -2365,6 +2431,7 @@
     renderAuthWidget();
   }
   function resetIdentity(){
+    clearPendingRun();
     clearDiscordSession();
     clearGuestPseudo();
     currentBestDist = 0;
@@ -2377,18 +2444,21 @@
   }
 
   async function handleDiscordRedirect(){
-    if(!location.hash || location.hash.indexOf('access_token') === -1) return;
+    if(!location.hash || location.hash.indexOf('access_token') === -1) return false;
     const params = new URLSearchParams(location.hash.slice(1));
     const token = params.get('access_token');
     const expiresIn = parseInt(params.get('expires_in') || '0', 10);
-    if(!token) return;
+    if(!token) return false;
     history.replaceState(null, '', location.pathname + location.search);
+    // Retour de connexion après une première partie : on masque le menu en attendant l'écran de fin
+    if(loadPendingRun()) document.getElementById('mainMenu').classList.add('hidden');
     try{
       const user = await fetchDiscordUser(token);
       discordUser = user;
       saveDiscordSession(user, token, expiresIn);
       checkIdentityGate();
-    }catch(e){}
+      return true;
+    }catch(e){ return false; }
   }
 
   function initIdentityAndAuth(){
@@ -2401,8 +2471,12 @@
     powerInventory = loadPowerInventory();
 
     applyTranslations();
-    checkIdentityGate();
-    handleDiscordRedirect();
+    // Pas de popup de connexion au chargement : il s'affiche à la fin de la première partie
+    // (une partie en attente qui n'a pas été validée par un retour Discord est oubliée)
+    if(!location.hash || location.hash.indexOf('access_token') === -1) clearPendingRun();
+    applyIdentityToPlayerState();
+    renderAuthWidget();
+    redirectPromise = handleDiscordRedirect();
 
     const discordLoginBtn = document.getElementById('discordLoginBtn');
     if(discordLoginBtn){
@@ -2421,6 +2495,12 @@
       saveGuestPseudo(guestPseudo);
       checkIdentityGate();
       playSFX('click');
+      // Fin de première partie : on enchaîne sur l'écran de fin classique
+      if(pendingRun){
+        const run = pendingRun;
+        clearPendingRun();
+        completeGameOver(run.dist, run.bonus, false);
+      }
     }
     if(guestPlayBtn) guestPlayBtn.addEventListener('click', submitGuest);
     if(guestInput) guestInput.addEventListener('keydown', (e)=>{
@@ -3117,12 +3197,84 @@
     mpForceUpdate();
   }
 
-  function renderLeaderboard(){
+  function startCountdownAndGame() {
+    const overlay = document.getElementById('countdownOverlay');
+    const numEl = document.getElementById('countdownNum');
+    overlay.classList.add('show');
+    let count = 3;
+    numEl.textContent = count;
+
+    const interval = setInterval(() => {
+      count--;
+      if (count > 0) {
+        numEl.textContent = count;
+        playSFX('click');
+      } else if (count === 0) {
+        numEl.textContent = "GO !";
+        playSFX('stage');
+      } else {
+        clearInterval(interval);
+        overlay.classList.remove('show');
+        resetGame();
+      }
+    }, 1000);
+  }
+
+  // LANCEMENT INITIAL
+  // - retour Discord après une 1re partie : écran de fin classique (score mémorisé), sinon menu
+  // - Discord déjà connecté : menu, sans compte à rebours
+  // - pseudo invité : compte à rebours + jeu direct à la première visite seulement, ensuite menu
+  // - aucune identité : compte à rebours + jeu direct (popup de connexion à la mort)
+  const HAS_VISITED_KEY = 'burrowio_has_visited';
+  function markVisited(){ try{ localStorage.setItem(HAS_VISITED_KEY, 'true'); }catch(e){} }
+  function hasVisitedBefore(){ try{ return !!localStorage.getItem(HAS_VISITED_KEY); }catch(e){ return false; } }
+
+  async function initialLaunch(){
+    let fromDiscord = false;
+    try{ fromDiscord = await redirectPromise; }catch(e){}
+
+    if(fromDiscord){
+      const run = loadPendingRun();
+      clearPendingRun();
+      markVisited();
+      if(run){
+        mainMenu.classList.add('hidden');
+        completeGameOver(run.dist, run.bonus, true);
+      } else {
+        mainMenu.classList.remove('hidden');
+      }
+      return;
+    }
+
+    if(discordUser){
+      markVisited();
+      mainMenu.classList.remove('hidden');
+      return;
+    }
+
+    if(guestPseudo){
+      if(!hasVisitedBefore()){
+        markVisited();
+        mainMenu.classList.add('hidden');
+        startCountdownAndGame();
+      } else {
+        mainMenu.classList.remove('hidden');
+      }
+      return;
+    }
+
+    markVisited();
+    mainMenu.classList.add('hidden');
+    startCountdownAndGame();
+  }
+  initialLaunch();
+
+  function renderLeaderboard(meDist){
     const others = mpReady
       ? Object.values(otherPlayers).map(p=>({ name: p.nickname || 'Joueur', dist: p.dist || 0, hex: p.color || '#C9B9A8' }))
       : demoBots.map(b=>({ name: b.name, dist: b.dist, hex:'#C9B9A8' }));
     const all = [
-      {name: playerState.nickname, dist: (scrollDist/8) * (effects.scoreX2Timer > 0 ? 2 : 1), me:true, hex: playerState.wormColor},
+      {name: playerState.nickname, dist: (typeof meDist === 'number') ? meDist : (scrollDist/8) * (effects.scoreX2Timer > 0 ? 2 : 1), me:true, hex: playerState.wormColor},
       ...others
     ];
     all.sort((a,b)=>b.dist-a.dist);
@@ -3431,12 +3583,28 @@
     gameOverShown = true;
 
     const finalDist = Math.floor(scrollDist/8);
-    totalPoints += finalDist + Math.floor(bonusScore);
+    const runBonus = Math.floor(bonusScore);
+
+    // Pas encore identifié : popup de connexion d'abord, puis écran de fin classique
+    if(!hasIdentity()){
+      pendingRun = { dist: finalDist, bonus: runBonus };
+      savePendingRun(pendingRun); // permet de retrouver la partie après la redirection Discord
+      document.getElementById('onboardOverlay').classList.add('show');
+      updateAmbienceSound(0, false);
+      return;
+    }
+
+    completeGameOver(finalDist, runBonus, false);
+  }
+
+  function completeGameOver(finalDist, runBonus, restored){
+    gameOverShown = true;
+    totalPoints += finalDist + runBonus;
     saveLocalPoints(totalPoints);
     syncPointsToFirebase();
 
     submitScoreIfHigher(finalDist);
-    const ranked = renderLeaderboard();
+    const ranked = renderLeaderboard(restored ? finalDist : undefined);
     document.getElementById('endResults').innerHTML = ranked.map((p,i)=>`
       <div class="result-row ${p.me?'me':''}">
         <span>${i+1}. ${escapeHtml(p.name)}</span>
@@ -3445,6 +3613,8 @@
     const place = ranked.findIndex(p=>p.me)+1;
     document.getElementById('endSubtitle').textContent =
       `${finalDist}m — ${place===1?'1er !':(place+'e')}`;
+    // Après un retour Discord la partie n'existe plus : pas de "Revivre"
+    if(restored) reviveUsedThisRun = true;
     updateReviveButtonVisibility();
     document.getElementById('endOverlay').classList.add('show');
 

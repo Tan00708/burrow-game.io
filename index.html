@@ -767,7 +767,7 @@
   }
 
   .stage-toast{
-    position:fixed; top:112px; left:50%; transform:translate(-50%,-8px);
+    position:fixed; top:90px; left:50%; transform:translate(-50%,-8px);
     font-family:'Fredoka',sans-serif; font-weight:700; color:var(--ink);
     font-size:18px; opacity:0; pointer-events:none; z-index:6;
     background:rgba(27,36,73,0.85); border:2px solid rgba(255,107,53,0.4);
@@ -788,10 +788,16 @@
   }
   .controls-hint.show{ opacity:1; transform:translate(-50%,0); }
 
+  /* HUD D'EFFETS : Remonte juste sous le HUD (top: 90px) et s'abaisse à 152px quand le toast est affiché */
   .effects-hud{
-    position:fixed; top:172px; left:50%; transform:translateX(-50%);
+    position:fixed; top:90px; left:50%; transform:translateX(-50%);
     display:flex; gap:8px; z-index:5; pointer-events:none;
+    transition:top .3s ease;
   }
+  .effects-hud.has-toast{
+    top:152px;
+  }
+
   .effect-chip{
     display:flex; align-items:center; gap:4px;
     background:rgba(27,36,73,0.85); border:2px solid rgba(255,107,53,0.3);
@@ -1034,8 +1040,9 @@
     .hud-block{ padding:7px 12px; }
     .hud-label{ font-size:10px; }
     .hud-value{ font-size:18px; }
-    .stage-toast{ top:calc(96px + env(safe-area-inset-top)); font-size:15px; padding:8px 16px; }
-    .effects-hud{ top:calc(150px + env(safe-area-inset-top)); }
+    .stage-toast{ top:calc(70px + env(safe-area-inset-top)); font-size:15px; padding:8px 16px; }
+    .effects-hud{ top:calc(70px + env(safe-area-inset-top)); }
+    .effects-hud.has-toast{ top:calc(120px + env(safe-area-inset-top)); }
     .ability-hud{ right:10px; bottom:10px; gap:5px; }
     .ability-slot{ min-width:128px; padding:5px 7px; font-size:10px; }
     .controls-hint{ top:calc(190px + env(safe-area-inset-top)); font-size:14px; padding:10px 16px; }
@@ -1699,11 +1706,7 @@
 
     const RANKS = getRankNames();
     const rankInfo = getRankForScore(totalPoints);
-    const maxScore = RANKS[RANKS.length - 1].minScore;
-    const clampedScore = Math.min(totalPoints, maxScore);
-    const globalPercent = (clampedScore / maxScore) * 100;
-
-    let html = `<div class="rank-road-continuous-line"><div class="rank-road-continuous-fill" style="width: ${globalPercent}%;"></div></div>`;
+    let html = `<div class="rank-road-continuous-line"><div class="rank-road-continuous-fill" id="rankRoadFill" style="width:0;"></div></div>`;
 
     RANKS.forEach((r, idx) => {
       const isActive = idx === rankInfo.index;
@@ -1719,7 +1722,7 @@
     });
 
     html += `
-      <div class="rank-player-marker-container" id="playerMarker" style="left: calc(40px + (100% - 80px) * ${globalPercent / 100});">
+      <div class="rank-player-marker-container" id="playerMarker" style="left:0; transition:none;">
         <div class="rank-player-pin"></div>
         <div class="rank-player-score-box">${totalPoints.toLocaleString()} pts</div>
       </div>
@@ -1727,10 +1730,40 @@
 
     track.innerHTML = html;
 
+    function positionPlayerMarker(){
+      const marker = document.getElementById('playerMarker');
+      const fill = document.getElementById('rankRoadFill');
+      const lineEl = track.querySelector('.rank-road-continuous-line');
+      if(!marker || !fill || !lineEl) return;
+      const centers = RANKS.map((_, idx) => {
+        const n = document.getElementById(`rankNode_${idx}`);
+        return n ? n.offsetLeft + n.offsetWidth / 2 : 0;
+      });
+      const startX = lineEl.offsetLeft;
+      let x;
+      if(totalPoints < RANKS[0].minScore){
+        x = startX + (centers[0] - startX) * (totalPoints / RANKS[0].minScore);
+      } else if(rankInfo.next){
+        const span = rankInfo.next.minScore - rankInfo.current.minScore;
+        const p = clamp((totalPoints - rankInfo.current.minScore) / span, 0, 1);
+        x = centers[rankInfo.index] + (centers[rankInfo.index + 1] - centers[rankInfo.index]) * p;
+      } else {
+        x = centers[centers.length - 1];
+      }
+      marker.style.left = x + 'px';
+      fill.style.width = Math.max(0, x - startX) + 'px';
+    }
+    positionPlayerMarker();
+
     setTimeout(()=>{
+      positionPlayerMarker();
       const activeNode = document.getElementById(`rankNode_${rankInfo.index}`);
       const wrapper = document.getElementById('rankRoadScrollWrapper');
-      if(activeNode && wrapper){
+      const marker = document.getElementById('playerMarker');
+      if(wrapper && marker){
+        const target = marker.offsetLeft;
+        wrapper.scrollLeft = target - wrapper.clientWidth / 2;
+      } else if(activeNode && wrapper){
         wrapper.scrollLeft = activeNode.offsetLeft - wrapper.clientWidth / 2 + activeNode.clientWidth / 2;
       }
     }, 50);
@@ -1806,11 +1839,10 @@
   const INVENTORY_KEY = 'burrowio_power_inventory';
   const ACORNS_PER_STAGE = 10;
 
-  // ===== LIMITES DES POWER-UPS =====
-  const MAX_SCOREX2_TIME = 40;     // secondes max cumulables pour le Score x2
-  const MAX_SHIELD_CHARGES = 5;    // boucliers max cumulables
-  const MAX_WIDETUNNEL_TIME = 20;  // secondes max cumulables pour la potion grand tunnel
-  const WIDETUNNEL_PER_USE = 10;   // secondes ajoutées par potion
+  const MAX_SCOREX2_TIME = 40;
+  const MAX_SHIELD_CHARGES = 5;
+  const MAX_WIDETUNNEL_TIME = 20;
+  const WIDETUNNEL_PER_USE = 10;
 
   const SHOP_POWERS = {
     scoreX2: { key:'1', emoji:'✖️', name:'Score x2', price:35, unlockRank:0, videoSrc:'prewiew_power_up/prewiew_power_up_x2.mp4' },
@@ -1889,12 +1921,36 @@
     updateRankUI();
   }
 
-  function renderShop(){
+  function renderShop(forceRebuild = true){
     const balance = document.getElementById('shopBalance');
     const items = document.getElementById('shopItems');
     if(balance) balance.textContent = `${totalAcorns} gland${totalAcorns === 1 ? '' : 's'} disponible${totalAcorns === 1 ? '' : 's'}`;
     if(!items) return;
     const rankInfo = getRankForScore(totalPoints);
+
+    if(!forceRebuild && items.children.length > 0){
+      Object.keys(SHOP_POWERS).forEach(id => {
+        const basePower = SHOP_POWERS[id];
+        const power = getShopPowerConfig(id);
+        const unlocked = rankInfo.index >= basePower.unlockRank;
+        const canAfford = totalAcorns >= power.price;
+        const canBuy = unlocked && canAfford;
+
+        const row = items.querySelector(`[data-power-row="${id}"]`);
+        if(row){
+          const stockEl = row.querySelector('.shop-key-stock');
+          if(stockEl) stockEl.textContent = unlocked ? `Touche ${power.key} · En stock : ${powerInventory[id]}` : stockEl.textContent;
+          const btn = row.querySelector('[data-power-buy]');
+          if(btn){
+            btn.disabled = !canBuy;
+            btn.className = `btn shop-buy ${!unlocked ? 'is-locked' : ''}`;
+            btn.textContent = !unlocked ? 'Verrouillé' : `Acheter — ${power.price} 🌰`;
+          }
+        }
+      });
+      return;
+    }
+
     items.innerHTML = Object.keys(SHOP_POWERS).map(id => {
       const basePower = SHOP_POWERS[id];
       const power = getShopPowerConfig(id);
@@ -1904,7 +1960,7 @@
       const unlockRank = getRankNames()[basePower.unlockRank];
 
       return `
-      <div class="shop-item-row">
+      <div class="shop-item-row" data-power-row="${id}">
         <div class="shop-preview-box">
           <div class="shop-preview-placeholder">
             <span class="preview-placeholder-emoji">${power.emoji}</span>
@@ -1929,10 +1985,6 @@
       playSFX('click');
     }));
 
-    // Zone utile (sans les bandes noires) de chaque vidéo, en pixels sur la vidéo source 1920x1080.
-    // Mesurée sur toutes les images : le recadrage est donc immédiat et ne dépend plus de la lecture
-    // des pixels (bloquée par Brave Shields / Firefox anti-fingerprinting).
-    // Si tu remplaces une vidéo, supprime sa ligne ici : la détection automatique reprendra.
     const POWER_VIDEO_SRC = { w:1920, h:1080 };
     const FIXED_POWER_CROP = {
       scoreX2:    { x0:632, y0:0, x1:1410, y1:730 },
@@ -1962,7 +2014,7 @@
       wideTunnel: [
         'prewiew_power_up/prewiew_power_up_large_tunnel.mp4',
         './prewiew_power_up/prewiew_power_up_large_tunnel.mp4',
-        'preview_power_up/preview_power_up_large_tunnel.mp4',
+        'preview_power_up/prewiew_power_up_large_tunnel.mp4',
         'prewiew_power_up/preview_power_up_large_tunnel.mp4',
         'prewiew_power_up_large_tunnel.mp4',
         'preview_power_up_large_tunnel.mp4'
@@ -1971,7 +2023,7 @@
         'prewiew_power_up/preview_power_up_shield.mp4',
         './prewiew_power_up/preview_power_up_shield.mp4',
         'prewiew_power_up/prewiew_power_up_shield.mp4',
-        'preview_power_up/preview_power_up_shield.mp4',
+        'prewiew_power_up/preview_power_up_shield.mp4',
         'preview_power_up_shield.mp4',
         'preview_power_up_shield.mp4'
       ]
@@ -2016,7 +2068,7 @@
       }
 
       function sampleFrame(){
-        if(fixedContent) return; // zone connue : pas besoin de lire les pixels
+        if(fixedContent) return;
         if(!vid.videoWidth || vid.currentTime < 0.05) return;
         try {
           const w = 160, h = Math.max(2, Math.round(w * vid.videoHeight / vid.videoWidth));
@@ -2134,7 +2186,7 @@
     saveLocalAcorns(totalAcorns);
     savePowerInventory();
     renderMenuRecords();
-    renderShop();
+    renderShop(false);
     renderAbilityHud();
     playSFX('powerup');
   }
@@ -2453,7 +2505,6 @@
     const expiresIn = parseInt(params.get('expires_in') || '0', 10);
     if(!token) return false;
     history.replaceState(null, '', location.pathname + location.search);
-    // Retour de connexion après une première partie : on masque le menu en attendant l'écran de fin
     if(loadPendingRun()) document.getElementById('mainMenu').classList.add('hidden');
     try{
       const user = await fetchDiscordUser(token);
@@ -2474,8 +2525,6 @@
     powerInventory = loadPowerInventory();
 
     applyTranslations();
-    // Pas de popup de connexion au chargement : il s'affiche à la fin de la première partie
-    // (une partie en attente qui n'a pas été validée par un retour Discord est oubliée)
     if(!location.hash || location.hash.indexOf('access_token') === -1) clearPendingRun();
     applyIdentityToPlayerState();
     renderAuthWidget();
@@ -2498,7 +2547,6 @@
       saveGuestPseudo(guestPseudo);
       checkIdentityGate();
       playSFX('click');
-      // Fin de première partie : on enchaîne sur l'écran de fin classique
       if(pendingRun){
         const run = pendingRun;
         clearPendingRun();
@@ -2781,7 +2829,7 @@
   });
 
   document.getElementById('shopBtn').addEventListener('click', ()=>{
-    renderShop();
+    renderShop(true);
     document.getElementById('shopOverlay').classList.add('show');
     playSFX('click');
   });
@@ -2826,6 +2874,7 @@
   const DIFFICULTY_ACCEL = 100/30;
   let controls = [];
   let decor = [];
+  let backgroundProps = [];
   let generatedIndex = -1;
 
   const GATE_SEGMENTS = 3;
@@ -2931,13 +2980,12 @@
       controls[i] = cp;
     }
 
-    const currentBonus = effects.wideTunnelTimer > 0 ? effects.wideTunnelBonus : 0;
     const nRocks = Math.floor(rand(2,4));
     for(let k=0;k<nRocks;k++){
       const side = Math.random()<0.5 ? -1 : 1;
       const d = cp.depth - rand(10, CONTROL_SPACING-10);
       const {cx: lcx, halfW: lhw} = segGeomAt(prev, cp, d);
-      const effHw = lhw + currentBonus;
+      const effHw = lhw;
       const big = Math.random() < 0.4;
       const offsetIntoWall = rand(10, 46);
       const wallX = side<0 ? lcx - effHw - offsetIntoWall : lcx + effHw + offsetIntoWall;
@@ -2949,17 +2997,42 @@
       const side = Math.random()<0.5 ? -1 : 1;
       const d = cp.depth - rand(4, CONTROL_SPACING-4);
       const {cx: lcx, halfW: lhw} = segGeomAt(prev, cp, d);
-      const effHw = lhw + currentBonus;
+      const effHw = lhw;
       const offsetIntoWall = rand(2, 26);
       const wallX = side<0 ? lcx - effHw - offsetIntoWall : lcx + effHw + offsetIntoWall;
       decor.push({depth:d, x: clamp(wallX, 2, W-2), side, r: rand(0.8,2), kind:'grain', hi: Math.random()<0.3});
+    }
+
+    // Éléments de décor d'arrière-plan avec densité légèrement augmentée et dégradé de concentration (sans aucun mélange entre les stages)
+    const nBgProps = Math.floor(rand(3, 5));
+    for(let p=0; p<nBgProps; p++){
+      const side = Math.random()<0.5 ? -1 : 1;
+      const d = cp.depth - rand(5, CONTROL_SPACING-5);
+      const {cx: lcx, halfW: lhw} = segGeomAt(prev, cp, d);
+      
+      const maxAvailableSpace = side < 0 ? (lcx - lhw - 20) : (W - 20 - (lcx + lhw));
+      if(maxAvailableSpace > 20){
+        const bias = Math.pow(Math.random(), 2.0);
+        const distFromWall = 10 + bias * (maxAvailableSpace - 10);
+        const x = side < 0 ? lcx - lhw - distFromWall : lcx + lhw + distFromWall;
+
+        if(x > 15 && x < W - 15){
+          backgroundProps.push({
+            depth: d,
+            x: x,
+            side: side,
+            scale: rand(0.65, 1.25),
+            rotation: rand(-0.25, 0.25)
+          });
+        }
+      }
     }
 
     const nBgSpecks = Math.floor(rand(1,3));
     for(let s=0; s<nBgSpecks; s++){
       const d = cp.depth - rand(4, CONTROL_SPACING-4);
       const {cx: lcx, halfW: lhw} = segGeomAt(prev, cp, d);
-      const effHw = lhw + currentBonus;
+      const effHw = lhw;
       let x = rand(6, W-6);
       const side = x < lcx ? -1 : 1;
       if(Math.abs(x - lcx) < effHw + 8){
@@ -2995,17 +3068,18 @@
 
   function pruneBehind(minDepth){
     while(decor.length && decor[0].depth < minDepth) decor.shift();
+    while(backgroundProps.length && backgroundProps[0].depth < minDepth) backgroundProps.shift();
   }
 
   const THEMES = [
-    { name:'Grotte',     bg:'#1B140F', wall:'#5B564C', edge:'#171A21', rock:'#8B8578', rockHi:'rgba(255,255,255,0.18)', speckle:'rgba(40,32,24,0.5)',  path:'#3A2E22', stars:false },
-    { name:'Plaine',     bg:'#26311C', wall:'#63793E', edge:'#1F2814', rock:'#8A9B5E', rockHi:'rgba(255,255,255,0.25)', speckle:'rgba(20,26,12,0.45)', path:'#3C4A24', stars:false },
-    { name:'Volcan',     bg:'#2A0E08', wall:'#6E2A1C', edge:'#1A0704', rock:'#D9622E', rockHi:'rgba(255,214,120,0.5)', speckle:'rgba(255,120,40,0.25)', path:'#3D140C', stars:false },
-    { name:'Glacier',    bg:'#0E2333', wall:'#5FA8C9', edge:'#0A1A26', rock:'#CFEFFA', rockHi:'rgba(255,255,255,0.6)', speckle:'rgba(255,255,255,0.25)', path:'#163C52', stars:false },
-    { name:'Lune',       bg:'#0B0B14', wall:'#8B8A94', edge:'#1A1A22', rock:'#B8B7C2', rockHi:'rgba(255,255,255,0.35)', speckle:'rgba(20,20,28,0.4)',  path:'#3A3A44', stars:true },
-    { name:'Cristal',    bg:'#170B2E', wall:'#8A5FD4', edge:'#120722', rock:'#C99BFA', rockHi:'rgba(255,255,255,0.55)', speckle:'rgba(255,255,255,0.2)', path:'#2C1550', stars:false },
-    { name:'Nébuleuse',  bg:'#05030F', wall:'#3A2C6B', edge:'#0A0716', rock:'#FF6FCE', rockHi:'rgba(255,255,255,0.4)', speckle:'rgba(120,80,200,0.3)', path:'#160E33', stars:true },
-    { name:'Enfer',      bg:'#1A0303', wall:'#7A1010', edge:'#0D0000', rock:'#FF4B2B', rockHi:'rgba(255,220,150,0.6)', speckle:'rgba(255,60,20,0.3)',  path:'#330606', stars:false },
+    { name:'Grotte',     bg:'#1B140F', wall:'#5B564C', edge:'#171A21', rock:'#8B8578', rockHi:'rgba(255,255,255,0.18)', speckle:'rgba(40,32,24,0.5)',  path:'#3A2E22', stars:false, propStyle:'rock' },
+    { name:'Plaine',     bg:'#26311C', wall:'#63793E', edge:'#1F2814', rock:'#8A9B5E', rockHi:'rgba(255,255,255,0.25)', speckle:'rgba(20,26,12,0.45)', path:'#3C4A24', stars:false, propStyle:'tree' },
+    { name:'Volcan',     bg:'#2A0E08', wall:'#6E2A1C', edge:'#1A0704', rock:'#D9622E', rockHi:'rgba(255,214,120,0.5)', speckle:'rgba(255,120,40,0.25)', path:'#3D140C', stars:false, propStyle:'volcano' },
+    { name:'Glacier',    bg:'#0E2333', wall:'#5FA8C9', edge:'#0A1A26', rock:'#CFEFFA', rockHi:'rgba(255,255,255,0.6)', speckle:'rgba(255,255,255,0.25)', path:'#163C52', stars:false, propStyle:'crystal' },
+    { name:'Lune',       bg:'#0B0B14', wall:'#8B8A94', edge:'#1A1A22', rock:'#B8B7C2', rockHi:'rgba(255,255,255,0.35)', speckle:'rgba(20,20,28,0.4)',  path:'#3A3A44', stars:true, propStyle:'crater' },
+    { name:'Cristal',    bg:'#170B2E', wall:'#8A5FD4', edge:'#120722', rock:'#C99BFA', rockHi:'rgba(255,255,255,0.55)', speckle:'rgba(255,255,255,0.2)', path:'#2C1550', stars:false, propStyle:'crystal' },
+    { name:'Nébuleuse',  bg:'#05030F', wall:'#3A2C6B', edge:'#0A0716', rock:'#FF6FCE', rockHi:'rgba(255,255,255,0.4)', speckle:'rgba(120,80,200,0.3)', path:'#160E33', stars:true, propStyle:'crater' },
+    { name:'Enfer',      bg:'#1A0303', wall:'#7A1010', edge:'#0D0000', rock:'#FF4B2B', rockHi:'rgba(255,220,150,0.6)', speckle:'rgba(255,60,20,0.3)',  path:'#330606', stars:false, propStyle:'volcano' },
   ];
 
   function themeForStage(stage){ return THEMES[(stage-1) % THEMES.length]; }
@@ -3040,31 +3114,138 @@
       bg: lerpColor(a.bg,b.bg,t), wall: lerpColor(a.wall,b.wall,t), edge: lerpColor(a.edge,b.edge,t),
       rock: lerpColor(a.rock,b.rock,t), rockHi: lerpColor(a.rockHi,b.rockHi,t),
       speckle: lerpColor(a.speckle,b.speckle,t), path: lerpColor(a.path,b.path,t),
-      starAlpha: (b.stars?t:0) + (a.stars?(1-t):0)
+      starAlpha: (b.stars?t:0) + (a.stars?(1-t):0),
+      propStyle: (t < 0.5) ? a.propStyle : b.propStyle
     };
   }
 
   const STAR_COUNT = 60;
   let stars = Array.from({length:STAR_COUNT}, ()=>({x:Math.random(), y:Math.random(), r:Math.random()*1.6+0.4, seed:Math.random()*1000}));
 
+  function drawBackgroundProp(prop, colors, sy){
+    ctx.save();
+    ctx.translate(prop.x, sy);
+    ctx.scale(prop.scale, prop.scale);
+    ctx.rotate(prop.rotation);
+    ctx.globalAlpha = 0.5;
+
+    const style = colors.propStyle || 'rock';
+
+    if(style === 'tree'){
+      // Stage 2 : Arbres / Buissons uniquement
+      ctx.fillStyle = colors.wall;
+      ctx.beginPath();
+      ctx.rect(-2, 0, 4, 16);
+      ctx.fill();
+
+      ctx.fillStyle = colors.rock;
+      ctx.beginPath();
+      ctx.arc(0, -6, 12, 0, Math.PI * 2);
+      ctx.arc(-8, 2, 8, 0, Math.PI * 2);
+      ctx.arc(8, 2, 8, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = colors.rockHi;
+      ctx.beginPath();
+      ctx.arc(-3, -9, 4, 0, Math.PI * 2);
+      ctx.fill();
+    } else if(style === 'volcano'){
+      // Stage 3 / 8 : Fissures de lave / Cailloux volcaniques uniquement
+      ctx.fillStyle = colors.wall;
+      ctx.beginPath();
+      ctx.moveTo(-10, 10);
+      ctx.lineTo(-4, -8);
+      ctx.lineTo(6, -4);
+      ctx.lineTo(12, 10);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = '#FF6B35';
+      ctx.beginPath();
+      ctx.moveTo(-3, 4);
+      ctx.lineTo(-1, -3);
+      ctx.lineTo(3, 0);
+      ctx.lineTo(2, 6);
+      ctx.closePath();
+      ctx.fill();
+    } else if(style === 'crystal'){
+      // Stage 4 / 6 : Cristaux de glace uniquement
+      ctx.fillStyle = colors.rock;
+      ctx.beginPath();
+      ctx.moveTo(0, -16);
+      ctx.lineTo(7, -4);
+      ctx.lineTo(5, 12);
+      ctx.lineTo(-5, 12);
+      ctx.lineTo(-7, -4);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = colors.rockHi;
+      ctx.beginPath();
+      ctx.moveTo(0, -16);
+      ctx.lineTo(2, -4);
+      ctx.lineTo(0, 12);
+      ctx.lineTo(-2, -4);
+      ctx.closePath();
+      ctx.fill();
+    } else if(style === 'crater'){
+      // Stage 5 / 7 : Cratères lunaires uniquement
+      ctx.fillStyle = colors.wall;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 12, 6, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = colors.bg;
+      ctx.beginPath();
+      ctx.ellipse(1, 1, 8, 3, 0, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      // Stage 1 : Cailloux / Rochers de grotte uniquement
+      ctx.fillStyle = colors.wall;
+      ctx.beginPath();
+      ctx.arc(0, 4, 10, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = colors.rock;
+      ctx.beginPath();
+      ctx.arc(-2, 0, 8, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.restore();
+    ctx.globalAlpha = 1;
+  }
+
   function showStageToast(stage, theme, hasGate){
     const el = document.getElementById('stageToast');
-    el.textContent = hasGate ? `${t('stage')} ${stage} — ${theme.name} · ${t('chooseBonus')}` : `${t('stage')} ${stage} — ${theme.name}`;
+    const effHud = document.getElementById('effectsHud');
+    el.textContent = `${t('stage')} ${stage} — ${theme.name}`;
     el.classList.add('show');
+    if(effHud) effHud.classList.add('has-toast');
+    
     clearTimeout(el._t);
-    el._t = setTimeout(()=> el.classList.remove('show'), 2400);
+    el._t = setTimeout(()=> {
+      el.classList.remove('show');
+      if(effHud) effHud.classList.remove('has-toast');
+    }, 2400);
     playSFX('stage');
   }
 
   function showPickupToast(kind){
     const el = document.getElementById('stageToast');
+    const effHud = document.getElementById('effectsHud');
     if(kind === 'boost') el.textContent = t('boostActivated');
     else if(kind === 'shield') el.textContent = t('shieldActivated');
     else if(kind === 'shrink') el.textContent = t('shrinkActivated');
 
     el.classList.add('show');
+    if(effHud) effHud.classList.add('has-toast');
+    
     clearTimeout(el._t);
-    el._t = setTimeout(()=> el.classList.remove('show'), 1600);
+    el._t = setTimeout(()=> {
+      el.classList.remove('show');
+      if(effHud) effHud.classList.remove('has-toast');
+    }, 1600);
     playSFX('powerup');
   }
 
@@ -3095,23 +3276,10 @@
     ).join('');
   }
 
-  function pushDecorOutOfTunnel(bonus){
-    for(let idx=0; idx<decor.length; idx++){
-      const dcr = decor[idx];
-      const side = (dcr.side !== undefined) ? dcr.side : (dcr.x < W/2 ? -1 : 1);
-      if(side < 0){
-        dcr.x = clamp(dcr.x - bonus, 4, W-4);
-      } else {
-        dcr.x = clamp(dcr.x + bonus, 4, W-4);
-      }
-    }
-  }
-
   function useShopPower(id){
     const power = getShopPowerConfig(id);
     if(!power || !running || paused || gameOverShown || getRankForScore(totalPoints).index < power.unlockRank || !powerInventory[id]) return;
 
-    // Si la limite est déjà atteinte, on n'utilise pas l'objet (il n'est pas gaspillé)
     if(id === 'scoreX2' && effects.scoreX2Timer >= MAX_SCOREX2_TIME) return;
     if(id === 'wideTunnel' && effects.wideTunnelTimer >= MAX_WIDETUNNEL_TIME) return;
     if(id === 'shield' && effects.shieldCharges >= MAX_SHIELD_CHARGES) return;
@@ -3122,16 +3290,21 @@
     } else if(id === 'wideTunnel'){
       effects.wideTunnelTimer = Math.min(MAX_WIDETUNNEL_TIME, effects.wideTunnelTimer + power.duration);
       effects.wideTunnelBonus = power.width;
-      pushDecorOutOfTunnel(power.width);
     } else if(id === 'shield'){
       effects.shieldCharges = Math.min(MAX_SHIELD_CHARGES, effects.shieldCharges + power.charges);
     }
     savePowerInventory();
     const toast = document.getElementById('stageToast');
+    const effHud = document.getElementById('effectsHud');
     toast.textContent = `${power.emoji} ${power.name} activé !`;
     toast.classList.add('show');
+    if(effHud) effHud.classList.add('has-toast');
+    
     clearTimeout(toast._t);
-    toast._t = setTimeout(()=> toast.classList.remove('show'), 1600);
+    toast._t = setTimeout(()=> {
+      toast.classList.remove('show');
+      if(effHud) effHud.classList.remove('has-toast');
+    }, 1600);
     renderAbilityHud();
     renderEffectsHud();
     playSFX('powerup');
@@ -3180,7 +3353,7 @@
   }
 
   function resetGame(){
-    controls = []; decor = []; generatedIndex = -1;
+    controls = []; decor = []; backgroundProps = []; generatedIndex = -1;
     pickups = []; genStage = 1; gateState = { active:false, remaining:0 };
     postGateEase = { active:false, remaining:0 }; frozenCx = null;
     announcedStage = 1;
@@ -3195,6 +3368,8 @@
     keys.left = false; keys.right = false;
     document.getElementById('pauseOverlay').classList.remove('show');
     document.getElementById('effectsHud').innerHTML = '';
+    const effHud = document.getElementById('effectsHud');
+    if(effHud) effHud.classList.remove('has-toast');
     renderAbilityHud();
     currentStage = 1;
     themeBlend = { from: THEMES[0], to: THEMES[0], t: 1 };
@@ -3230,11 +3405,6 @@
     }, 1000);
   }
 
-  // LANCEMENT INITIAL
-  // - retour Discord après une 1re partie : écran de fin classique (score mémorisé), sinon menu
-  // - Discord déjà connecté : menu, sans compte à rebours
-  // - pseudo invité : compte à rebours + jeu direct à la première visite seulement, ensuite menu
-  // - aucune identité : compte à rebours + jeu direct (popup de connexion à la mort)
   const HAS_VISITED_KEY = 'burrowio_has_visited';
   function markVisited(){ try{ localStorage.setItem(HAS_VISITED_KEY, 'true'); }catch(e){} }
   function hasVisitedBefore(){ try{ return !!localStorage.getItem(HAS_VISITED_KEY); }catch(e){ return false; } }
@@ -3419,27 +3589,36 @@
     ensureGenerated(scrollDist + H*2 + 200);
     pruneBehind(scrollDist + H - 60);
     prunePickups(scrollDist + H - 60);
+
+    for(const prop of backgroundProps){
+      const sy = playerY - prop.depth + scrollDist + H;
+      if(sy < -50 || sy > H+50) continue;
+      drawBackgroundProp(prop, colors, sy);
+    }
+
+    const decorBonus = effects.wideTunnelTimer > 0 ? effects.wideTunnelBonus : 0;
     for(const dcr of decor){
       const sy = playerY - dcr.depth + scrollDist + H;
       if(sy < -20 || sy > H+20) continue;
+      const dx = clamp(dcr.x + dcr.side * decorBonus, 2, W-2);
       if(dcr.kind === 'rock'){
         ctx.fillStyle = colors.rock;
-        ctx.beginPath(); ctx.arc(dcr.x, sy, dcr.r, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(dx, sy, dcr.r, 0, Math.PI*2); ctx.fill();
         ctx.fillStyle = colors.rockHi;
-        ctx.beginPath(); ctx.arc(dcr.x-dcr.r*0.3, sy-dcr.r*0.3, dcr.r*0.4, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(dx-dcr.r*0.3, sy-dcr.r*0.3, dcr.r*0.4, 0, Math.PI*2); ctx.fill();
       } else if(dcr.kind === 'grain'){
         ctx.globalAlpha = dcr.hi ? 0.55 : 0.8;
         ctx.fillStyle = dcr.hi ? colors.rockHi : colors.speckle;
-        ctx.beginPath(); ctx.arc(dcr.x, sy, dcr.r, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(dx, sy, dcr.r, 0, Math.PI*2); ctx.fill();
         ctx.globalAlpha = 1;
       } else if(dcr.kind === 'bgspeck'){
         ctx.globalAlpha = dcr.hi ? 0.35 : 0.5;
         ctx.fillStyle = dcr.hi ? colors.rockHi : colors.speckle;
-        ctx.beginPath(); ctx.arc(dcr.x, sy, dcr.r, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(dx, sy, dcr.r, 0, Math.PI*2); ctx.fill();
         ctx.globalAlpha = 1;
       } else {
         ctx.fillStyle = colors.speckle;
-        ctx.beginPath(); ctx.arc(dcr.x, sy, dcr.r, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(dx, sy, dcr.r, 0, Math.PI*2); ctx.fill();
       }
     }
 
@@ -3595,16 +3774,13 @@
     const finalDist = Math.floor(scrollDist/8);
     const runBonus = Math.floor(bonusScore);
 
-    // Pas encore identifié : popup de connexion d'abord, puis écran de fin classique
     if(!hasIdentity()){
       pendingRun = { dist: finalDist, bonus: runBonus };
-      savePendingRun(pendingRun); // permet de retrouver la partie après la redirection Discord
+      savePendingRun(pendingRun);
       document.getElementById('onboardOverlay').classList.add('show');
-      updateAmbienceSound(0, false);
-      return;
+    } else {
+      completeGameOver(finalDist, runBonus, false);
     }
-
-    completeGameOver(finalDist, runBonus, false);
   }
 
   function completeGameOver(finalDist, runBonus, restored){
@@ -3623,7 +3799,6 @@
     const place = ranked.findIndex(p=>p.me)+1;
     document.getElementById('endSubtitle').textContent =
       `${finalDist}m — ${place===1?'1er !':(place+'e')}`;
-    // Après un retour Discord la partie n'existe plus : pas de "Revivre"
     if(restored) reviveUsedThisRun = true;
     updateReviveButtonVisibility();
     document.getElementById('endOverlay').classList.add('show');

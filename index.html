@@ -2980,55 +2980,57 @@
       controls[i] = cp;
     }
 
-    const nRocks = Math.floor(rand(2,4));
-    for(let k=0;k<nRocks;k++){
-      const side = Math.random()<0.5 ? -1 : 1;
-      const d = cp.depth - rand(10, CONTROL_SPACING-10);
-      const {cx: lcx, halfW: lhw} = segGeomAt(prev, cp, d);
-      const effHw = lhw;
-      const big = Math.random() < 0.4;
-      const offsetIntoWall = rand(10, 46);
-      const wallX = side<0 ? lcx - effHw - offsetIntoWall : lcx + effHw + offsetIntoWall;
-      decor.push({depth:d, x: clamp(wallX, 4, W-4), side, r: big? rand(7,11): rand(2.5,4.5), kind: big?'rock':'speckle'});
-    }
+    // Chaque élément de décor porte son propre stage (fixé à la création) => aucun mélange entre stages
+    const stageOf = (d)=> stageForMeters(d/8);
 
-    const nGrain = Math.floor(rand(10,16));
-    for(let g=0; g<nGrain; g++){
-      const side = Math.random()<0.5 ? -1 : 1;
-      const d = cp.depth - rand(4, CONTROL_SPACING-4);
+    // Position uniforme sur toute la zone de fond hors tunnel (côté choisi proportionnellement à sa largeur => densité homogène)
+    const pickWallPos = (d, minGap, edgeMargin)=>{
       const {cx: lcx, halfW: lhw} = segGeomAt(prev, cp, d);
-      const effHw = lhw;
-      const offsetIntoWall = rand(2, 26);
-      const wallX = side<0 ? lcx - effHw - offsetIntoWall : lcx + effHw + offsetIntoWall;
-      decor.push({depth:d, x: clamp(wallX, 2, W-2), side, r: rand(0.8,2), kind:'grain', hi: Math.random()<0.3});
-    }
-
-    // Éléments de décor d'arrière-plan avec densité légèrement augmentée et dégradé de concentration (sans aucun mélange entre les stages)
-    const nBgProps = Math.floor(rand(3, 5));
-    for(let p=0; p<nBgProps; p++){
-      const side = Math.random()<0.5 ? -1 : 1;
-      const d = cp.depth - rand(5, CONTROL_SPACING-5);
-      const {cx: lcx, halfW: lhw} = segGeomAt(prev, cp, d);
-      
-      const maxAvailableSpace = side < 0 ? (lcx - lhw - 20) : (W - 20 - (lcx + lhw));
-      if(maxAvailableSpace > 20){
-        const bias = Math.pow(Math.random(), 2.0);
-        const distFromWall = 10 + bias * (maxAvailableSpace - 10);
-        const x = side < 0 ? lcx - lhw - distFromWall : lcx + lhw + distFromWall;
-
-        if(x > 15 && x < W - 15){
-          backgroundProps.push({
-            depth: d,
-            x: x,
-            side: side,
-            scale: rand(0.65, 1.25),
-            rotation: rand(-0.25, 0.25)
-          });
-        }
+      const leftEnd = lcx - lhw - minGap, rightStart = lcx + lhw + minGap;
+      const leftW = Math.max(0, leftEnd - edgeMargin);
+      const rightW = Math.max(0, (W - edgeMargin) - rightStart);
+      if(leftW + rightW < 8) return null;
+      if(Math.random() * (leftW + rightW) < leftW){
+        return { x: edgeMargin + Math.random()*leftW, side: -1 };
       }
+      return { x: rightStart + Math.random()*rightW, side: 1 };
+    };
+
+    // Gros éléments de décor incrustés dans les murs (densité légèrement augmentée)
+    const nRocks = Math.floor(rand(3,5));
+    for(let k=0;k<nRocks;k++){
+      const d = cp.depth - rand(10, CONTROL_SPACING-10);
+      const pos = pickWallPos(d, 6, 4);
+      if(!pos) continue;
+      const big = Math.random() < 0.45;
+      decor.push({depth:d, x: pos.x, side: pos.side, r: big? rand(7,11): rand(2.5,4.5), kind: big?'rock':'speckle',
+                  stage: stageOf(d), scale: rand(0.38,0.6), rotation: rand(-0.3,0.3), v: Math.random()});
     }
 
-    const nBgSpecks = Math.floor(rand(1,3));
+    const nGrain = Math.floor(rand(12,19));
+    for(let g=0; g<nGrain; g++){
+      const d = cp.depth - rand(4, CONTROL_SPACING-4);
+      const pos = pickWallPos(d, 2, 2);
+      if(!pos) continue;
+      decor.push({depth:d, x: pos.x, side: pos.side, r: rand(0.8,2), kind:'grain', hi: Math.random()<0.3, stage: stageOf(d)});
+    }
+
+    // Éléments d'arrière-plan : un type unique par stage
+    const nBgProps = Math.floor(rand(4, 7));
+    for(let p=0; p<nBgProps; p++){
+      const d = cp.depth - rand(5, CONTROL_SPACING-5);
+      const pos = pickWallPos(d, 16, 16);
+      if(!pos) continue;
+      backgroundProps.push({
+        depth: d, x: pos.x, side: pos.side,
+        scale: rand(0.65, 1.25),
+        rotation: rand(-0.25, 0.25),
+        stage: stageOf(d),
+        v: Math.random()
+      });
+    }
+
+    const nBgSpecks = Math.floor(rand(2,4));
     for(let s=0; s<nBgSpecks; s++){
       const d = cp.depth - rand(4, CONTROL_SPACING-4);
       const {cx: lcx, halfW: lhw} = segGeomAt(prev, cp, d);
@@ -3039,7 +3041,7 @@
         x = side < 0 ? lcx - effHw - rand(8, 24) : lcx + effHw + rand(8, 24);
         x = clamp(x, 2, W-2);
       }
-      decor.push({depth:d, x, side, r: rand(1, 2.4), kind:'bgspeck', hi: Math.random()<0.25});
+      decor.push({depth:d, x, side, r: rand(1, 2.4), kind:'bgspeck', hi: Math.random()<0.25, stage: stageOf(d)});
     }
     return cp;
   }
@@ -3075,11 +3077,11 @@
     { name:'Grotte',     bg:'#1B140F', wall:'#5B564C', edge:'#171A21', rock:'#8B8578', rockHi:'rgba(255,255,255,0.18)', speckle:'rgba(40,32,24,0.5)',  path:'#3A2E22', stars:false, propStyle:'rock' },
     { name:'Plaine',     bg:'#26311C', wall:'#63793E', edge:'#1F2814', rock:'#8A9B5E', rockHi:'rgba(255,255,255,0.25)', speckle:'rgba(20,26,12,0.45)', path:'#3C4A24', stars:false, propStyle:'tree' },
     { name:'Volcan',     bg:'#2A0E08', wall:'#6E2A1C', edge:'#1A0704', rock:'#D9622E', rockHi:'rgba(255,214,120,0.5)', speckle:'rgba(255,120,40,0.25)', path:'#3D140C', stars:false, propStyle:'volcano' },
-    { name:'Glacier',    bg:'#0E2333', wall:'#5FA8C9', edge:'#0A1A26', rock:'#CFEFFA', rockHi:'rgba(255,255,255,0.6)', speckle:'rgba(255,255,255,0.25)', path:'#163C52', stars:false, propStyle:'crystal' },
-    { name:'Lune',       bg:'#0B0B14', wall:'#8B8A94', edge:'#1A1A22', rock:'#B8B7C2', rockHi:'rgba(255,255,255,0.35)', speckle:'rgba(20,20,28,0.4)',  path:'#3A3A44', stars:true, propStyle:'crater' },
-    { name:'Cristal',    bg:'#170B2E', wall:'#8A5FD4', edge:'#120722', rock:'#C99BFA', rockHi:'rgba(255,255,255,0.55)', speckle:'rgba(255,255,255,0.2)', path:'#2C1550', stars:false, propStyle:'crystal' },
-    { name:'Nébuleuse',  bg:'#05030F', wall:'#3A2C6B', edge:'#0A0716', rock:'#FF6FCE', rockHi:'rgba(255,255,255,0.4)', speckle:'rgba(120,80,200,0.3)', path:'#160E33', stars:true, propStyle:'crater' },
-    { name:'Enfer',      bg:'#1A0303', wall:'#7A1010', edge:'#0D0000', rock:'#FF4B2B', rockHi:'rgba(255,220,150,0.6)', speckle:'rgba(255,60,20,0.3)',  path:'#330606', stars:false, propStyle:'volcano' },
+    { name:'Glacier',    bg:'#0E2333', wall:'#5FA8C9', edge:'#0A1A26', rock:'#CFEFFA', rockHi:'rgba(255,255,255,0.6)', speckle:'rgba(255,255,255,0.25)', path:'#163C52', stars:false, propStyle:'ice' },
+    { name:'Lune',       bg:'#0B0B14', wall:'#8B8A94', edge:'#1A1A22', rock:'#B8B7C2', rockHi:'rgba(255,255,255,0.35)', speckle:'rgba(20,20,28,0.4)',  path:'#3A3A44', stars:true, propStyle:'moon' },
+    { name:'Cristal',    bg:'#170B2E', wall:'#8A5FD4', edge:'#120722', rock:'#C99BFA', rockHi:'rgba(255,255,255,0.55)', speckle:'rgba(255,255,255,0.2)', path:'#2C1550', stars:false, propStyle:'gem' },
+    { name:'Nébuleuse',  bg:'#05030F', wall:'#3A2C6B', edge:'#0A0716', rock:'#FF6FCE', rockHi:'rgba(255,255,255,0.4)', speckle:'rgba(120,80,200,0.3)', path:'#160E33', stars:true, propStyle:'orb' },
+    { name:'Enfer',      bg:'#1A0303', wall:'#7A1010', edge:'#0D0000', rock:'#FF4B2B', rockHi:'rgba(255,220,150,0.6)', speckle:'rgba(255,60,20,0.3)',  path:'#330606', stars:false, propStyle:'flame' },
   ];
 
   function themeForStage(stage){ return THEMES[(stage-1) % THEMES.length]; }
@@ -3122,96 +3124,109 @@
   const STAR_COUNT = 60;
   let stars = Array.from({length:STAR_COUNT}, ()=>({x:Math.random(), y:Math.random(), r:Math.random()*1.6+0.4, seed:Math.random()*1000}));
 
-  function drawBackgroundProp(prop, colors, sy){
+  // Dessine UN élément de décor du style donné (chaque stage a son propre style, jamais partagé)
+  function drawPropShape(style, th, v){
+    const flip = v > 0.5 ? 1 : -1;
+    if(style === 'tree'){
+      // Stage 2 : arbres (feuillus ou sapins)
+      ctx.fillStyle = '#4A3624';
+      ctx.fillRect(-2, 2, 4, 14);
+      if(v < 0.55){
+        ctx.fillStyle = th.rock;
+        ctx.beginPath();
+        ctx.arc(0, -6, 12, 0, Math.PI*2);
+        ctx.arc(-8, 2, 8, 0, Math.PI*2);
+        ctx.arc(8, 2, 8, 0, Math.PI*2);
+        ctx.fill();
+        ctx.fillStyle = th.rockHi;
+        ctx.beginPath(); ctx.arc(-3, -9, 4, 0, Math.PI*2); ctx.fill();
+      } else {
+        ctx.fillStyle = th.wall;
+        for(let i=0;i<3;i++){
+          const y = 4 - i*8, w = 13 - i*3;
+          ctx.beginPath(); ctx.moveTo(0, y-12); ctx.lineTo(w, y); ctx.lineTo(-w, y); ctx.closePath(); ctx.fill();
+        }
+        ctx.fillStyle = th.rockHi;
+        ctx.beginPath(); ctx.moveTo(0,-20); ctx.lineTo(3,-12); ctx.lineTo(-3,-12); ctx.closePath(); ctx.fill();
+      }
+    } else if(style === 'volcano'){
+      // Stage 3 : mini-volcans avec lave
+      ctx.fillStyle = th.wall;
+      ctx.beginPath(); ctx.moveTo(-15,12); ctx.lineTo(-5,-8); ctx.lineTo(5,-8); ctx.lineTo(15,12); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#FF6B35';
+      ctx.beginPath(); ctx.ellipse(0,-8,5,2.2,0,0,Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(-2,-7); ctx.lineTo(2,-7); ctx.lineTo(4*flip,4); ctx.lineTo(1*flip,10); ctx.lineTo(-1*flip,2); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#FFD27A';
+      ctx.beginPath(); ctx.arc(-1*flip,-13,2,0,Math.PI*2); ctx.fill();
+    } else if(style === 'ice'){
+      // Stage 4 : pics de glace
+      ctx.fillStyle = th.rock;
+      const spikes = [[-8,10,5,-6],[0,12,6,-18],[8,10,5,-8]];
+      for(const [x,h,w,tip] of spikes){
+        ctx.beginPath(); ctx.moveTo(x,tip); ctx.lineTo(x+w,h); ctx.lineTo(x-w,h); ctx.closePath(); ctx.fill();
+      }
+      ctx.fillStyle = th.rockHi;
+      ctx.beginPath(); ctx.moveTo(0,-18); ctx.lineTo(2,12); ctx.lineTo(-1,12); ctx.closePath(); ctx.fill();
+    } else if(style === 'moon'){
+      // Stage 5 : cratères lunaires
+      ctx.fillStyle = th.wall;
+      ctx.beginPath(); ctx.ellipse(0,0,13,6.5,0,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle = th.bg;
+      ctx.beginPath(); ctx.ellipse(1,1,9,3.8,0,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle = th.rockHi;
+      ctx.beginPath(); ctx.ellipse(-4,-3,3,1.2,0,0,Math.PI*2); ctx.fill();
+    } else if(style === 'gem'){
+      // Stage 6 : grappes de gemmes hexagonales
+      const gems = [[-7,12,-1,5],[7,12,1,4.5],[0,12,0,6.5]];
+      for(const [x,y,tilt,w] of gems){
+        const len = 14 + w*1.6;
+        ctx.save(); ctx.translate(x,y); ctx.rotate(tilt*0.35);
+        ctx.fillStyle = th.rock;
+        ctx.beginPath(); ctx.moveTo(-w,0); ctx.lineTo(-w,-len*0.7); ctx.lineTo(0,-len); ctx.lineTo(w,-len*0.7); ctx.lineTo(w,0); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = th.rockHi;
+        ctx.beginPath(); ctx.moveTo(-w,-len*0.7); ctx.lineTo(0,-len); ctx.lineTo(0,-len*0.55); ctx.closePath(); ctx.fill();
+        ctx.restore();
+      }
+    } else if(style === 'orb'){
+      // Stage 7 : orbes / mini-planètes lumineuses
+      ctx.fillStyle = th.speckle;
+      ctx.beginPath(); ctx.arc(0,0,14,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle = th.rock;
+      ctx.beginPath(); ctx.arc(0,0,7,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle = th.rockHi;
+      ctx.beginPath(); ctx.arc(-2.5,-2.5,2.5,0,Math.PI*2); ctx.fill();
+      if(v > 0.5){
+        ctx.strokeStyle = th.rockHi; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.ellipse(0,0,15,4,-0.4,0,Math.PI*2); ctx.stroke();
+      }
+    } else if(style === 'flame'){
+      // Stage 8 : flammes sur pics calcinés
+      ctx.fillStyle = th.edge;
+      ctx.beginPath(); ctx.moveTo(-9,12); ctx.lineTo(-3,-2); ctx.lineTo(0,12); ctx.lineTo(4,0); ctx.lineTo(10,12); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = th.rock;
+      ctx.beginPath(); ctx.moveTo(0,-20); ctx.quadraticCurveTo(10,-8,6,2); ctx.quadraticCurveTo(0,8,-6,2); ctx.quadraticCurveTo(-9,-8,0,-20); ctx.fill();
+      ctx.fillStyle = '#FFC857';
+      ctx.beginPath(); ctx.moveTo(0,-10); ctx.quadraticCurveTo(4,-4,2,2); ctx.quadraticCurveTo(0,4,-2,2); ctx.quadraticCurveTo(-4,-4,0,-10); ctx.fill();
+    } else {
+      // Stage 1 : cailloux de grotte
+      ctx.fillStyle = th.wall;
+      ctx.beginPath(); ctx.ellipse(0,6,11,6,0,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle = th.rock;
+      ctx.beginPath(); ctx.ellipse(-3,2,8,6,0,0,Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(7*flip,6,5,4,0,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle = th.rockHi;
+      ctx.beginPath(); ctx.ellipse(-5,-1,3,2,0,0,Math.PI*2); ctx.fill();
+    }
+  }
+
+  function drawBackgroundProp(prop, sy){
+    const th = themeForStage(prop.stage);
     ctx.save();
     ctx.translate(prop.x, sy);
     ctx.scale(prop.scale, prop.scale);
     ctx.rotate(prop.rotation);
-    ctx.globalAlpha = 0.5;
-
-    const style = colors.propStyle || 'rock';
-
-    if(style === 'tree'){
-      // Stage 2 : Arbres / Buissons uniquement
-      ctx.fillStyle = colors.wall;
-      ctx.beginPath();
-      ctx.rect(-2, 0, 4, 16);
-      ctx.fill();
-
-      ctx.fillStyle = colors.rock;
-      ctx.beginPath();
-      ctx.arc(0, -6, 12, 0, Math.PI * 2);
-      ctx.arc(-8, 2, 8, 0, Math.PI * 2);
-      ctx.arc(8, 2, 8, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = colors.rockHi;
-      ctx.beginPath();
-      ctx.arc(-3, -9, 4, 0, Math.PI * 2);
-      ctx.fill();
-    } else if(style === 'volcano'){
-      // Stage 3 / 8 : Fissures de lave / Cailloux volcaniques uniquement
-      ctx.fillStyle = colors.wall;
-      ctx.beginPath();
-      ctx.moveTo(-10, 10);
-      ctx.lineTo(-4, -8);
-      ctx.lineTo(6, -4);
-      ctx.lineTo(12, 10);
-      ctx.closePath();
-      ctx.fill();
-
-      ctx.fillStyle = '#FF6B35';
-      ctx.beginPath();
-      ctx.moveTo(-3, 4);
-      ctx.lineTo(-1, -3);
-      ctx.lineTo(3, 0);
-      ctx.lineTo(2, 6);
-      ctx.closePath();
-      ctx.fill();
-    } else if(style === 'crystal'){
-      // Stage 4 / 6 : Cristaux de glace uniquement
-      ctx.fillStyle = colors.rock;
-      ctx.beginPath();
-      ctx.moveTo(0, -16);
-      ctx.lineTo(7, -4);
-      ctx.lineTo(5, 12);
-      ctx.lineTo(-5, 12);
-      ctx.lineTo(-7, -4);
-      ctx.closePath();
-      ctx.fill();
-
-      ctx.fillStyle = colors.rockHi;
-      ctx.beginPath();
-      ctx.moveTo(0, -16);
-      ctx.lineTo(2, -4);
-      ctx.lineTo(0, 12);
-      ctx.lineTo(-2, -4);
-      ctx.closePath();
-      ctx.fill();
-    } else if(style === 'crater'){
-      // Stage 5 / 7 : Cratères lunaires uniquement
-      ctx.fillStyle = colors.wall;
-      ctx.beginPath();
-      ctx.ellipse(0, 0, 12, 6, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = colors.bg;
-      ctx.beginPath();
-      ctx.ellipse(1, 1, 8, 3, 0, 0, Math.PI * 2);
-      ctx.fill();
-    } else {
-      // Stage 1 : Cailloux / Rochers de grotte uniquement
-      ctx.fillStyle = colors.wall;
-      ctx.beginPath();
-      ctx.arc(0, 4, 10, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = colors.rock;
-      ctx.beginPath();
-      ctx.arc(-2, 0, 8, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
+    ctx.globalAlpha = 0.55;
+    drawPropShape(th.propStyle, th, prop.v);
     ctx.restore();
     ctx.globalAlpha = 1;
   }
@@ -3587,13 +3602,15 @@
     }
 
     ensureGenerated(scrollDist + H*2 + 200);
-    pruneBehind(scrollDist + H - 60);
-    prunePickups(scrollDist + H - 60);
+    // Suppression uniquement une fois l'élément sorti de l'écran (bas), et non juste derrière le ver
+    const pruneDepth = scrollDist + playerY - 100;
+    pruneBehind(pruneDepth);
+    prunePickups(pruneDepth);
 
     for(const prop of backgroundProps){
       const sy = playerY - prop.depth + scrollDist + H;
       if(sy < -50 || sy > H+50) continue;
-      drawBackgroundProp(prop, colors, sy);
+      drawBackgroundProp(prop, sy);
     }
 
     const decorBonus = effects.wideTunnelTimer > 0 ? effects.wideTunnelBonus : 0;
@@ -3601,23 +3618,26 @@
       const sy = playerY - dcr.depth + scrollDist + H;
       if(sy < -20 || sy > H+20) continue;
       const dx = clamp(dcr.x + dcr.side * decorBonus, 2, W-2);
+      const th = themeForStage(dcr.stage);
       if(dcr.kind === 'rock'){
-        ctx.fillStyle = colors.rock;
-        ctx.beginPath(); ctx.arc(dx, sy, dcr.r, 0, Math.PI*2); ctx.fill();
-        ctx.fillStyle = colors.rockHi;
-        ctx.beginPath(); ctx.arc(dx-dcr.r*0.3, sy-dcr.r*0.3, dcr.r*0.4, 0, Math.PI*2); ctx.fill();
+        ctx.save();
+        ctx.translate(dx, sy);
+        ctx.scale(dcr.scale, dcr.scale);
+        ctx.rotate(dcr.rotation);
+        drawPropShape(th.propStyle, th, dcr.v);
+        ctx.restore();
       } else if(dcr.kind === 'grain'){
         ctx.globalAlpha = dcr.hi ? 0.55 : 0.8;
-        ctx.fillStyle = dcr.hi ? colors.rockHi : colors.speckle;
+        ctx.fillStyle = dcr.hi ? th.rockHi : th.speckle;
         ctx.beginPath(); ctx.arc(dx, sy, dcr.r, 0, Math.PI*2); ctx.fill();
         ctx.globalAlpha = 1;
       } else if(dcr.kind === 'bgspeck'){
         ctx.globalAlpha = dcr.hi ? 0.35 : 0.5;
-        ctx.fillStyle = dcr.hi ? colors.rockHi : colors.speckle;
+        ctx.fillStyle = dcr.hi ? th.rockHi : th.speckle;
         ctx.beginPath(); ctx.arc(dx, sy, dcr.r, 0, Math.PI*2); ctx.fill();
         ctx.globalAlpha = 1;
       } else {
-        ctx.fillStyle = colors.speckle;
+        ctx.fillStyle = th.speckle;
         ctx.beginPath(); ctx.arc(dx, sy, dcr.r, 0, Math.PI*2); ctx.fill();
       }
     }

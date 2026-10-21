@@ -820,7 +820,7 @@
     margin-right:5px; border-radius:5px; background:var(--accent-primary); color:#fff;
     font:700 12px 'Fredoka',sans-serif;
   }
-  .shop-card{ touch-action:pan-y; overscroll-behavior:contain; }  .shop-section-title{    width:100%; text-align:center; padding:14px; margin:6px 0 2px;    font:700 22px 'Fredoka',sans-serif; color:var(--ink);    text-transform:uppercase; letter-spacing:1px;    background:rgba(27,36,73,0.7); border:2px solid rgba(255,107,53,0.3);    border-radius:14px;  }  .btn-shop-close{ position:sticky; bottom:0; }
+  .shop-card{ touch-action:pan-y; overscroll-behavior:contain; }  .shop-section-title{    width:100%; text-align:center; padding:14px; margin:6px 0 2px;    font:700 22px 'Fredoka',sans-serif; color:var(--ink);    text-transform:uppercase; letter-spacing:1px;    background:rgba(27,36,73,0.7); border:2px solid rgba(255,107,53,0.3);    border-radius:14px;  }  .btn-shop-close{ position:sticky; bottom:0; z-index:3; }
   .shop-card {
     width: min(720px, 94vw) !important;
     max-width: 720px !important;
@@ -1854,7 +1854,7 @@
   const SHOP_POWERS = {
     scoreX2: { key:'1', emoji:'✖️', name:'Score x2', price:50, unlockRank:0, videoSrc:'prewiew_power_up/prewiew_power_up_x2.mp4' },
     wideTunnel: { key:'2', emoji:'🧪', name:'Potion grand tunnel', price:100, unlockRank:1, videoSrc:'prewiew_power_up/prewiew_power_up_large_tunnel.mp4' },
-    shield: { key:'', emoji:'🛡️', name:'Bouclier', price:150, unlockRank:2, videoSrc:'prewiew_power_up/prewiew_power_up_shield.mp4' },
+    shield: { key:'', emoji:'🛡️', name:'Bouclier', price:150, unlockRank:2, videoSrc:'prewiew_power_up/preview_power_up_shield.mp4' },
   };
 
   let discordUser = null;
@@ -1928,7 +1928,48 @@
     updateRankUI();
   }
 
-  function soonShopHtml(){    return `      <div class="shop-item-row">        <div class="shop-preview-box"><div class="shop-preview-placeholder"><span class="preview-placeholder-emoji">?</span><span class="preview-placeholder-text">Bientôt</span></div></div>        <div class="shop-item-info">          <div class="shop-item-text"><h3>Coming soon</h3><p>Un nouvel avantage permanent arrive.</p></div>          <button class="btn shop-buy is-locked" type="button" disabled>Bientôt</button>        </div>      </div>`;  }  function permanentShopHtml(){    const unlocked = getRankForScore(totalPoints).index >= BOOST_UNLOCK_RANK;    const unlockRank = getRankNames()[BOOST_UNLOCK_RANK];    const disabled = boostUnlocked || !unlocked || totalAcorns < BOOST_PRICE;    const label = boostUnlocked ? 'Possédé' : (!unlocked ? 'Verrouillé' : `Acheter — ${BOOST_PRICE} 🌰`);    const info = boostUnlocked ? 'Touche 3 · Une fois par partie'      : (unlocked ? 'Touche 3 · Une fois par partie' : `🔒 Débloqué au rang ${unlockRank.name} (${formatRankScore(unlockRank.minScore)})`);    return `      <div class="shop-section-title">Permanent</div>      <div class="shop-item-row">        <div class="shop-preview-box"><div class="shop-preview-placeholder"><span class="preview-placeholder-emoji">⚡</span><span class="preview-placeholder-text">Boost</span></div></div>        <div class="shop-item-info">          <div class="shop-item-text">            <h3>⚡ Boost</h3>            <p>Un boost de vitesse de ${BOOST_DURATION} secondes à chaque partie.<br><strong class="shop-key-stock">${info}</strong></p>          </div>          <button class="btn shop-buy ${(!unlocked && !boostUnlocked) ? 'is-locked' : ''}" type="button" data-boost-buy ${disabled ? 'disabled' : ''}>${label}</button>        </div>      </div>      ${soonShopHtml()}${soonShopHtml()}`;  }  function buyBoost(){    if(boostUnlocked || getRankForScore(totalPoints).index < BOOST_UNLOCK_RANK || totalAcorns < BOOST_PRICE) return;    totalAcorns -= BOOST_PRICE;    boostUnlocked = true;    try{ localStorage.setItem(BOOST_UNLOCK_KEY, '1'); }catch(e){}    saveLocalAcorns(totalAcorns);    renderMenuRecords();    renderShop(true);    renderAbilityHud();    playSFX('powerup');  }
+  function soonShopHtml(){    return `      <div class="shop-item-row">        <div class="shop-preview-box"><div class="shop-preview-placeholder"><span class="preview-placeholder-emoji">?</span><span class="preview-placeholder-text">Bientôt</span></div></div>        <div class="shop-item-info">          <div class="shop-item-text"><h3>Coming soon</h3><p>Un nouvel avantage permanent arrive.</p></div>          <button class="btn shop-buy is-locked" type="button" disabled>Bientôt</button>        </div>      </div>`;  }  
+  
+  function permanentShopHtml(){
+    const unlocked = getRankForScore(totalPoints).index >= BOOST_UNLOCK_RANK;
+    const unlockRank = getRankNames()[BOOST_UNLOCK_RANK];
+    const disabled = boostUnlocked || !unlocked || totalAcorns < BOOST_PRICE;
+    const label = boostUnlocked ? 'Possédé' : (!unlocked ? 'Verrouillé' : `Acheter — ${BOOST_PRICE} 🌰`);
+    const info = boostUnlocked ? 'Touche 3 · Une fois par partie'
+      : (unlocked ? 'Touche 3 · Une fois par partie' : `🔒 Débloqué au rang ${unlockRank.name} (${formatRankScore(unlockRank.minScore)})`);
+    
+    return `
+      <div class="shop-section-title">Permanent</div>
+      <div class="shop-item-row" data-power-row="boost">
+        <div class="shop-preview-box">
+          <div class="shop-preview-placeholder">
+            <span class="preview-placeholder-emoji">⚡</span>
+            <span class="preview-placeholder-text">Aperçu vidéo</span>
+          </div>
+          <video class="shop-preview-video" data-power-id="boost" autoplay loop muted playsinline preload="auto"></video>
+        </div>
+        <div class="shop-item-info">
+          <div class="shop-item-text">
+            <h3>⚡ Boost</h3>
+            <p>Un boost de vitesse de ${BOOST_DURATION} secondes à chaque partie.<br><strong class="shop-key-stock">${info}</strong></p>
+          </div>
+          <button class="btn shop-buy ${(!unlocked && !boostUnlocked) ? 'is-locked' : ''}" type="button" data-boost-buy ${disabled ? 'disabled' : ''}>${label}</button>
+        </div>
+      </div>
+      ${soonShopHtml()}${soonShopHtml()}`;
+  }
+
+  function buyBoost(){
+    if(boostUnlocked || getRankForScore(totalPoints).index < BOOST_UNLOCK_RANK || totalAcorns < BOOST_PRICE) return;
+    totalAcorns -= BOOST_PRICE;
+    boostUnlocked = true;
+    try{ localStorage.setItem(BOOST_UNLOCK_KEY, '1'); }catch(e){}
+    saveLocalAcorns(totalAcorns);
+    renderMenuRecords();
+    renderShop(true);
+    renderAbilityHud();
+    playSFX('powerup');
+  }
 
   function renderShop(forceRebuild = true){
     const balance = document.getElementById('shopBalance');
@@ -2001,7 +2042,8 @@
     const FIXED_POWER_CROP = {
       scoreX2:    { x0:632, y0:0, x1:1410, y1:730 },
       wideTunnel: { x0:643, y0:0, x1:1314, y1:599 },
-      shield:     { x0:727, y0:0, x1:1484, y1:630 }
+      shield:     { x0:727, y0:0, x1:1484, y1:630 },
+      boost:      { x0:610, y0:45, x1:1390, y1:700 }
     };
     function getFixedCrop(id){
       const c = FIXED_POWER_CROP[id];
@@ -2035,9 +2077,17 @@
         'prewiew_power_up/preview_power_up_shield.mp4',
         './prewiew_power_up/preview_power_up_shield.mp4',
         'prewiew_power_up/prewiew_power_up_shield.mp4',
-        'prewiew_power_up/preview_power_up_shield.mp4',
+        'preview_power_up/preview_power_up_shield.mp4',
         'preview_power_up_shield.mp4',
         'preview_power_up_shield.mp4'
+      ],
+      boost: [
+        'prewiew_power_up/preview_power_up_boost.mp4',
+        './prewiew_power_up/preview_power_up_boost.mp4',
+        'prewiew_power_up/preview_power_up_boost.mp4',
+        'preview_power_up/preview_power_up_boost.mp4',
+        'preview_power_up_boost.mp4',
+        'prewiew_power_up_boost.mp4'
       ]
     };
 
@@ -2992,10 +3042,8 @@
       controls[i] = cp;
     }
 
-    // Chaque élément de décor porte son propre stage (fixé à la création) => aucun mélange entre stages
     const stageOf = (d)=> stageForMeters(d/8);
 
-    // Position uniforme sur toute la zone de fond hors tunnel (côté choisi proportionnellement à sa largeur => densité homogène)
     const pickWallPos = (d, minGap, edgeMargin)=>{
       const {cx: lcx, halfW: lhw} = segGeomAt(prev, cp, d);
       const leftEnd = lcx - lhw - minGap, rightStart = lcx + lhw + minGap;
@@ -3008,7 +3056,6 @@
       return { x: rightStart + Math.random()*rightW, side: 1 };
     };
 
-    // Gros éléments de décor incrustés dans les murs (densité légèrement augmentée)
     const nRocks = Math.floor(rand(2,4));
     for(let k=0;k<nRocks;k++){
       const d = cp.depth - rand(10, CONTROL_SPACING-10);
@@ -3026,7 +3073,6 @@
       decor.push({depth:d, x: pos.x, side: pos.side, r: rand(0.8,2), kind:'grain', hi: Math.random()<0.3, stage: stageOf(d)});
     }
 
-    // Éléments d'arrière-plan : un type unique par stage
     const nBgProps = Math.floor(rand(2, 4));
     for(let p=0; p<nBgProps; p++){
       const d = cp.depth - rand(5, CONTROL_SPACING-5);
@@ -3135,15 +3181,12 @@
   const STAR_COUNT = 60;
   let stars = Array.from({length:STAR_COUNT}, ()=>({x:Math.random(), y:Math.random(), r:Math.random()*1.6+0.4, seed:Math.random()*1000}));
 
-  // Dessine UN élément de décor du style donné (chaque stage a son propre style, jamais partagé)
-    // Éléments de décor cartoon : contour sombre + couleurs vives, lisibles sur chaque fond
   function drawPropShape(style, th, v){
     const O = 'rgba(20,15,25,0.7)';
     const flip = v > 0.5 ? 1 : -1;
     ctx.save();
     ctx.strokeStyle = O; ctx.lineWidth = 2.2; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
     const fs = (fill)=>{ ctx.fillStyle = fill; ctx.fill(); ctx.stroke(); };
-    // Plusieurs cercles fusionnés avec un seul contour extérieur
     const blob = (circles, fill)=>{
       ctx.lineWidth = 4.6;
       for(const [x,y,r] of circles){ ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.stroke(); }
@@ -3157,7 +3200,6 @@
     };
 
     if(style === 'tree'){
-      // STAGE 2 — Plaine : arbre rond, sapin ou fleur
       if(v < 0.4){
         ctx.beginPath(); ctx.rect(-3.5,0,7,16); fs('#8A5A33');
         blob([[0,-10,13],[-10,-1,9],[10,-1,9]], '#7BC043');
@@ -3178,14 +3220,12 @@
         ctx.beginPath(); ctx.arc(0,-6,4.2,0,Math.PI*2); fs('#FFE04D');
       }
     } else if(style === 'volcano'){
-      // STAGE 3 — Volcan : mini volcan avec lave qui coule
       ctx.beginPath(); ctx.moveTo(-19,13); ctx.lineTo(-7,-10); ctx.lineTo(7,-10); ctx.lineTo(19,13); ctx.closePath(); fs('#A0523A');
       ctx.beginPath(); ctx.ellipse(0,-10,7.5,3.2,0,0,Math.PI*2); fs('#FF8A2B');
       ctx.beginPath(); ctx.moveTo(-3,-9); ctx.lineTo(3,-9); ctx.quadraticCurveTo(7*flip,0,4*flip,13); ctx.lineTo(-2*flip,13); ctx.quadraticCurveTo(1*flip,2,-3,-9); ctx.closePath(); fs('#FFB02E');
       ctx.beginPath(); ctx.arc(-3*flip,-19,2.6,0,Math.PI*2); fs('#FF6B35');
       ctx.beginPath(); ctx.arc(5*flip,-15,1.8,0,Math.PI*2); fs('#FFD27A');
     } else if(style === 'ice'){
-      // STAGE 4 — Glacier : cristaux de glace ou bonhomme de neige
       if(v < 0.8){
         const spikes = [[-10,-8,6,12],[0,-22,7,12],[10,-12,6,12]];
         for(const [x,tip,w,base] of spikes){
@@ -3199,7 +3239,6 @@
         ctx.beginPath(); ctx.moveTo(0,-7); ctx.lineTo(8*flip,-5); ctx.lineTo(0,-4); ctx.closePath(); fs('#FF9A3C');
       }
     } else if(style === 'moon'){
-      // STAGE 5 — Lune : cratère, ou drapeau planté
       ctx.beginPath(); ctx.ellipse(0,0,17,8.5,0,0,Math.PI*2); fs('#C9C8D4');
       ctx.beginPath(); ctx.ellipse(1,1.5,12,5.5,0,0,Math.PI*2); fs('#6F6E7C');
       ctx.beginPath(); ctx.ellipse(-3,2.5,4,1.8,0,0,Math.PI*2); ctx.fillStyle='rgba(0,0,0,0.25)'; ctx.fill();
@@ -3209,7 +3248,6 @@
         ctx.beginPath(); ctx.moveTo(8,-24); ctx.lineTo(20,-20); ctx.lineTo(8,-16); ctx.closePath(); fs('#FF5A5A');
       }
     } else if(style === 'gem'){
-      // STAGE 6 — Cristal : grappe de gemmes colorées
       const gems = [[-9,12,-0.35,5.5,'#7FF0FF'],[9,12,0.35,5,'#FFE27A'],[0,12,0,7,'#FF9BE8']];
       for(const [x,y,tilt,w,col] of gems){
         const len = 12 + w*1.8;
@@ -3220,7 +3258,6 @@
         ctx.restore();
       }
     } else if(style === 'orb'){
-      // STAGE 7 — Nébuleuse : planète à anneau ou étoile brillante
       if(v < 0.7){
         ctx.beginPath(); ctx.arc(0,0,11,0,Math.PI*2); fs(v < 0.35 ? '#FFB347' : '#6FE3FF');
         shine(-4,-4,3.5,2.5,-0.6);
@@ -3237,13 +3274,11 @@
         ctx.closePath(); fs('#FFE45C');
       }
     } else if(style === 'flame'){
-      // STAGE 8 — Enfer : flamme sur une pierre calcinée
       ctx.beginPath(); ctx.ellipse(0,12,12,5,0,0,Math.PI*2); fs('#3A1A1A');
       ctx.beginPath(); ctx.moveTo(0,-24); ctx.quadraticCurveTo(14,-8,9,6); ctx.quadraticCurveTo(0,14,-9,6); ctx.quadraticCurveTo(-14,-8,0,-24); ctx.closePath(); fs('#FF6A2B');
       ctx.beginPath(); ctx.moveTo(0,-9); ctx.quadraticCurveTo(6,-1,4,6); ctx.quadraticCurveTo(0,10,-4,6); ctx.quadraticCurveTo(-6,-1,0,-9); ctx.closePath();
       ctx.fillStyle = '#FFD23F'; ctx.fill();
     } else {
-      // STAGE 1 — Grotte : gros rocher + petit caillou
       ctx.beginPath(); ctx.moveTo(-17,11); ctx.quadraticCurveTo(-20,-6,-7,-12); ctx.quadraticCurveTo(6,-17,14,-6); ctx.quadraticCurveTo(21,4,17,11); ctx.closePath(); fs('#A39B8B');
       shine(-6,-5,5,3,-0.4);
       ctx.beginPath(); ctx.moveTo(4,-4); ctx.lineTo(8,2); ctx.lineTo(5,7); ctx.stroke();
@@ -3649,7 +3684,6 @@
     }
 
     ensureGenerated(scrollDist + H*2 + 200);
-    // Suppression uniquement une fois l'élément sorti de l'écran (bas), et non juste derrière le ver
     const pruneDepth = scrollDist + playerY - 100;
     pruneBehind(pruneDepth);
     prunePickups(pruneDepth);
@@ -3909,7 +3943,6 @@
     document.getElementById('pauseOverlay').classList.toggle('show', paused);
   }
 
-  // Dev mode toggle: Hold Ctrl and press D to toggle invincibility and wall pass
   let devModeEnabled = false;
   window.addEventListener('keydown', (e) => {
     if(e.ctrlKey && (e.key === 'd' || e.key === 'D')) {

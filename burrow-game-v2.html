@@ -1180,6 +1180,45 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
 @media (max-width:820px){
   .nm-layout{ width:94vw; height:auto; grid-template-columns:1fr; transform:none; }
 }
+/* NM-V5 : couleurs en une colonne + ver centré sur tout le cadre */
+.nm-stage{ overflow:hidden; backdrop-filter:none; }
+.nm-stage .nm-stage-mid .worm-container{
+  position:absolute; top:0; bottom:0; left:0; right:0;
+  width:100%; max-width:none;
+}
+.nm-stage .nm-colors,
+.nm-stage .nm-colors.customize-section{
+  left:14px; top:10px; width:76px; max-width:76px; padding:10px 8px;
+  box-sizing:border-box; max-height:none; overflow:visible;
+  backdrop-filter:none; z-index:3;
+}
+.nm-colors h3{ font-size:0; margin:0 0 8px; text-align:center; }
+.nm-colors h3::before{ content:'🎨'; font-size:18px; }
+.nm-colors .color-grid{ grid-template-columns:1fr; gap:8px; }
+.nm-colors .color-option{ width:100%; aspect-ratio:1; border-radius:10px; }
+/* Rank : rang passé à gauche, rang à venir à droite */
+.nm-rank-track{ display:flex; align-items:center; gap:10px; margin:12px 0 8px; }
+.nm-rank .nm-rank-track .nm-bar{ flex:1; margin:0; }
+.nm-rank-track .rank-oval{ width:30px; height:30px; font-size:14px; }
+.nm-rank .nm-rank-track .nm-bar{ height:12px; border-radius:6px; background:rgba(255,255,255,0.22); }
+.nm-rank .nm-rank-track .nm-bar i{ border-radius:6px; box-shadow:0 0 8px rgba(255,107,53,0.6); transition:width .5s ease; }
+/* Rank Road : barre sous les étiquettes + case de score plus basse */
+.rank-road-continuous-line{ top:128px; }
+.rank-player-marker-container{ top:128px; }
+.rank-player-pin{ height:44px; }
+/* Top 10 + record perso */
+.nm-mini-top .mini-row{ font-size:13px; padding:4px 0; }
+.nm-mini-top .mini-row .mini-rank{ display:inline-block; min-width:22px; }
+.nm-pb{ flex:none; text-align:center; padding:14px 14px 16px; }
+.nm-pb-label{ font-family:'Fredoka',sans-serif; font-size:13px; font-weight:600; color:var(--ink-dim); }
+.nm-pb-val{ font-family:'Fredoka',sans-serif; font-size:34px; font-weight:800; color:var(--accent-primary); line-height:1.15; margin:6px 0 4px; }
+.nm-pb-sub{ font-size:11px; color:var(--ink-dim); min-height:14px; }
+/* Top 10 : lignes réparties sur toute la hauteur */
+.nm-mini-top{ display:flex; flex-direction:column; overflow:hidden; }
+.nm-mini-top #globalScoresList{ flex:1; display:flex; flex-direction:column; justify-content:space-between; }
+.nm-mini-top .mini-row{ padding:0; font-size:14px; flex:1; }
+.mini-row-empty{ opacity:.35; }
+.mini-row-empty .mini-dist{ color:var(--ink-dim); }
 </style>
 </head>
 <script src="analytics.js"></script>
@@ -1246,12 +1285,21 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
     <div class="nm-col">
       <button class="nm-card nm-rank" id="openRankModalBtn" type="button" title="Voir les rangs">
         <h3 id="menuRankName" style="margin:0">Rang</h3>
-        <div class="nm-bar"><i id="widgetRankFill"></i></div>
+        <div class="nm-rank-track">
+          <div class="rank-oval" id="widgetRankOvalLeft">🥉</div>
+          <div class="nm-bar"><i id="widgetRankFill"></i></div>
+          <div class="rank-oval" id="widgetRankOvalRight">🥈</div>
+        </div>
         <div class="nm-rank-hint" id="menuRankHint"></div>
       </button>
       <div class="nm-card nm-grow nm-mini-top">
         <h3 data-i18n="topScores">🏆 Meilleurs scores</h3>
         <div id="globalScoresList"><div class="mini-empty" data-i18n="loading">Chargement...</div></div>
+      </div>
+        <div class="nm-card nm-pb">
+        <div class="nm-pb-label">⭐ Ton meilleur score</div>
+        <div class="nm-pb-val" id="pbCardVal">0 m</div>
+        <div class="nm-pb-sub" id="pbCardSub"></div>
       </div>
     </div>
   </div>
@@ -1993,11 +2041,15 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
     const listEl = document.getElementById('globalScoresList');
     if(listEl){
       if(globalTopScores.length){
-        listEl.innerHTML = globalTopScores.map((s,i)=>`
+        const rows = globalTopScores.map((s,i)=>`
           <div class="mini-row">
             <span><span class="mini-rank">${i+1}.</span>${escapeHtml(s.nickname || 'Joueur')}</span>
             <span class="mini-dist">${Math.floor(s.dist)}m</span>
-          </div>`).join('');
+          </div>`);
+        for(let i = globalTopScores.length; i < 10; i++){
+          rows.push(`<div class="mini-row mini-row-empty"><span><span class="mini-rank">${i+1}.</span>Place libre</span><span class="mini-dist">—</span></div>`);
+        }
+        listEl.innerHTML = rows.join('');
       } else {
         listEl.innerHTML = `<div class="mini-empty">${t('beFirst')}</div>`;
       }
@@ -2112,7 +2164,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
             ${!unlocked ? 'Verrouillé' : `Acheter — ${power.price} 🌰`}
           </button>
         </div>
-      `;
+      </div>`;
     }).join('') + permanentShopHtml();
 
     items.querySelectorAll('[data-power-buy]').forEach(btn => btn.addEventListener('click', ()=> {
@@ -2413,7 +2465,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
         otherPlayers = next;
       });
 
-      db.ref('scores').orderByChild('dist').limitToLast(5).on('value', (snap)=>{
+      db.ref('scores').orderByChild('dist').limitToLast(9).on('value', (snap)=>{
         const val = snap.val() || {};
         globalTopScores = Object.values(val).sort((a,b)=>b.dist-a.dist);
         renderMenuRecords();
@@ -2806,7 +2858,8 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
     }
 
     wormCtx.save();
-    wormCtx.scale(1, 0.95);
+    wormCtx.translate(Math.cos(wormTime - 0.3) * 3, Math.sin(wormTime - 0.4) * 4);
+      wormCtx.scale(1, 0.95);
 
     wormCtx.fillStyle = `rgba(255, 107, 53, 0.15)`;
     wormCtx.beginPath();
@@ -3016,8 +3069,20 @@ function renderNewMenu(){
   if(n) n.textContent = 'Rang ' + info.current.name;
   const nm = document.getElementById('wormRankName');
   if(nm) nm.textContent = info.current.name;
+
   const h = document.getElementById('menuRankHint');
-  if(h) h.textContent = info.next ? (info.next.minScore - totalPoints).toLocaleString() + ' pts avant ' + info.next.name : 'Rang maximum';
+  const fillEl = document.getElementById('widgetRankFill');
+  if(info.next){
+    const span = info.next.minScore - info.current.minScore;
+    const done = Math.max(0, totalPoints - info.current.minScore);
+    const pct = Math.min(100, done / span * 100);
+    if(fillEl) fillEl.style.width = Math.max(pct, 3) + '%';
+    if(h) h.textContent = totalPoints.toLocaleString() + ' / ' + info.next.minScore.toLocaleString() + ' pts · ' + (info.next.minScore - totalPoints).toLocaleString() + ' avant ' + info.next.name;
+  } else {
+    if(fillEl) fillEl.style.width = '100%';
+    if(h) h.textContent = 'Rang maximum';
+  }
+
   let d = {};
   try{ d = JSON.parse(localStorage.getItem('burrowio_daily') || '{}'); }catch(e){}
   const pk = d.date === todayStr() ? (d.pickups || 0) : 0;
@@ -3025,8 +3090,17 @@ function renderNewMenu(){
   setChal('ch2', Math.min(pk, 3), 3);
   setChal('ch3', stageForMeters(currentBestDist), 3);
   const st = getStreak();
-  const t = document.getElementById('streakTitle');
-  if(t) t.textContent = 'Série : ' + st + ' jour' + (st > 1 ? 's' : '');
+  const streakEl = document.getElementById('streakTitle');
+  if(streakEl) streakEl.textContent = 'Série : ' + st + ' jour' + (st > 1 ? 's' : '');
+  const pbVal = document.getElementById('pbCardVal');
+  if(pbVal) pbVal.textContent = currentBestDist.toLocaleString() + ' m';
+  const pbSub = document.getElementById('pbCardSub');
+  if(pbSub){
+    const last = globalTopScores.length >= 10 ? Math.floor(globalTopScores[globalTopScores.length - 1].dist) : 0;
+    if(globalTopScores.length >= 10 && currentBestDist < last) pbSub.textContent = (last - currentBestDist).toLocaleString() + ' m pour entrer dans le top 10';
+    else if(globalTopScores.length >= 10) pbSub.textContent = 'Tu es dans le top 10 🎉';
+    else pbSub.textContent = totalPoints.toLocaleString() + ' pts cumulés';
+  }
 }
 
 window.addEventListener('keydown', (e)=>{

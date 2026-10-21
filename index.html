@@ -820,6 +820,7 @@
     margin-right:5px; border-radius:5px; background:var(--accent-primary); color:#fff;
     font:700 12px 'Fredoka',sans-serif;
   }
+  .shop-card{ touch-action:pan-y; overscroll-behavior:contain; }  .shop-section-title{    width:100%; text-align:center; padding:14px; margin:6px 0 2px;    font:700 22px 'Fredoka',sans-serif; color:var(--ink);    text-transform:uppercase; letter-spacing:1px;    background:rgba(27,36,73,0.7); border:2px solid rgba(255,107,53,0.3);    border-radius:14px;  }  .btn-shop-close{ position:sticky; bottom:0; }
   .shop-card {
     width: min(720px, 94vw) !important;
     max-width: 720px !important;
@@ -1843,11 +1844,17 @@
   const MAX_SHIELD_CHARGES = 5;
   const MAX_WIDETUNNEL_TIME = 20;
   const WIDETUNNEL_PER_USE = 10;
+  const BOOST_UNLOCK_KEY = 'burrowio_boost_unlocked';
+  const BOOST_UNLOCK_RANK = 2;
+  const BOOST_PRICE = 750;
+  const BOOST_DURATION = 15;
+  let boostUnlocked = localStorage.getItem(BOOST_UNLOCK_KEY) === '1';
+  let boostUsedThisRun = false;
 
   const SHOP_POWERS = {
-    scoreX2: { key:'1', emoji:'✖️', name:'Score x2', price:35, unlockRank:0, videoSrc:'prewiew_power_up/prewiew_power_up_x2.mp4' },
-    wideTunnel: { key:'2', emoji:'🧪', name:'Potion grand tunnel', price:25, unlockRank:1, videoSrc:'prewiew_power_up/prewiew_power_up_large_tunnel.mp4' },
-    shield: { key:'3', emoji:'🛡️', name:'Bouclier', price:20, unlockRank:2, videoSrc:'prewiew_power_up/preview_power_up_shield.mp4' }
+    scoreX2: { key:'1', emoji:'✖️', name:'Score x2', price:50, unlockRank:0, videoSrc:'prewiew_power_up/prewiew_power_up_x2.mp4' },
+    wideTunnel: { key:'2', emoji:'🧪', name:'Potion grand tunnel', price:100, unlockRank:1, videoSrc:'prewiew_power_up/prewiew_power_up_large_tunnel.mp4' },
+    shield: { key:'', emoji:'🛡️', name:'Bouclier', price:150, unlockRank:2, videoSrc:'prewiew_power_up/prewiew_power_up_shield.mp4' },
   };
 
   let discordUser = null;
@@ -1921,6 +1928,8 @@
     updateRankUI();
   }
 
+  function soonShopHtml(){    return `      <div class="shop-item-row">        <div class="shop-preview-box"><div class="shop-preview-placeholder"><span class="preview-placeholder-emoji">?</span><span class="preview-placeholder-text">Bientôt</span></div></div>        <div class="shop-item-info">          <div class="shop-item-text"><h3>Coming soon</h3><p>Un nouvel avantage permanent arrive.</p></div>          <button class="btn shop-buy is-locked" type="button" disabled>Bientôt</button>        </div>      </div>`;  }  function permanentShopHtml(){    const unlocked = getRankForScore(totalPoints).index >= BOOST_UNLOCK_RANK;    const unlockRank = getRankNames()[BOOST_UNLOCK_RANK];    const disabled = boostUnlocked || !unlocked || totalAcorns < BOOST_PRICE;    const label = boostUnlocked ? 'Possédé' : (!unlocked ? 'Verrouillé' : `Acheter — ${BOOST_PRICE} 🌰`);    const info = boostUnlocked ? 'Touche 3 · Une fois par partie'      : (unlocked ? 'Touche 3 · Une fois par partie' : `🔒 Débloqué au rang ${unlockRank.name} (${formatRankScore(unlockRank.minScore)})`);    return `      <div class="shop-section-title">Permanent</div>      <div class="shop-item-row">        <div class="shop-preview-box"><div class="shop-preview-placeholder"><span class="preview-placeholder-emoji">⚡</span><span class="preview-placeholder-text">Boost</span></div></div>        <div class="shop-item-info">          <div class="shop-item-text">            <h3>⚡ Boost</h3>            <p>Un boost de vitesse de ${BOOST_DURATION} secondes à chaque partie.<br><strong class="shop-key-stock">${info}</strong></p>          </div>          <button class="btn shop-buy ${(!unlocked && !boostUnlocked) ? 'is-locked' : ''}" type="button" data-boost-buy ${disabled ? 'disabled' : ''}>${label}</button>        </div>      </div>      ${soonShopHtml()}${soonShopHtml()}`;  }  function buyBoost(){    if(boostUnlocked || getRankForScore(totalPoints).index < BOOST_UNLOCK_RANK || totalAcorns < BOOST_PRICE) return;    totalAcorns -= BOOST_PRICE;    boostUnlocked = true;    try{ localStorage.setItem(BOOST_UNLOCK_KEY, '1'); }catch(e){}    saveLocalAcorns(totalAcorns);    renderMenuRecords();    renderShop(true);    renderAbilityHud();    playSFX('powerup');  }
+
   function renderShop(forceRebuild = true){
     const balance = document.getElementById('shopBalance');
     const items = document.getElementById('shopItems');
@@ -1929,6 +1938,7 @@
     const rankInfo = getRankForScore(totalPoints);
 
     if(!forceRebuild && items.children.length > 0){
+      const bb = items.querySelector('[data-boost-buy]');      if(bb) bb.disabled = boostUnlocked || rankInfo.index < BOOST_UNLOCK_RANK || totalAcorns < BOOST_PRICE;
       Object.keys(SHOP_POWERS).forEach(id => {
         const basePower = SHOP_POWERS[id];
         const power = getShopPowerConfig(id);
@@ -1939,7 +1949,7 @@
         const row = items.querySelector(`[data-power-row="${id}"]`);
         if(row){
           const stockEl = row.querySelector('.shop-key-stock');
-          if(stockEl) stockEl.textContent = unlocked ? `Touche ${power.key} · En stock : ${powerInventory[id]}` : stockEl.textContent;
+          if(stockEl) stockEl.textContent = unlocked ? `${power.key === '' ? 'Automatique' : 'Touche ' + power.key} · En stock : ${powerInventory[id]}` : stockEl.textContent;
           const btn = row.querySelector('[data-power-buy]');
           if(btn){
             btn.disabled = !canBuy;
@@ -1951,7 +1961,7 @@
       return;
     }
 
-    items.innerHTML = Object.keys(SHOP_POWERS).map(id => {
+    items.innerHTML = '<div class="shop-section-title">Consommables</div>' + Object.keys(SHOP_POWERS).map(id => {
       const basePower = SHOP_POWERS[id];
       const power = getShopPowerConfig(id);
       const unlocked = rankInfo.index >= basePower.unlockRank;
@@ -1971,19 +1981,21 @@
         <div class="shop-item-info">
           <div class="shop-item-text">
             <h3>${power.emoji} ${power.name}</h3>
-            <p>${power.description}<br><strong class="shop-key-stock">${unlocked ? `Touche ${power.key} · En stock : ${powerInventory[id]}` : `🔒 Débloqué au rang ${unlockRank.name} (${formatRankScore(unlockRank.minScore)})`}</strong></p>
+            <p>${power.description}<br><strong class="shop-key-stock">${unlocked ? `${power.key === '' ? 'Automatique' : 'Touche ' + power.key} · En stock : ${powerInventory[id]}` : `🔒 Débloqué au rang ${unlockRank.name} (${formatRankScore(unlockRank.minScore)})`}</strong></p>
           </div>
           <button class="btn shop-buy ${!unlocked ? 'is-locked' : ''}" type="button" data-power-buy="${id}" ${!canBuy ? 'disabled' : ''}>
             ${!unlocked ? 'Verrouillé' : `Acheter — ${power.price} 🌰`}
           </button>
         </div>
       </div>`;
-    }).join('');
+    }).join('') + permanentShopHtml();
 
     items.querySelectorAll('[data-power-buy]').forEach(btn => btn.addEventListener('click', ()=> {
       buyShopPower(btn.dataset.powerBuy);
       playSFX('click');
     }));
+
+    const boostBtn = items.querySelector('[data-boost-buy]');    if(boostBtn) boostBtn.addEventListener('click', ()=>{ buyBoost(); playSFX('click'); });
 
     const POWER_VIDEO_SRC = { w:1920, h:1080 };
     const FIXED_POWER_CROP = {
@@ -2989,7 +3001,7 @@
       const leftEnd = lcx - lhw - minGap, rightStart = lcx + lhw + minGap;
       const leftW = Math.max(0, leftEnd - edgeMargin);
       const rightW = Math.max(0, (W - edgeMargin) - rightStart);
-      if(leftW + rightW < 8) return null;
+      if(leftW + rightW < 30) return null;
       if(Math.random() * (leftW + rightW) < leftW){
         return { x: edgeMargin + Math.random()*leftW, side: -1 };
       }
@@ -2997,17 +3009,16 @@
     };
 
     // Gros éléments de décor incrustés dans les murs (densité légèrement augmentée)
-    const nRocks = Math.floor(rand(3,5));
+    const nRocks = Math.floor(rand(2,4));
     for(let k=0;k<nRocks;k++){
       const d = cp.depth - rand(10, CONTROL_SPACING-10);
-      const pos = pickWallPos(d, 6, 4);
+      const pos = pickWallPos(d, 38, 34);
       if(!pos) continue;
-      const big = Math.random() < 0.45;
-      decor.push({depth:d, x: pos.x, side: pos.side, r: big? rand(7,11): rand(2.5,4.5), kind: big?'rock':'speckle',
-                  stage: stageOf(d), scale: rand(0.38,0.6), rotation: rand(-0.3,0.3), v: Math.random()});
+      decor.push({depth:d, x: pos.x, side: pos.side, r: 8, kind:'rock',
+                  stage: stageOf(d), scale: rand(0.8,1.1), rotation: rand(-0.25,0.25), v: Math.random()});
     }
 
-    const nGrain = Math.floor(rand(12,19));
+    const nGrain = Math.floor(rand(5,9));
     for(let g=0; g<nGrain; g++){
       const d = cp.depth - rand(4, CONTROL_SPACING-4);
       const pos = pickWallPos(d, 2, 2);
@@ -3016,10 +3027,10 @@
     }
 
     // Éléments d'arrière-plan : un type unique par stage
-    const nBgProps = Math.floor(rand(4, 7));
+    const nBgProps = Math.floor(rand(2, 4));
     for(let p=0; p<nBgProps; p++){
       const d = cp.depth - rand(5, CONTROL_SPACING-5);
-      const pos = pickWallPos(d, 16, 16);
+      const pos = pickWallPos(d, 50, 40);
       if(!pos) continue;
       backgroundProps.push({
         depth: d, x: pos.x, side: pos.side,
@@ -3125,98 +3136,122 @@
   let stars = Array.from({length:STAR_COUNT}, ()=>({x:Math.random(), y:Math.random(), r:Math.random()*1.6+0.4, seed:Math.random()*1000}));
 
   // Dessine UN élément de décor du style donné (chaque stage a son propre style, jamais partagé)
+    // Éléments de décor cartoon : contour sombre + couleurs vives, lisibles sur chaque fond
   function drawPropShape(style, th, v){
+    const O = 'rgba(20,15,25,0.7)';
     const flip = v > 0.5 ? 1 : -1;
+    ctx.save();
+    ctx.strokeStyle = O; ctx.lineWidth = 2.2; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    const fs = (fill)=>{ ctx.fillStyle = fill; ctx.fill(); ctx.stroke(); };
+    // Plusieurs cercles fusionnés avec un seul contour extérieur
+    const blob = (circles, fill)=>{
+      ctx.lineWidth = 4.6;
+      for(const [x,y,r] of circles){ ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.stroke(); }
+      ctx.fillStyle = fill;
+      for(const [x,y,r] of circles){ ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill(); }
+      ctx.lineWidth = 2.2;
+    };
+    const shine = (x,y,rx,ry,rot)=>{
+      ctx.beginPath(); ctx.ellipse(x,y,rx,ry,rot||0,0,Math.PI*2);
+      ctx.fillStyle = 'rgba(255,255,255,0.45)'; ctx.fill();
+    };
+
     if(style === 'tree'){
-      // Stage 2 : arbres (feuillus ou sapins)
-      ctx.fillStyle = '#4A3624';
-      ctx.fillRect(-2, 2, 4, 14);
-      if(v < 0.55){
-        ctx.fillStyle = th.rock;
-        ctx.beginPath();
-        ctx.arc(0, -6, 12, 0, Math.PI*2);
-        ctx.arc(-8, 2, 8, 0, Math.PI*2);
-        ctx.arc(8, 2, 8, 0, Math.PI*2);
-        ctx.fill();
-        ctx.fillStyle = th.rockHi;
-        ctx.beginPath(); ctx.arc(-3, -9, 4, 0, Math.PI*2); ctx.fill();
-      } else {
-        ctx.fillStyle = th.wall;
+      // STAGE 2 — Plaine : arbre rond, sapin ou fleur
+      if(v < 0.4){
+        ctx.beginPath(); ctx.rect(-3.5,0,7,16); fs('#8A5A33');
+        blob([[0,-10,13],[-10,-1,9],[10,-1,9]], '#7BC043');
+        shine(-4,-14,4.5,3,-0.5);
+      } else if(v < 0.75){
+        ctx.beginPath(); ctx.rect(-3,8,6,9); fs('#8A5A33');
         for(let i=0;i<3;i++){
-          const y = 4 - i*8, w = 13 - i*3;
-          ctx.beginPath(); ctx.moveTo(0, y-12); ctx.lineTo(w, y); ctx.lineTo(-w, y); ctx.closePath(); ctx.fill();
+          const y = 8 - i*10, w = 16 - i*3.5;
+          ctx.beginPath(); ctx.moveTo(0,y-14); ctx.lineTo(w,y); ctx.lineTo(-w,y); ctx.closePath(); fs(i%2 ? '#4CAF50' : '#3E9A45');
         }
-        ctx.fillStyle = th.rockHi;
-        ctx.beginPath(); ctx.moveTo(0,-20); ctx.lineTo(3,-12); ctx.lineTo(-3,-12); ctx.closePath(); ctx.fill();
+      } else {
+        ctx.beginPath(); ctx.moveTo(0,14); ctx.lineTo(0,-2); ctx.stroke();
+        ctx.beginPath(); ctx.ellipse(5,8,5,2.5,-0.5,0,Math.PI*2); fs('#5CB85C');
+        for(let k=0;k<5;k++){
+          const a = k*Math.PI*2/5;
+          ctx.beginPath(); ctx.arc(Math.cos(a)*6.5, -6+Math.sin(a)*6.5, 5, 0, Math.PI*2); fs('#FF8FB8');
+        }
+        ctx.beginPath(); ctx.arc(0,-6,4.2,0,Math.PI*2); fs('#FFE04D');
       }
     } else if(style === 'volcano'){
-      // Stage 3 : mini-volcans avec lave
-      ctx.fillStyle = th.wall;
-      ctx.beginPath(); ctx.moveTo(-15,12); ctx.lineTo(-5,-8); ctx.lineTo(5,-8); ctx.lineTo(15,12); ctx.closePath(); ctx.fill();
-      ctx.fillStyle = '#FF6B35';
-      ctx.beginPath(); ctx.ellipse(0,-8,5,2.2,0,0,Math.PI*2); ctx.fill();
-      ctx.beginPath(); ctx.moveTo(-2,-7); ctx.lineTo(2,-7); ctx.lineTo(4*flip,4); ctx.lineTo(1*flip,10); ctx.lineTo(-1*flip,2); ctx.closePath(); ctx.fill();
-      ctx.fillStyle = '#FFD27A';
-      ctx.beginPath(); ctx.arc(-1*flip,-13,2,0,Math.PI*2); ctx.fill();
+      // STAGE 3 — Volcan : mini volcan avec lave qui coule
+      ctx.beginPath(); ctx.moveTo(-19,13); ctx.lineTo(-7,-10); ctx.lineTo(7,-10); ctx.lineTo(19,13); ctx.closePath(); fs('#A0523A');
+      ctx.beginPath(); ctx.ellipse(0,-10,7.5,3.2,0,0,Math.PI*2); fs('#FF8A2B');
+      ctx.beginPath(); ctx.moveTo(-3,-9); ctx.lineTo(3,-9); ctx.quadraticCurveTo(7*flip,0,4*flip,13); ctx.lineTo(-2*flip,13); ctx.quadraticCurveTo(1*flip,2,-3,-9); ctx.closePath(); fs('#FFB02E');
+      ctx.beginPath(); ctx.arc(-3*flip,-19,2.6,0,Math.PI*2); fs('#FF6B35');
+      ctx.beginPath(); ctx.arc(5*flip,-15,1.8,0,Math.PI*2); fs('#FFD27A');
     } else if(style === 'ice'){
-      // Stage 4 : pics de glace
-      ctx.fillStyle = th.rock;
-      const spikes = [[-8,10,5,-6],[0,12,6,-18],[8,10,5,-8]];
-      for(const [x,h,w,tip] of spikes){
-        ctx.beginPath(); ctx.moveTo(x,tip); ctx.lineTo(x+w,h); ctx.lineTo(x-w,h); ctx.closePath(); ctx.fill();
+      // STAGE 4 — Glacier : cristaux de glace ou bonhomme de neige
+      if(v < 0.8){
+        const spikes = [[-10,-8,6,12],[0,-22,7,12],[10,-12,6,12]];
+        for(const [x,tip,w,base] of spikes){
+          ctx.beginPath(); ctx.moveTo(x,tip); ctx.lineTo(x+w,base); ctx.lineTo(x-w,base); ctx.closePath(); fs('#E8F9FF');
+          ctx.beginPath(); ctx.moveTo(x,tip); ctx.lineTo(x+w,base); ctx.lineTo(x+1,base); ctx.closePath();
+          ctx.fillStyle = '#9ADCF5'; ctx.fill();
+        }
+      } else {
+        blob([[0,8,11]], '#FFFFFF'); blob([[0,-8,8]], '#FFFFFF');
+        ctx.beginPath(); ctx.arc(-3,-10,1.3,0,Math.PI*2); ctx.arc(3,-10,1.3,0,Math.PI*2); ctx.fillStyle = O; ctx.fill();
+        ctx.beginPath(); ctx.moveTo(0,-7); ctx.lineTo(8*flip,-5); ctx.lineTo(0,-4); ctx.closePath(); fs('#FF9A3C');
       }
-      ctx.fillStyle = th.rockHi;
-      ctx.beginPath(); ctx.moveTo(0,-18); ctx.lineTo(2,12); ctx.lineTo(-1,12); ctx.closePath(); ctx.fill();
     } else if(style === 'moon'){
-      // Stage 5 : cratères lunaires
-      ctx.fillStyle = th.wall;
-      ctx.beginPath(); ctx.ellipse(0,0,13,6.5,0,0,Math.PI*2); ctx.fill();
-      ctx.fillStyle = th.bg;
-      ctx.beginPath(); ctx.ellipse(1,1,9,3.8,0,0,Math.PI*2); ctx.fill();
-      ctx.fillStyle = th.rockHi;
-      ctx.beginPath(); ctx.ellipse(-4,-3,3,1.2,0,0,Math.PI*2); ctx.fill();
+      // STAGE 5 — Lune : cratère, ou drapeau planté
+      ctx.beginPath(); ctx.ellipse(0,0,17,8.5,0,0,Math.PI*2); fs('#C9C8D4');
+      ctx.beginPath(); ctx.ellipse(1,1.5,12,5.5,0,0,Math.PI*2); fs('#6F6E7C');
+      ctx.beginPath(); ctx.ellipse(-3,2.5,4,1.8,0,0,Math.PI*2); ctx.fillStyle='rgba(0,0,0,0.25)'; ctx.fill();
+      shine(-9,-4,3.5,1.6,-0.3);
+      if(v > 0.7){
+        ctx.beginPath(); ctx.moveTo(8,-2); ctx.lineTo(8,-24); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(8,-24); ctx.lineTo(20,-20); ctx.lineTo(8,-16); ctx.closePath(); fs('#FF5A5A');
+      }
     } else if(style === 'gem'){
-      // Stage 6 : grappes de gemmes hexagonales
-      const gems = [[-7,12,-1,5],[7,12,1,4.5],[0,12,0,6.5]];
-      for(const [x,y,tilt,w] of gems){
-        const len = 14 + w*1.6;
-        ctx.save(); ctx.translate(x,y); ctx.rotate(tilt*0.35);
-        ctx.fillStyle = th.rock;
-        ctx.beginPath(); ctx.moveTo(-w,0); ctx.lineTo(-w,-len*0.7); ctx.lineTo(0,-len); ctx.lineTo(w,-len*0.7); ctx.lineTo(w,0); ctx.closePath(); ctx.fill();
-        ctx.fillStyle = th.rockHi;
-        ctx.beginPath(); ctx.moveTo(-w,-len*0.7); ctx.lineTo(0,-len); ctx.lineTo(0,-len*0.55); ctx.closePath(); ctx.fill();
+      // STAGE 6 — Cristal : grappe de gemmes colorées
+      const gems = [[-9,12,-0.35,5.5,'#7FF0FF'],[9,12,0.35,5,'#FFE27A'],[0,12,0,7,'#FF9BE8']];
+      for(const [x,y,tilt,w,col] of gems){
+        const len = 12 + w*1.8;
+        ctx.save(); ctx.translate(x,y); ctx.rotate(tilt);
+        ctx.beginPath(); ctx.moveTo(-w,0); ctx.lineTo(-w,-len*0.65); ctx.lineTo(0,-len); ctx.lineTo(w,-len*0.65); ctx.lineTo(w,0); ctx.closePath(); fs(col);
+        ctx.beginPath(); ctx.moveTo(-w,-len*0.65); ctx.lineTo(0,-len); ctx.lineTo(0,-len*0.5); ctx.closePath();
+        ctx.fillStyle='rgba(255,255,255,0.5)'; ctx.fill();
         ctx.restore();
       }
     } else if(style === 'orb'){
-      // Stage 7 : orbes / mini-planètes lumineuses
-      ctx.fillStyle = th.speckle;
-      ctx.beginPath(); ctx.arc(0,0,14,0,Math.PI*2); ctx.fill();
-      ctx.fillStyle = th.rock;
-      ctx.beginPath(); ctx.arc(0,0,7,0,Math.PI*2); ctx.fill();
-      ctx.fillStyle = th.rockHi;
-      ctx.beginPath(); ctx.arc(-2.5,-2.5,2.5,0,Math.PI*2); ctx.fill();
-      if(v > 0.5){
-        ctx.strokeStyle = th.rockHi; ctx.lineWidth = 1.5;
-        ctx.beginPath(); ctx.ellipse(0,0,15,4,-0.4,0,Math.PI*2); ctx.stroke();
+      // STAGE 7 — Nébuleuse : planète à anneau ou étoile brillante
+      if(v < 0.7){
+        ctx.beginPath(); ctx.arc(0,0,11,0,Math.PI*2); fs(v < 0.35 ? '#FFB347' : '#6FE3FF');
+        shine(-4,-4,3.5,2.5,-0.6);
+        ctx.beginPath(); ctx.ellipse(0,2,19,5,-0.4,0,Math.PI*2);
+        ctx.lineWidth = 3.4; ctx.strokeStyle = '#FFF2B0'; ctx.stroke();
+        ctx.lineWidth = 1; ctx.strokeStyle = O; ctx.stroke();
+      } else {
+        ctx.beginPath();
+        for(let k=0;k<8;k++){
+          const a = k*Math.PI/4 - Math.PI/2, r = k%2 ? 5 : 15;
+          const px = Math.cos(a)*r, py = Math.sin(a)*r;
+          k ? ctx.lineTo(px,py) : ctx.moveTo(px,py);
+        }
+        ctx.closePath(); fs('#FFE45C');
       }
     } else if(style === 'flame'){
-      // Stage 8 : flammes sur pics calcinés
-      ctx.fillStyle = th.edge;
-      ctx.beginPath(); ctx.moveTo(-9,12); ctx.lineTo(-3,-2); ctx.lineTo(0,12); ctx.lineTo(4,0); ctx.lineTo(10,12); ctx.closePath(); ctx.fill();
-      ctx.fillStyle = th.rock;
-      ctx.beginPath(); ctx.moveTo(0,-20); ctx.quadraticCurveTo(10,-8,6,2); ctx.quadraticCurveTo(0,8,-6,2); ctx.quadraticCurveTo(-9,-8,0,-20); ctx.fill();
-      ctx.fillStyle = '#FFC857';
-      ctx.beginPath(); ctx.moveTo(0,-10); ctx.quadraticCurveTo(4,-4,2,2); ctx.quadraticCurveTo(0,4,-2,2); ctx.quadraticCurveTo(-4,-4,0,-10); ctx.fill();
+      // STAGE 8 — Enfer : flamme sur une pierre calcinée
+      ctx.beginPath(); ctx.ellipse(0,12,12,5,0,0,Math.PI*2); fs('#3A1A1A');
+      ctx.beginPath(); ctx.moveTo(0,-24); ctx.quadraticCurveTo(14,-8,9,6); ctx.quadraticCurveTo(0,14,-9,6); ctx.quadraticCurveTo(-14,-8,0,-24); ctx.closePath(); fs('#FF6A2B');
+      ctx.beginPath(); ctx.moveTo(0,-9); ctx.quadraticCurveTo(6,-1,4,6); ctx.quadraticCurveTo(0,10,-4,6); ctx.quadraticCurveTo(-6,-1,0,-9); ctx.closePath();
+      ctx.fillStyle = '#FFD23F'; ctx.fill();
     } else {
-      // Stage 1 : cailloux de grotte
-      ctx.fillStyle = th.wall;
-      ctx.beginPath(); ctx.ellipse(0,6,11,6,0,0,Math.PI*2); ctx.fill();
-      ctx.fillStyle = th.rock;
-      ctx.beginPath(); ctx.ellipse(-3,2,8,6,0,0,Math.PI*2); ctx.fill();
-      ctx.beginPath(); ctx.ellipse(7*flip,6,5,4,0,0,Math.PI*2); ctx.fill();
-      ctx.fillStyle = th.rockHi;
-      ctx.beginPath(); ctx.ellipse(-5,-1,3,2,0,0,Math.PI*2); ctx.fill();
+      // STAGE 1 — Grotte : gros rocher + petit caillou
+      ctx.beginPath(); ctx.moveTo(-17,11); ctx.quadraticCurveTo(-20,-6,-7,-12); ctx.quadraticCurveTo(6,-17,14,-6); ctx.quadraticCurveTo(21,4,17,11); ctx.closePath(); fs('#A39B8B');
+      shine(-6,-5,5,3,-0.4);
+      ctx.beginPath(); ctx.moveTo(4,-4); ctx.lineTo(8,2); ctx.lineTo(5,7); ctx.stroke();
+      if(v > 0.5){
+        ctx.beginPath(); ctx.ellipse(-19*flip,9,6,4,0,0,Math.PI*2); fs('#8E8677');
+      }
     }
+    ctx.restore();
   }
 
   function drawBackgroundProp(prop, sy){
@@ -3225,7 +3260,7 @@
     ctx.translate(prop.x, sy);
     ctx.scale(prop.scale, prop.scale);
     ctx.rotate(prop.rotation);
-    ctx.globalAlpha = 0.55;
+    ctx.globalAlpha = 0.95;
     drawPropShape(th.propStyle, th, prop.v);
     ctx.restore();
     ctx.globalAlpha = 1;
@@ -3265,7 +3300,7 @@
   }
 
   function applyPowerup(kind){
-    if(kind === 'boost') effects.boostTimer = 3;
+    if(kind === 'boost') effects.boostTimer = Math.max(effects.boostTimer, 3);
     else if(kind === 'shield') effects.shieldCharges = Math.min(MAX_SHIELD_CHARGES, effects.shieldCharges + 1);
     else if(kind === 'shrink') effects.shrinkTimer = 5;
     showPickupToast(kind);
@@ -3286,9 +3321,20 @@
     const el = document.getElementById('abilityHud');
     if(!el) return;
     const rank = getRankForScore(totalPoints).index;
-    el.innerHTML = Object.entries(SHOP_POWERS).filter(([, power]) => rank >= power.unlockRank).map(([id, power]) =>
-      `<div class="ability-slot"><kbd>${power.key}</kbd>${power.emoji} ${power.name} ×${powerInventory[id]}</div>`
+    let html = Object.entries(SHOP_POWERS).filter(([, power]) => rank >= power.unlockRank).map(([id, power]) =>
+      `<div class="ability-slot"><kbd>${power.key === 'auto' ? '' : power.key}</kbd>${power.emoji} ${power.name} ×${powerInventory[id]}</div>`
     ).join('');
+    if(boostUnlocked) html += `<div class="ability-slot" style="${boostUsedThisRun ? 'opacity:.4' : ''}"><kbd>3</kbd>⚡ Boost</div>`;
+    el.innerHTML = html;
+  }
+
+  function useRunBoost(){
+    if(!boostUnlocked || boostUsedThisRun || !running || paused || gameOverShown) return;
+    boostUsedThisRun = true;
+    effects.boostTimer = BOOST_DURATION;
+    showPickupToast('boost');
+    renderEffectsHud();
+    renderAbilityHud();
   }
 
   function useShopPower(id){
@@ -3378,6 +3424,7 @@
     ensureGenerated(H*2 + 300);
     player.x = centerAt(H);
     reviveUsedThisRun = false;
+    boostUsedThisRun = false;
     reviveInvulnTimer = 0;
     pointerControlEnabled = false;
     keys.left = false; keys.right = false;
@@ -3504,7 +3551,7 @@
     if(e.key === 'k' || e.key === 'K'){ togglePause(); }
     if(e.key === '1' || e.code === 'Digit1'){ useShopPower('scoreX2'); e.preventDefault(); }
     if(e.key === '2' || e.code === 'Digit2'){ useShopPower('wideTunnel'); e.preventDefault(); }
-    if(e.key === '3' || e.code === 'Digit3'){ useShopPower('shield'); e.preventDefault(); }
+    if(e.key === '3' || e.code === 'Digit3'){ useRunBoost(); e.preventDefault(); }
   });
   window.addEventListener('keyup', e=>{
     const tag = document.activeElement && document.activeElement.tagName;
@@ -3718,10 +3765,16 @@
       }
 
       const c = centerAt(scrollDist + H), hw = halfWAt(scrollDist + H);
-      if(player.x - player.radius < c-hw || player.x + player.radius > c+hw){
+      if(!devModeEnabled && (player.x - player.radius < c-hw || player.x + player.radius > c+hw)){
         if(reviveInvulnTimer > 0){
         } else if(effects.shieldCharges > 0){
           effects.shieldCharges--;
+          player.x = centerAt(scrollDist + H);
+          explodeShieldBreak(player.x, playerY);
+        } else if(powerInventory.shield > 0){
+          powerInventory.shield--;
+          savePowerInventory();
+          renderAbilityHud();
           player.x = centerAt(scrollDist + H);
           explodeShieldBreak(player.x, playerY);
         } else {
@@ -3730,6 +3783,7 @@
           showGameOver();
         }
       }
+
       if(reviveInvulnTimer > 0) reviveInvulnTimer -= dt;
 
       updateDemoBots(dt);
@@ -3854,6 +3908,20 @@
     paused = !paused;
     document.getElementById('pauseOverlay').classList.toggle('show', paused);
   }
+
+  // Dev mode toggle: Hold Ctrl and press D to toggle invincibility and wall pass
+  let devModeEnabled = false;
+  window.addEventListener('keydown', (e) => {
+    if(e.ctrlKey && (e.key === 'd' || e.key === 'D')) {
+      e.preventDefault();
+      devModeEnabled = !devModeEnabled;
+      if(devModeEnabled) {
+        console.log('Dev mode ENABLED - Invincible, can pass through walls');
+      } else {
+        console.log('Dev mode DISABLED');
+      }
+    }
+  });
 
   document.getElementById('resumeBtn').addEventListener('click', ()=>{
     paused = false;

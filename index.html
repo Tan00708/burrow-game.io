@@ -788,7 +788,6 @@
   }
   .controls-hint.show{ opacity:1; transform:translate(-50%,0); }
 
-  /* HUD D'EFFETS : Remonte juste sous le HUD (top: 90px) et s'abaisse à 152px quand le toast est affiché */
   .effects-hud{
     position:fixed; top:90px; left:50%; transform:translateX(-50%);
     display:flex; gap:8px; z-index:5; pointer-events:none;
@@ -1219,6 +1218,42 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
 .nm-mini-top .mini-row{ padding:0; font-size:14px; flex:1; }
 .mini-row-empty{ opacity:.35; }
 .mini-row-empty .mini-dist{ color:var(--ink-dim); }
+
+/* STYLE DES MOTIFS DE TRAÎNÉE (SÉLECTEUR À DROITE) */
+.nm-colors.pattern-colors .color-grid {
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+}
+.nm-colors.pattern-colors {
+  width: 90px !important;
+  max-width: 90px !important;
+  left: auto !important;
+  right: 14px !important;
+}
+.nm-colors.pattern-colors h3::before { content: '✨'; }
+.pattern-option {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 10px;
+  background: rgba(27,36,73,0.8);
+  border: 2px solid rgba(255,107,53,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  cursor: pointer;
+  transition: all .2s ease;
+}
+.pattern-option:hover {
+  transform: scale(1.08);
+  border-color: var(--accent-primary);
+  background: rgba(255,107,53,0.2);
+}
+.pattern-option.selected {
+  border-color: var(--ink);
+  background: rgba(255,107,53,0.4);
+  box-shadow: 0 0 12px rgba(255,107,53,0.6);
+}
 </style>
 </head>
 <script src="analytics.js"></script>
@@ -1263,6 +1298,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
     <div class="nm-stage">
       <div class="nm-stage-label">Ton ver · Rang <span id="wormRankEmojiDisplay">🥉</span> <span id="wormRankName"></span></div>
       <div class="nm-stage-mid">
+        <!-- PALETTE COULEUR À GAUCHE -->
         <div class="customize-section nm-colors">
           <h3 data-i18n="color">🎨 Couleur</h3>
           <div class="color-grid">
@@ -1274,6 +1310,18 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
             <div class="color-option" data-color="#B383B8" style="background:linear-gradient(135deg, #B383B8, #A272A7);" title="Violet"></div>
           </div>
         </div>
+
+        <!-- SÉLECTEUR DE MOTIFS À DROITE (À LA PLACE DE LA PALETTE) -->
+        <div class="customize-section nm-colors pattern-colors">
+          <h3 title="Motifs">✨ Motifs</h3>
+          <div class="color-grid">
+            <div class="pattern-option selected" data-pattern="star" title="Étoiles">⭐</div>
+            <div class="pattern-option" data-pattern="tp" title="Papier Toilette">🧻</div>
+            <div class="pattern-option" data-pattern="gem" title="Cristaux">💎</div>
+            <div class="pattern-option" data-pattern="flower" title="Fleurs">🌸</div>
+          </div>
+        </div>
+
         <div class="worm-container"><canvas id="wormCanvas3D"></canvas></div>
       </div>
       <button class="menu-btn btn-play nm-play" id="menuStartBtn" data-i18n="play">▶ Jouer</button>
@@ -1776,6 +1824,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
   };
 
   let currentLang = localStorage.getItem('burrowio_lang') || 'fr';
+  let selectedPattern = localStorage.getItem('burrowio_pattern') || 'star';
 
   function t(key) {
     return (TRANSLATIONS[currentLang] && TRANSLATIONS[currentLang][key]) || TRANSLATIONS['fr'][key] || key;
@@ -1797,6 +1846,21 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
     applyTranslations();
     renderMenuRecords();
     playSFX('click');
+  });
+
+  // Gestion de sélection du motif de traînée
+  document.querySelectorAll('.pattern-option').forEach(opt => {
+    if(opt.dataset.pattern === selectedPattern) {
+      document.querySelectorAll('.pattern-option').forEach(o => o.classList.remove('selected'));
+      opt.classList.add('selected');
+    }
+    opt.addEventListener('click', () => {
+      document.querySelectorAll('.pattern-option').forEach(o => o.classList.remove('selected'));
+      opt.classList.add('selected');
+      selectedPattern = opt.dataset.pattern;
+      localStorage.setItem('burrowio_pattern', selectedPattern);
+      playSFX('click');
+    });
   });
 
   function getRankNames() {
@@ -2314,7 +2378,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
         'prewiew_power_up/prewiew_power_up_large_tunnel.mp4',
         './prewiew_power_up/prewiew_power_up_large_tunnel.mp4',
         'preview_power_up/prewiew_power_up_large_tunnel.mp4',
-        'prewiew_power_up/preview_power_up_large_tunnel.mp4',
+        'prewiew_power_up/prewiew_power_up_large_tunnel.mp4',
         'prewiew_power_up_large_tunnel.mp4',
         'preview_power_up_large_tunnel.mp4'
       ],
@@ -2322,9 +2386,9 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
         'prewiew_power_up/preview_power_up_shield.mp4',
         './prewiew_power_up/preview_power_up_shield.mp4',
         'prewiew_power_up/prewiew_power_up_shield.mp4',
-        'prewiew_power_up/prewiew_power_up_shield.mp4',
+        'prewiew_power_up/preview_power_up_shield.mp4',
         'preview_power_up_shield.mp4',
-        'prewiew_power_up_shield.mp4'
+        'preview_power_up_shield.mp4'
       ],
       boost: [
         'prewiew_power_up/preview_power_up_boost.mp4',
@@ -2332,7 +2396,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
         'prewiew_power_up/prewiew_power_up_boost.mp4',
         'prewiew_power_up/preview_power_up_boost.mp4',
         'preview_power_up_boost.mp4',
-        'prewiew_power_up_boost.mp4'
+        'preview_power_up_boost.mp4'
       ]
     };
 
@@ -2574,15 +2638,6 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
         otherPlayers = next;
       });
 
-      if(false) db.ref('scores').orderByChild('dist').limitToLast(9).on('value', (snap)=>{
-        const val = snap.val() || {};
-        globalTopScores = Object.values(val).sort((a,b)=>b.dist-a.dist);
-        renderMenuRecords();
-      }, (err)=>{
-        const listEl = document.getElementById('globalScoresList');
-        if(listEl) listEl.innerHTML = `<div class="mini-empty">${t('noLeaderboard')}</div>`;
-      });
-
       mpReady = true;
     }catch(e){
       mpReady = false;
@@ -2590,10 +2645,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
   }
   initMultiplayer();
 
-  function submitScoreIfHigher(distMeters){
-    /* record : géré par le serveur */
-  }
-
+  function submitScoreIfHigher(distMeters){}
   function markRunStart(){ if(sessionToken) apiFetch('/run/start', {}); return; }
 
   function mpForceUpdate(){
@@ -2690,12 +2742,6 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
       const raw = localStorage.getItem(DISCORD_USER_KEY);
       return raw ? JSON.parse(raw) : null;
     }catch(e){ return null; }
-  }
-  function loadStoredDiscordToken(){
-    try{ return localStorage.getItem(DISCORD_TOKEN_KEY) || null; }catch(e){ return null; }
-  }
-  function loadStoredDiscordExpiry(){
-    try{ return parseInt(localStorage.getItem(DISCORD_EXPIRY_KEY) || '0', 10); }catch(e){ return 0; }
   }
   function loadGuestPseudo(){
     try{ return localStorage.getItem(GUEST_PSEUDO_KEY) || null; }catch(e){ return null; }
@@ -2800,22 +2846,6 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
       return true;
     }catch(e){ return false; }
   }
-  async function handleDiscordRedirectOld(){
-    if(!location.hash || location.hash.indexOf('access_token') === -1) return false;
-    const params = new URLSearchParams(location.hash.slice(1));
-    const token = params.get('access_token');
-    const expiresIn = parseInt(params.get('expires_in') || '0', 10);
-    if(!token) return false;
-    history.replaceState(null, '', location.pathname + location.search);
-    if(loadPendingRun()) document.getElementById('mainMenu').classList.add('hidden');
-    try{
-      const user = await fetchDiscordUser(token);
-      discordUser = user;
-      saveDiscordSession(user, token, expiresIn);
-      checkIdentityGate();
-      return true;
-    }catch(e){ return false; }
-  }
 
   function initIdentityAndAuth(){
     const stored = loadStoredDiscordUser();
@@ -2859,19 +2889,6 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
         const run = pendingRun;
         clearPendingRun();
         completeGameOver(run.dist, run.bonus, false, false);
-      }
-    }
-    function submitGuestOld(){
-      const val = (guestInput.value || '').trim();
-      if(!val) return;
-      guestPseudo = val.slice(0, 20);
-      saveGuestPseudo(guestPseudo);
-      checkIdentityGate();
-      playSFX('click');
-      if(pendingRun){
-        const run = pendingRun;
-        clearPendingRun();
-        completeGameOver(run.dist, run.bonus, false);
       }
     }
     if(guestPlayBtn) guestPlayBtn.addEventListener('click', submitGuest);
@@ -3748,6 +3765,7 @@ window.addEventListener('keydown', (e)=>{
   let trail = [];
   const SEGMENTS = 9, SEG_SPACING = 13;
   let particles = [];
+  let patternTrailParticles = []; // Traînée de motifs pour le ver
 
   function explode(x,y){
     const rockColor = activeColors().rock;
@@ -3789,7 +3807,7 @@ window.addEventListener('keydown', (e)=>{
     announcedStage = 1;
     effects = { boostTimer:0, shieldCharges:0, shrinkTimer:0, scoreX2Timer:0, wideTunnelTimer:0, wideTunnelBonus:0 };
     player.radius = BASE_RADIUS;
-    scrollDist = 0; speed = 95; running = false; gameOverShown = false; paused = false; trail = []; particles = []; bonusScore = 0;
+    scrollDist = 0; speed = 95; running = false; gameOverShown = false; paused = false; trail = []; particles = []; patternTrailParticles = []; bonusScore = 0;
     ensureGenerated(H*2 + 300);
     player.x = centerAt(H);
     reviveUsedThisRun = false;
@@ -4087,6 +4105,31 @@ window.addEventListener('keydown', (e)=>{
       trail.push({d:scrollDist, x:player.x});
       while(trail.length && trail[0].d < scrollDist - SEGMENTS*SEG_SPACING - 40) trail.shift();
 
+      // Génération de la traînée de motifs depuis la fin exacte du ver (queue) avec une densité réduite
+      if(Math.random() < 0.18) {
+        let patternSymbol = '⭐';
+        if(selectedPattern === 'tp') patternSymbol = '🧻';
+        else if(selectedPattern === 'gem') patternSymbol = '💎';
+        else if(selectedPattern === 'flower') patternSymbol = '🌸';
+        
+        // Calcul de la position exacte de la queue du ver
+        const tailDepth = scrollDist - SEGMENTS * SEG_SPACING;
+        let tailX = player.x;
+        for(let idx = trail.length - 1; idx >= 0; idx--) {
+          if(trail[idx].d <= tailDepth) { tailX = trail[idx].x; break; }
+          tailX = trail[idx].x;
+        }
+        const tailY = playerY + SEGMENTS * SEG_SPACING + 5; // Directement après le dernier segment de la queue
+
+        patternTrailParticles.push({
+          x: tailX + (Math.random() - 0.5) * 8,
+          y: tailY,
+          symbol: patternSymbol,
+          life: 1.0, // S'estompe progressivement vers le bas
+          size: 13 + Math.random() * 5
+        });
+      }
+
       if(effects.boostTimer > 0) effects.boostTimer -= dt;
       if(effects.shrinkTimer > 0) effects.shrinkTimer -= dt;
       if(effects.scoreX2Timer > 0) effects.scoreX2Timer -= dt;
@@ -4116,7 +4159,6 @@ window.addEventListener('keydown', (e)=>{
         document.getElementById('stageVal').textContent = newStage;
 
         checkpointRun();
-        /* glands : calculés par le serveur */
       }
 
       for(const pu of pickups){
@@ -4160,6 +4202,22 @@ window.addEventListener('keydown', (e)=>{
     } else {
       updateAmbienceSound(speed, false);
     }
+
+    // Affichage et estompage de la traînée de motifs (disparaît avant le bas de l'écran)
+    ctx.save();
+    for(let pt of patternTrailParticles) {
+      pt.y += speed * 0.05 * dt * 60; // Suit le défilement du niveau
+      pt.life -= dt * 1.2; // Vitesse d'estompage pour s'estomper avant le bas de l'écran
+      if(pt.life > 0 && pt.y < H - 80) {
+        ctx.globalAlpha = Math.max(0, pt.life);
+        ctx.font = `${Math.floor(pt.size)}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(pt.symbol, pt.x, pt.y);
+      }
+    }
+    patternTrailParticles = patternTrailParticles.filter(pt => pt.life > 0 && pt.y < H - 80);
+    ctx.restore();
 
     drawWorm();
 
@@ -4228,7 +4286,6 @@ window.addEventListener('keydown', (e)=>{
     saveLocalPoints(totalPoints);
     syncPointsToFirebase();
 
-    /* record : géré par le serveur */
     const ranked = renderLeaderboard(restored ? finalDist : undefined);
     document.getElementById('endResults').innerHTML = ranked.map((p,i)=>`
       <div class="result-row ${p.me?'me':''}">

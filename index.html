@@ -4,15 +4,15 @@
 <meta name="google-site-verification" content="scbJQaAjdQ5Ljt9i72GenibAQBYgwR_mXR5QogzjMmM" />
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Burrow.io — Jeu de tunnel multijoueur gratuit</title>
+<title>burrow-game.fun — Jeu de tunnel multijoueur gratuit</title>
 
-<meta name="description" content="Burrow.io : jeu de tunnel multijoueur gratuit, jouable directement dans le navigateur sans installation. Creuse, évite les obstacles, récupère des bonus et grimpe dans un classement en temps réel contre de vrais joueurs.">
+<meta name="description" content="burrow-game.fun : jeu de tunnel multijoueur gratuit, jouable directement dans le navigateur sans installation. Creuse, évite les obstacles, récupère des bonus et grimpe dans un classement en temps réel contre de vrais joueurs.">
 <meta name="robots" content="noindex, nofollow">
 <link rel="canonical" href="https://tan00708.github.io/burrow-game.io/">
 <meta name="theme-color" content="#FF6B35">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.85em%22 font-size=%2290%22>🐛</text></svg>">
 
-<meta property="og:title" content="BURROW.IO">
+<meta property="og:title" content="burrow-game.fun">
 <meta property="og:description" content="Plonge dans les profondeurs, évite les obstacles et bats les autres joueurs !">
 <meta property="og:image" content="https://tan00708.github.io/burrow-game.io/prewiew.png">
 <meta property="og:image:type" content="image/png">
@@ -23,7 +23,7 @@
 <meta property="og:locale" content="fr_FR">
 
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="BURROW.IO">
+<meta name="twitter:title" content="burrow-game.fun">
 <meta name="twitter:description" content="Jeu de tunnel multijoueur gratuit, jouable directement dans le navigateur.">
 <meta name="twitter:image" content="https://tan00708.github.io/burrow-game.io/prewiew.png">
 
@@ -31,7 +31,7 @@
 {
   "@context": "https://schema.org",
   "@type": "VideoGame",
-  "name": "Burrow.io",
+  "name": "burrow-game.fun",
   "description": "Jeu de tunnel multijoueur gratuit, jouable directement dans le navigateur : creuse, évite les obstacles, récupère des bonus et affronte de vrais joueurs en temps réel.",
   "url": "https://tan00708.github.io/burrow-game.io/",
   "image": "https://tan00708.github.io/burrow-game.io/prewiew.png",
@@ -1086,90 +1086,221 @@
     .worm-name{ font-size:10px; }
     .menu-btn{ padding:14px 16px; }
   }
+/* ===== NOUVEAU MENU ===== */
+.main-menu{ padding-top:64px; }
+.top-bar-left{ right:18px; max-width:none; height:auto; gap:14px; pointer-events:none; }
+.top-bar-left .nm-logo,
+.top-bar-left .auth-widget{ pointer-events:auto; }
+.auth-widget {
+    position: fixed;
+    top: 12px;
+    left: 50vw;
+    transform: translateX(-50%);
+    z-index: 21;
+}
+.auth-widget:hover {
+    transform: translateX(-50%) translateY(-1px);
+}
+.nm-logo{ margin:0; font-family:'Fredoka',sans-serif; font-size:28px; font-weight:800; color:var(--ink); line-height:38px; text-transform:lowercase; }
+.nm-logo span{ color:var(--accent-primary); }
+.nm-layout{
+  position:relative; z-index:1; display:grid;
+  grid-template-columns:minmax(200px,260px) minmax(300px,1fr) minmax(200px,260px);
+  gap:18px; width:min(1040px,94vw); height:calc(100vh - 96px); max-height:600px;
+}
+.nm-col{ display:flex; flex-direction:column; gap:14px; min-height:0; }
+.nm-card{ background:rgba(27,36,73,0.6); border:2px solid rgba(255,107,53,0.3); border-radius:16px; padding:14px; backdrop-filter:blur(10px); text-align:left; color:var(--ink); }
+.nm-card h3{ margin:0 0 12px; font-family:'Fredoka',sans-serif; font-size:16px; font-weight:700; }
+.nm-grow{ flex:1; min-height:0; overflow:auto; }
+.nm-chal{ margin-bottom:14px; }
+.nm-chal-t{ font-size:12px; font-weight:600; margin-bottom:5px; }
+.nm-bar{ height:7px; border-radius:4px; background:rgba(255,255,255,0.15); overflow:hidden; }
+.nm-bar i{ display:block; height:100%; width:0; background:linear-gradient(90deg,var(--accent-primary),var(--accent-secondary)); border-radius:4px; }
+.nm-chal-s{ font-size:11px; color:var(--ink-dim); margin-top:5px; }
+.nm-streak b{ display:block; font-family:'Fredoka',sans-serif; font-size:14px; }
+.nm-streak span{ font-size:11px; color:var(--ink-dim); }
+button.nm-rank{ width:100%; font-family:inherit; cursor:pointer; transition:all .2s ease; }
+button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-2px); }
+.nm-rank .nm-bar{ margin:10px 0 8px; }
+.nm-rank-hint{ font-size:11px; color:var(--ink-dim); }
+.nm-stage{ display:flex; flex-direction:column; align-items:center; gap:12px; min-height:0; border:1px solid rgba(255,107,53,0.35); border-radius:6px; padding:8px 16px 12px; }
+.nm-stage-label{ font-size:12px; font-weight:600; color:var(--ink-dim); text-align:center; display:flex; align-items:center; justify-content:center; gap:6px; width:100%; }
+.nm-stage-mid{ position:relative; flex:1; width:100%; min-height:0; }
+.nm-colors{ position:absolute; left:0; top:6px; width:150px; z-index:2; max-height:100%; overflow:auto; }
+.nm-colors.customize-section{ max-width:150px; padding:10px; }
+.nm-colors .color-grid{ gap:8px; }
+.nm-stage-mid .worm-container{ position:absolute; top:0; bottom:0; right:0; width:62%; max-width:none; }
+.nm-play{ width:min(100%,360px); min-width:0; font-size:22px; padding:18px 24px; color:#0A0E27; }
+.nm-record{ font-size:11px; color:var(--ink-dim); }
+.nm-record b{ color:var(--accent-primary); }
+.nm-mini-top .mini-row{ font-size:13px; padding:5px 0; }
+@media (max-width:820px){
+  .nm-layout{ grid-template-columns:1fr; height:auto; max-height:none; }
+  .nm-stage-mid{ height:380px; flex:none; }
+  .nm-col .nm-grow{ overflow:visible; }
+  .nm-logo{ font-size:20px; line-height:32px; }
+}
+/* NM-V2 */
+.nm-layout{ width:1200px; height:620px; max-height:none; flex:none; gap:28px;
+  grid-template-columns:296px 1fr 296px;
+  transform:translateY(20px) scale(var(--nm-s,1)); transform-origin:center center; }
+.nm-stage{ padding:12px 24px 16px; }
+.nm-colors{ width:160px; }
+.nm-colors.customize-section{ max-width:160px; }
+.nm-stage-mid .worm-container{ left:200px; right:0; width:auto; }
+.top-bar-left{ transform:scale(var(--nm-t,1)); transform-origin:top left; }
+.top-bar-right{ transform:scale(var(--nm-t,1)); transform-origin:top right; }
+@media (max-width:820px){
+  .nm-layout{ width:94vw; height:auto; grid-template-columns:1fr; gap:14px; transform:none; }
+  .top-bar-left,.top-bar-right{ transform:none; }
+  .nm-colors{ width:150px; }
+  .nm-stage-mid .worm-container{ left:170px; }
+}
+/* NM-V3 : bloc plus haut + menu couleur colle au coin */
+.nm-layout{ width:var(--nm-w,1200px); height:660px; grid-template-columns:0.54fr 1fr 0.54fr;
+  transform:translateY(10px) scale(var(--nm-s,1)); }
+.nm-stage{ position:relative; overflow:hidden; gap:0; padding:0 0 14px;
+  border:2px solid rgba(255,107,53,0.35); border-radius:16px; background:rgba(27,36,73,0.35); }
+.nm-stage-label{ height:44px; padding:0 24px; flex:none; }
+.nm-stage-mid{ margin-bottom:14px; }
+.nm-stage-mid .worm-container{ left:210px; right:20px; width:auto; }
+.nm-play{ margin-bottom:10px; }
+.nm-stage .privacy-link-inline{ position:static; transform:none; margin-top:6px; }
+.nm-stage .nm-colors,
+.nm-stage .nm-colors.customize-section{
+  left:14px; top:-30px; width:180px; max-width:180px; max-height:none; overflow:visible;
+  padding:12px; border:2px solid var(--accent-primary); border-radius:14px;
+  background:rgba(10,14,39,0.75); backdrop-filter:none;
+  box-shadow:0 0 14px rgba(255,107,53,0.25); }
+.nm-colors h3{ font-size:12px; letter-spacing:1.2px; margin:0 0 10px; }
+.nm-colors .color-grid{ grid-template-columns:repeat(2,1fr); gap:10px; }
+.nm-colors .color-option{ border:2px solid rgba(255,107,53,0.55); }
+.nm-colors .color-option{ border-radius:12px; }
+.nm-colors .color-option.selected{ border-color:var(--accent-primary); box-shadow:0 0 0 2px rgba(255,107,53,0.35), 0 0 14px rgba(255,107,53,0.6); }
+@media (max-width:820px){
+  .nm-layout{ width:94vw; height:auto; grid-template-columns:1fr; transform:none; }
+}
+/* NM-V5 : couleurs en une colonne + ver centré sur tout le cadre */
+.nm-stage{ overflow:hidden; backdrop-filter:none; }
+.nm-stage .nm-stage-mid .worm-container{
+  position:absolute; top:0; bottom:0; left:0; right:0;
+  width:100%; max-width:none;
+}
+.nm-stage .nm-colors,
+.nm-stage .nm-colors.customize-section{
+  left:14px; top:10px; width:76px; max-width:76px; padding:10px 8px;
+  box-sizing:border-box; max-height:none; overflow:visible;
+  backdrop-filter:none; z-index:3;
+}
+.nm-colors h3{ font-size:0; margin:0 0 8px; text-align:center; }
+.nm-colors h3::before{ content:'🎨'; font-size:18px; }
+.nm-colors .color-grid{ grid-template-columns:1fr; gap:8px; }
+.nm-colors .color-option{ width:100%; aspect-ratio:1; border-radius:10px; }
+/* Rank : rang passé à gauche, rang à venir à droite */
+.nm-rank-track{ display:flex; align-items:center; gap:10px; margin:12px 0 8px; }
+.nm-rank .nm-rank-track .nm-bar{ flex:1; margin:0; }
+.nm-rank-track .rank-oval{ width:30px; height:30px; font-size:14px; }
+.nm-rank .nm-rank-track .nm-bar{ height:12px; border-radius:6px; background:rgba(255,255,255,0.22); }
+.nm-rank .nm-rank-track .nm-bar i{ border-radius:6px; box-shadow:0 0 8px rgba(255,107,53,0.6); transition:width .5s ease; }
+/* Rank Road : barre sous les étiquettes + case de score plus basse */
+.rank-road-continuous-line{ top:128px; }
+.rank-player-marker-container{ top:128px; }
+.rank-player-pin{ height:44px; }
+/* Top 10 + record perso */
+.nm-mini-top .mini-row{ font-size:13px; padding:4px 0; }
+.nm-mini-top .mini-row .mini-rank{ display:inline-block; min-width:22px; }
+.nm-pb{ flex:none; text-align:center; padding:14px 14px 16px; }
+.nm-pb-label{ font-family:'Fredoka',sans-serif; font-size:13px; font-weight:600; color:var(--ink-dim); }
+.nm-pb-val{ font-family:'Fredoka',sans-serif; font-size:34px; font-weight:800; color:var(--accent-primary); line-height:1.15; margin:6px 0 4px; }
+.nm-pb-sub{ font-size:11px; color:var(--ink-dim); min-height:14px; }
+/* Top 10 : lignes réparties sur toute la hauteur */
+.nm-mini-top{ display:flex; flex-direction:column; overflow:hidden; }
+.nm-mini-top #globalScoresList{ flex:1; display:flex; flex-direction:column; justify-content:space-between; }
+.nm-mini-top .mini-row{ padding:0; font-size:14px; flex:1; }
+.mini-row-empty{ opacity:.35; }
+.mini-row-empty .mini-dist{ color:var(--ink-dim); }
 </style>
 </head>
 <script src="analytics.js"></script>
 <body>
 
 <div class="main-menu" id="mainMenu">
-  <div class="menu-bg">
-    <canvas id="bgCanvas"></canvas>
-  </div>
+  <div class="menu-bg"><canvas id="bgCanvas"></canvas></div>
 
   <div class="top-bar-left">
-    <div class="auth-widget" id="authWidget" title="Compte"></div>
+    <h1 class="nm-logo" id="gameTitle">burrow-game<span>.fun</span></h1>
+  </div>
+  <div class="auth-widget" id="authWidget" title="Compte"></div>
+
+  <div class="top-bar-right">
+    <button class="shop-widget" id="shopBtn" type="button" title="Boutique">
+      🛒 <span id="acornsVal">0</span> 🌰
+    </button>
     <select class="lang-select-widget" id="langSelect">
       <option value="fr">🇫🇷 FR</option>
       <option value="en">🇬🇧 EN</option>
       <option value="es">🇪🇸 ES</option>
       <option value="de">🇩🇪 DE</option>
     </select>
-  </div>
-
-  <h1 class="title" id="gameTitle">BURROW.IO</h1>
-
-  <div class="top-bar-right">
     <button class="audio-widget" id="audioToggleBtn" type="button" title="Activer/Désactiver le son">🔊 Son</button>
-    <button class="shop-widget" id="shopBtn" type="button" title="Boutique">
-      🛒 <span id="acornsVal">0</span> 🌰
-    </button>
   </div>
 
-  <p class="sr-only">Burrow.io est un jeu de tunnel (.io) multijoueur gratuit, jouable directement dans le navigateur sans téléchargement ni installation. Creuse à travers des cavernes générées aléatoirement à travers 8 décors différents (grotte, volcan, glacier, lune...), évite les obstacles, ramasse des bonus (boost de vitesse, bouclier, réduction de taille) et va le plus loin possible pour grimper dans le classement mondial des meilleurs scores.</p>
-  <div class="menu-content">
-    <div class="menu-top-left">
-      <div class="customize-section">
-        <h3 data-i18n="color">🎨 Couleur</h3>
-        <div class="color-grid">
-          <div class="color-option color-option-plus" id="wormCustomizeBtn" title="Personnaliser">+</div>
-          <div class="color-option" data-color="#6BA3C4" style="background:linear-gradient(135deg, #6BA3C4, #5A92B3);" title="Bleu"></div>
-          <div class="color-option" data-color="#78D4A8" style="background:linear-gradient(135deg, #78D4A8, #67C397);" title="Vert"></div>
-          <div class="color-option selected" data-color="#FF6FA5" style="background:linear-gradient(135deg, #FF6FA5, #E8578F);" title="Rose"></div>
-          <div class="color-option" data-color="#D97B5A" style="background:linear-gradient(135deg, #D97B5A, #C86A49);" title="Orange"></div>
-          <div class="color-option" data-color="#B383B8" style="background:linear-gradient(135deg, #B383B8, #A272A7);" title="Violet"></div>
-        </div>
+  <p class="sr-only">burrow-game.fun est un jeu de tunnel (.io) multijoueur gratuit, jouable directement dans le navigateur sans téléchargement ni installation. Creuse à travers des cavernes générées aléatoirement à travers 8 décors différents (grotte, volcan, glacier, lune...), évite les obstacles, ramasse des bonus (boost de vitesse, bouclier, réduction de taille) et va le plus loin possible pour grimper dans le classement mondial des meilleurs scores.</p>
+
+  <div class="nm-layout">
+    <!-- GAUCHE -->
+    <div class="nm-col">
+      <div class="nm-card nm-grow">
+        <h3>Défis du jour</h3>
+        <div class="nm-chal"><div class="nm-chal-t">Atteindre 500 m</div><div class="nm-bar"><i id="ch1Bar"></i></div><div class="nm-chal-s" id="ch1Txt"></div></div>
+        <div class="nm-chal"><div class="nm-chal-t">Ramasser 3 bonus</div><div class="nm-bar"><i id="ch2Bar"></i></div><div class="nm-chal-s" id="ch2Txt"></div></div>
+        <div class="nm-chal"><div class="nm-chal-t">Passer le stage 3</div><div class="nm-bar"><i id="ch3Bar"></i></div><div class="nm-chal-s" id="ch3Txt"></div></div>
       </div>
-      <div class="customize-section records-section">
+      <div class="nm-card nm-streak"><b id="streakTitle">Série : 1 jour</b><span>Reviens demain pour continuer ta série</span></div>
+    </div>
+
+    <!-- CENTRE -->
+    <div class="nm-stage">
+      <div class="nm-stage-label">Ton ver · Rang <span id="wormRankEmojiDisplay">🥉</span> <span id="wormRankName"></span></div>
+      <div class="nm-stage-mid">
+        <div class="customize-section nm-colors">
+          <h3 data-i18n="color">🎨 Couleur</h3>
+          <div class="color-grid">
+            <div class="color-option color-option-plus" id="wormCustomizeBtn" title="Personnaliser">+</div>
+            <div class="color-option" data-color="#6BA3C4" style="background:linear-gradient(135deg, #6BA3C4, #5A92B3);" title="Bleu"></div>
+            <div class="color-option" data-color="#78D4A8" style="background:linear-gradient(135deg, #78D4A8, #67C397);" title="Vert"></div>
+            <div class="color-option selected" data-color="#FF6FA5" style="background:linear-gradient(135deg, #FF6FA5, #E8578F);" title="Rose"></div>
+            <div class="color-option" data-color="#D97B5A" style="background:linear-gradient(135deg, #D97B5A, #C86A49);" title="Orange"></div>
+            <div class="color-option" data-color="#B383B8" style="background:linear-gradient(135deg, #B383B8, #A272A7);" title="Violet"></div>
+          </div>
+        </div>
+        <div class="worm-container"><canvas id="wormCanvas3D"></canvas></div>
+      </div>
+      <button class="menu-btn btn-play nm-play" id="menuStartBtn" data-i18n="play">▶ Jouer</button>
+      <div class="nm-record">Record : <b id="personalBestVal">0 m</b> · Touche Entrée pour lancer</div>
+      <a class="privacy-link-inline" href="confidentialite.html" target="_blank" rel="noopener" data-i18n="privacy">Confidentialité</a>
+    </div>
+
+    <!-- DROITE -->
+    <div class="nm-col">
+      <button class="nm-card nm-rank" id="openRankModalBtn" type="button" title="Voir les rangs">
+        <h3 id="menuRankName" style="margin:0">Rang</h3>
+        <div class="nm-rank-track">
+          <div class="rank-oval" id="widgetRankOvalLeft">🥉</div>
+          <div class="nm-bar"><i id="widgetRankFill"></i></div>
+          <div class="rank-oval" id="widgetRankOvalRight">🥈</div>
+        </div>
+        <div class="nm-rank-hint" id="menuRankHint"></div>
+      </button>
+      <div class="nm-card nm-grow nm-mini-top">
         <h3 data-i18n="topScores">🏆 Meilleurs scores</h3>
         <div id="globalScoresList"><div class="mini-empty" data-i18n="loading">Chargement...</div></div>
       </div>
-    </div>
-
-    <div class="menu-top-right">
-      <div class="customize-section personal-section">
-        <h3 data-i18n="yourRecord">⭐ Ton record</h3>
-        <p class="personal-best-value" id="personalBestVal">0 m</p>
-        <p class="personal-best-label" data-i18n="bestDistLabel">Meilleure distance parcourue</p>
-        <div class="stat-divider"></div>
-        <p class="personal-best-value" id="personalPointsVal">0</p>
-        <p class="personal-best-label" data-i18n="totalScoreLabel">Score cumulé total</p>
-
-        <button class="rank-widget-btn" id="openRankModalBtn" type="button" title="Voir les rangs">
-          <div class="rank-preview-square" id="widgetRankSquare">🥉</div>
-          <div class="rank-track-line">
-            <div class="rank-oval" id="widgetRankOvalLeft">🥉</div>
-            <div class="rank-progress-bar-bg">
-              <div class="rank-progress-bar-fill" id="widgetRankFill"></div>
-            </div>
-            <div class="rank-oval" id="widgetRankOvalRight">🥈</div>
-          </div>
-        </button>
+        <div class="nm-card nm-pb">
+        <div class="nm-pb-label">⭐ Ton meilleur score</div>
+        <div class="nm-pb-val" id="pbCardVal">0 m</div>
+        <div class="nm-pb-sub" id="pbCardSub"></div>
       </div>
-    </div>
-
-    <div class="menu-center">
-      <div class="worm-container">
-        <canvas id="wormCanvas3D"></canvas>
-        <div class="worm-info">
-          <span class="worm-rank-tag" id="wormRankEmojiDisplay">🥉</span>
-          <p class="worm-name" id="wormNameDisplay" data-i18n="yourWorm">Ton Ver</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="menu-bottom">
-      <button class="menu-btn btn-play" id="menuStartBtn" data-i18n="play">▶ Jouer</button>
-      <a class="privacy-link-inline" href="confidentialite.html" target="_blank" rel="noopener" data-i18n="privacy">Confidentialité</a>
     </div>
   </div>
 </div>
@@ -1848,7 +1979,7 @@
   const BOOST_UNLOCK_RANK = 2;
   const BOOST_PRICE = 750;
   const BOOST_DURATION = 15;
-  let boostUnlocked = localStorage.getItem(BOOST_UNLOCK_KEY) === '1';
+  let boostUnlocked = false;
   let boostUsedThisRun = false;
 
   const SHOP_POWERS = {
@@ -1862,6 +1993,123 @@
   let totalPoints = 0;
   let totalAcorns = 0;
   let powerInventory = { scoreX2:0, wideTunnel:0, shield:0 };
+
+  // ===== SERVEUR (Cloudflare Worker) =====
+  const API = 'https://burrow-api.burrow-game.workers.dev';
+  const SESSION_KEY = 'burrowio_session';
+  let sessionToken = null;
+  try{ sessionToken = localStorage.getItem(SESSION_KEY); }catch(e){}
+  let serverNick = null;
+  let buyBusy = false;
+
+  function setSession(tok){
+    sessionToken = tok;
+    try{ if(tok) localStorage.setItem(SESSION_KEY, tok); else localStorage.removeItem(SESSION_KEY); }catch(e){}
+  }
+
+  function apiNotice(msg){
+    let el = document.getElementById('apiNotice');
+    if(!el){
+      el = document.createElement('div');
+      el.id = 'apiNotice';
+      el.style.cssText = 'position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:100;background:rgba(27,36,73,.95);border:2px solid rgba(255,107,53,.5);color:#fff;font:600 14px Fredoka,sans-serif;padding:10px 18px;border-radius:12px;pointer-events:none;transition:opacity .3s;opacity:0;';
+      document.body.appendChild(el);
+    }
+    el.textContent = msg;
+    el.style.opacity = '1';
+    clearTimeout(el._t);
+    el._t = setTimeout(()=>{ el.style.opacity = '0'; }, 3000);
+  }
+
+  async function apiFetch(path, body){
+    try{
+      const opts = { headers: {} };
+      if(sessionToken && path !== '/leaderboard') opts.headers.Authorization = 'Bearer ' + sessionToken;
+      if(body !== undefined){
+        opts.method = 'POST';
+        opts.headers['Content-Type'] = 'application/json';
+        opts.body = JSON.stringify(body);
+      }
+      const r = await fetch(API + path, opts);
+      const data = await r.json().catch(()=>null);
+      if(data && data.error === 'auth' && sessionToken){
+        apiNotice('Session expirée, reconnecte-toi');
+        resetIdentity();
+      }
+      return data;
+    }catch(e){ return null; }
+  }
+
+  function applyProfile(p){
+    if(!p) return;
+    currentBestDist = p.best | 0;
+    totalPoints = p.points | 0;
+    totalAcorns = p.acorns | 0;
+    powerInventory = { scoreX2: p.inv.scoreX2 | 0, wideTunnel: p.inv.wideTunnel | 0, shield: p.inv.shield | 0 };
+    boostUnlocked = !!p.boost;
+    serverNick = p.nickname;
+    playerState.nickname = p.nickname;
+    renderMenuRecords();
+    renderAbilityHud();
+    const so = document.getElementById('shopOverlay');
+    if(so && so.classList.contains('show')) renderShop(false);
+  }
+
+  async function refreshProfile(){
+    const res = await apiFetch('/me');
+    if(res && res.profile) applyProfile(res.profile);
+  }
+
+  async function refreshLeaderboard(){
+    const res = await apiFetch('/leaderboard');
+    if(res && Array.isArray(res.top)){
+      globalTopScores = res.top.map(s => ({ nickname: s.nickname, dist: s.best }));
+      renderMenuRecords();
+    }else{
+      const listEl = document.getElementById('globalScoresList');
+      if(listEl && !globalTopScores.length) listEl.innerHTML = `<div class="mini-empty">${t('noLeaderboard')}</div>`;
+    }
+  }
+
+  function checkpointRun(){
+    if(!sessionToken) return;
+    apiFetch('/run/end', { dist: Math.floor(scrollDist / 8), bonus: Math.floor(bonusScore) });
+  }
+
+  async function submitRun(dist, bonus){
+    if(!sessionToken) return;
+    let res = await apiFetch('/run/end', { dist, bonus });
+    if(res && res.error === 'retry') res = await apiFetch('/run/end', { dist, bonus });
+    if(res && res.profile) applyProfile(res.profile);
+    if(res && res.error === 'implausible') apiNotice('Score refusé par le serveur');
+    else if(!res) apiNotice('Serveur indisponible : partie non enregistrée');
+    refreshLeaderboard();
+  }
+
+  async function buyShopPower(id){
+    if(buyBusy) return;
+    const power = getShopPowerConfig(id);
+    if(!power || getRankForScore(totalPoints).index < power.unlockRank || totalAcorns < power.price) return;
+    buyBusy = true;
+    const res = await apiFetch('/shop/buy', { id });
+    buyBusy = false;
+    if(res && res.profile){
+      applyProfile(res.profile);
+      if(res.ok) playSFX('powerup'); else apiNotice('Achat refusé');
+    }else apiNotice('Serveur indisponible');
+  }
+
+  async function buyBoost(){
+    if(buyBusy || boostUnlocked || getRankForScore(totalPoints).index < BOOST_UNLOCK_RANK || totalAcorns < BOOST_PRICE) return;
+    buyBusy = true;
+    const res = await apiFetch('/shop/boost', {});
+    buyBusy = false;
+    if(res && res.profile){
+      applyProfile(res.profile);
+      if(res.ok) playSFX('powerup'); else apiNotice('Achat refusé');
+    }else apiNotice('Serveur indisponible');
+  }
+  // ===== FIN BLOC SERVEUR =====
 
   function getScoreId(){
     return (fbAuth && fbAuth.currentUser) ? fbAuth.currentUser.uid : null;
@@ -1894,15 +2142,7 @@
     try{ localStorage.setItem(INVENTORY_KEY, JSON.stringify(powerInventory)); }catch(e){}
   }
 
-  function syncPointsToFirebase(){
-    const sid = getScoreId();
-    if(!db || !sid) return;
-    db.ref('points/' + sid).set({
-      nickname: playerState.nickname,
-      points: totalPoints,
-      ts: Date.now()
-    }).catch(err=> {});
-  }
+  function syncPointsToFirebase(){ return; }
 
   let globalTopScores = [];
 
@@ -1910,11 +2150,15 @@
     const listEl = document.getElementById('globalScoresList');
     if(listEl){
       if(globalTopScores.length){
-        listEl.innerHTML = globalTopScores.map((s,i)=>`
+        const rows = globalTopScores.map((s,i)=>`
           <div class="mini-row">
             <span><span class="mini-rank">${i+1}.</span>${escapeHtml(s.nickname || 'Joueur')}</span>
             <span class="mini-dist">${Math.floor(s.dist)}m</span>
-          </div>`).join('');
+          </div>`);
+        for(let i = globalTopScores.length; i < 10; i++){
+          rows.push(`<div class="mini-row mini-row-empty"><span><span class="mini-rank">${i+1}.</span>Place libre</span><span class="mini-dist">—</span></div>`);
+        }
+        listEl.innerHTML = rows.join('');
       } else {
         listEl.innerHTML = `<div class="mini-empty">${t('beFirst')}</div>`;
       }
@@ -1926,6 +2170,7 @@
     const acornsEl = document.getElementById('acornsVal');
     if(acornsEl) acornsEl.textContent = totalAcorns;
     updateRankUI();
+    renderNewMenu();
   }
 
   function soonShopHtml(){    return `      <div class="shop-item-row">        <div class="shop-preview-box"><div class="shop-preview-placeholder"><span class="preview-placeholder-emoji">?</span><span class="preview-placeholder-text">Bientôt</span></div></div>        <div class="shop-item-info">          <div class="shop-item-text"><h3>Coming soon</h3><p>Un nouvel avantage permanent arrive.</p></div>          <button class="btn shop-buy is-locked" type="button" disabled>Bientôt</button>        </div>      </div>`;  }  
@@ -1959,7 +2204,7 @@
       ${soonShopHtml()}${soonShopHtml()}`;
   }
 
-  function buyBoost(){
+  function buyBoostOld(){
     if(boostUnlocked || getRankForScore(totalPoints).index < BOOST_UNLOCK_RANK || totalAcorns < BOOST_PRICE) return;
     totalAcorns -= BOOST_PRICE;
     boostUnlocked = true;
@@ -2077,15 +2322,15 @@
         'prewiew_power_up/preview_power_up_shield.mp4',
         './prewiew_power_up/preview_power_up_shield.mp4',
         'prewiew_power_up/prewiew_power_up_shield.mp4',
-        'preview_power_up/preview_power_up_shield.mp4',
+        'prewiew_power_up/prewiew_power_up_shield.mp4',
         'preview_power_up_shield.mp4',
-        'preview_power_up_shield.mp4'
+        'prewiew_power_up_shield.mp4'
       ],
       boost: [
         'prewiew_power_up/preview_power_up_boost.mp4',
         './prewiew_power_up/preview_power_up_boost.mp4',
+        'prewiew_power_up/prewiew_power_up_boost.mp4',
         'prewiew_power_up/preview_power_up_boost.mp4',
-        'preview_power_up/preview_power_up_boost.mp4',
         'preview_power_up_boost.mp4',
         'prewiew_power_up_boost.mp4'
       ]
@@ -2240,7 +2485,7 @@
     });
   }
 
-  function buyShopPower(id){
+  function buyShopPowerOld(id){
     const power = getShopPowerConfig(id);
     if(!power || getRankForScore(totalPoints).index < power.unlockRank || totalAcorns < power.price) return;
     totalAcorns -= power.price;
@@ -2329,7 +2574,7 @@
         otherPlayers = next;
       });
 
-      db.ref('scores').orderByChild('dist').limitToLast(5).on('value', (snap)=>{
+      if(false) db.ref('scores').orderByChild('dist').limitToLast(9).on('value', (snap)=>{
         const val = snap.val() || {};
         globalTopScores = Object.values(val).sort((a,b)=>b.dist-a.dist);
         renderMenuRecords();
@@ -2346,32 +2591,10 @@
   initMultiplayer();
 
   function submitScoreIfHigher(distMeters){
-    const rounded = Math.floor(distMeters);
-    const isNewBest = rounded > currentBestDist;
-    if(isNewBest){
-      currentBestDist = rounded;
-      saveLocalBest(rounded);
-      const sid = getScoreId();
-      if(db && sid){
-        db.ref('scores/' + sid).set({
-          nickname: playerState.nickname,
-          color: playerState.wormColor,
-          dist: rounded,
-          ts: Date.now(),
-          discord: !!discordUser
-        }).catch((err)=>{});
-      }
-    }
-    renderMenuRecords();
+    /* record : géré par le serveur */
   }
 
-  function markRunStart(){
-    authReady.then(()=>{
-      const sid = getScoreId();
-      if(!db || !sid) return;
-      db.ref('runs/' + sid).set({ start: firebase.database.ServerValue.TIMESTAMP }).catch(()=>{});
-    });
-  }
+  function markRunStart(){ if(sessionToken) apiFetch('/run/start', {}); return; }
 
   function mpForceUpdate(){
     if(!mpReady || !myPlayerRef) return;
@@ -2524,17 +2747,15 @@
       el.innerHTML = '';
     }
     const logoutBtn = document.getElementById('identityLogoutBtn');
-    if(logoutBtn) logoutBtn.addEventListener('click', (e)=>{
+    if(logoutBtn) logoutBtn.addEventListener('click', (e)=>{ if(guestPseudo && !discordUser && !confirm('Déconnecter ce pseudo ? Sa progression sera perdue pour toujours. Connecte-toi avec Discord pour la garder.')){ e.stopPropagation(); return; }
       e.stopPropagation();
       resetIdentity();
       playSFX('click');
     });
   }
 
-  function hasIdentity(){
-    return !!(discordUser || guestPseudo);
-  }
-  function applyIdentityToPlayerState(){
+  function hasIdentity(){ return !!(sessionToken && (discordUser || guestPseudo)); }
+  function applyIdentityToPlayerState(){ if(serverNick){ playerState.nickname = serverNick; return; }
     if(discordUser) playerState.nickname = discordUser.username;
     else if(guestPseudo) playerState.nickname = guestPseudo;
   }
@@ -2547,7 +2768,7 @@
     }
     renderAuthWidget();
   }
-  function resetIdentity(){
+  function resetIdentity(){ setSession(null); serverNick = null; boostUnlocked = false; powerInventory = { scoreX2:0, wideTunnel:0, shield:0 };
     clearPendingRun();
     clearDiscordSession();
     clearGuestPseudo();
@@ -2561,6 +2782,25 @@
   }
 
   async function handleDiscordRedirect(){
+    if(!location.hash || location.hash.indexOf('access_token') === -1) return false;
+    const params = new URLSearchParams(location.hash.slice(1));
+    const token = params.get('access_token');
+    if(!token) return false;
+    history.replaceState(null, '', location.pathname + location.search);
+    if(loadPendingRun()) document.getElementById('mainMenu').classList.add('hidden');
+    try{
+      const user = await fetchDiscordUser(token);
+      const res = await apiFetch('/auth/discord', { token });
+      if(!res || !res.token){ apiNotice('Connexion Discord refusée'); return false; }
+      setSession(res.token);
+      discordUser = user;
+      saveDiscordSession(user, null, 0);
+      applyProfile(res.profile);
+      checkIdentityGate();
+      return true;
+    }catch(e){ return false; }
+  }
+  async function handleDiscordRedirectOld(){
     if(!location.hash || location.hash.indexOf('access_token') === -1) return false;
     const params = new URLSearchParams(location.hash.slice(1));
     const token = params.get('access_token');
@@ -2581,10 +2821,12 @@
     const stored = loadStoredDiscordUser();
     if(stored) discordUser = stored;
     guestPseudo = loadGuestPseudo();
-    currentBestDist = loadLocalBest();
-    totalPoints = loadLocalPoints();
-    totalAcorns = loadLocalAcorns();
-    powerInventory = loadPowerInventory();
+    currentBestDist = 0; totalPoints = 0; totalAcorns = 0;
+    powerInventory = { scoreX2:0, wideTunnel:0, shield:0 };
+    if(!sessionToken){ clearDiscordSession(); clearGuestPseudo(); }
+    else refreshProfile();
+    refreshLeaderboard();
+    setInterval(()=>{ if(!mainMenu.classList.contains('hidden')) refreshLeaderboard(); }, 60000);
 
     applyTranslations();
     if(!location.hash || location.hash.indexOf('access_token') === -1) clearPendingRun();
@@ -2602,7 +2844,24 @@
 
     const guestPlayBtn = document.getElementById('guestPlayBtn');
     const guestInput = document.getElementById('guestNicknameInput');
-    function submitGuest(){
+    async function submitGuest(){
+      const val = (guestInput.value || '').trim();
+      if(val.length < 3){ apiNotice('Pseudo trop court (3 caractères minimum)'); return; }
+      const res = await apiFetch('/auth/guest', { nickname: val });
+      if(!res || !res.token){ apiNotice(res && res.error === 'bad_nickname' ? 'Pseudo invalide' : 'Serveur indisponible'); return; }
+      setSession(res.token);
+      guestPseudo = res.profile.nickname;
+      saveGuestPseudo(guestPseudo);
+      applyProfile(res.profile);
+      checkIdentityGate();
+      playSFX('click');
+      if(pendingRun){
+        const run = pendingRun;
+        clearPendingRun();
+        completeGameOver(run.dist, run.bonus, false, false);
+      }
+    }
+    function submitGuestOld(){
       const val = (guestInput.value || '').trim();
       if(!val) return;
       guestPseudo = val.slice(0, 20);
@@ -2664,26 +2923,25 @@
 
   function resizeWormCanvas(){
     const dpr = window.devicePixelRatio || 1;
-    const rect = wormCanvas.parentElement.getBoundingClientRect();
-    wormCanvas.width = rect.width * dpr;
-    wormCanvas.height = rect.height * dpr;
-    wormCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const rect = { width: wormCanvas.parentElement.offsetWidth, height: wormCanvas.parentElement.offsetHeight }; const S = window.__nmScale || 1;
+    wormCanvas.width = rect.width * dpr * S;
+    wormCanvas.height = rect.height * dpr * S;
+    wormCtx.setTransform(dpr * S, 0, 0, dpr * S, 0, 0);
   }
   resizeWormCanvas();
   window.addEventListener('resize', resizeWormCanvas);
 
   function draw3DWorm(){
-    const w = wormCanvas.width / (window.devicePixelRatio || 1);
-    const h = wormCanvas.height / (window.devicePixelRatio || 1);
+    const w = wormCanvas.width / ((window.devicePixelRatio || 1) * (window.__nmScale || 1));
+    const h = wormCanvas.height / ((window.devicePixelRatio || 1) * (window.__nmScale || 1));
 
-    wormCtx.fillStyle = 'rgba(20, 25, 50, 0.3)';
-    wormCtx.fillRect(0, 0, w, h);
+    wormCtx.clearRect(0, 0, w, h);
 
     const centerX = w / 2;
     const centerY = h / 2;
 
     wormCtx.save();
-    wormCtx.translate(centerX, centerY);
+    wormCtx.translate(centerX, centerY); wormCtx.scale(1.7, 1.7); wormCtx.translate(0, -65);
 
     wormRotation += 1.5;
     wormTime += 0.03;
@@ -2723,28 +2981,29 @@
     }
 
     wormCtx.save();
-    wormCtx.scale(1, 0.95);
+    wormCtx.translate(Math.cos(wormTime - 0.3) * 3, Math.sin(wormTime - 0.4) * 4);
+      wormCtx.scale(1, 0.95);
 
     wormCtx.fillStyle = `rgba(255, 107, 53, 0.15)`;
     wormCtx.beginPath();
-    wormCtx.arc(0, -segmentCount * segmentSpacing, 16, 0, Math.PI * 2);
+    wormCtx.arc(0, -segmentSpacing, 16, 0, Math.PI * 2);
     wormCtx.fill();
 
     wormCtx.fillStyle = adjustBrightness(playerState.wormColor, 15);
     wormCtx.beginPath();
-    wormCtx.arc(0, -segmentCount * segmentSpacing, 12, 0, Math.PI * 2);
+    wormCtx.arc(0, -segmentSpacing, 12, 0, Math.PI * 2);
     wormCtx.fill();
 
     wormCtx.fillStyle = 'rgba(40, 20, 15, 0.9)';
     wormCtx.beginPath();
-    wormCtx.arc(-4, -segmentCount * segmentSpacing - 2, 2, 0, Math.PI * 2);
-    wormCtx.arc(4, -segmentCount * segmentSpacing - 2, 2, 0, Math.PI * 2);
+    wormCtx.arc(-4, -segmentSpacing - 2, 2, 0, Math.PI * 2);
+    wormCtx.arc(4, -segmentSpacing - 2, 2, 0, Math.PI * 2);
     wormCtx.fill();
 
     wormCtx.fillStyle = 'rgba(255, 255, 255, 0.6)';
     wormCtx.beginPath();
-    wormCtx.arc(-3.2, -segmentCount * segmentSpacing - 3, 0.8, 0, Math.PI * 2);
-    wormCtx.arc(4.8, -segmentCount * segmentSpacing - 3, 0.8, 0, Math.PI * 2);
+    wormCtx.arc(-3.2, -segmentSpacing - 3, 0.8, 0, Math.PI * 2);
+    wormCtx.arc(4.8, -segmentSpacing - 3, 0.8, 0, Math.PI * 2);
     wormCtx.fill();
 
     wormCtx.restore();
@@ -2901,6 +3160,80 @@
   });
 
   renderMenuRecords();
+
+  function todayStr(){ return new Date().toISOString().slice(0,10); }
+function bumpPickups(){
+  let d = {};
+  try{ d = JSON.parse(localStorage.getItem('burrowio_daily') || '{}'); }catch(e){}
+  if(d.date !== todayStr()) d = { date: todayStr(), pickups: 0 };
+  d.pickups++;
+  try{ localStorage.setItem('burrowio_daily', JSON.stringify(d)); }catch(e){}
+}
+function getStreak(){
+  let s = {};
+  try{ s = JSON.parse(localStorage.getItem('burrowio_streak') || '{}'); }catch(e){}
+  if(s.last !== todayStr()){
+    const y = new Date(Date.now() - 864e5).toISOString().slice(0,10);
+    s.n = (s.last === y ? (s.n || 0) : 0) + 1;
+    s.last = todayStr();
+    try{ localStorage.setItem('burrowio_streak', JSON.stringify(s)); }catch(e){}
+  }
+  return s.n || 1;
+}
+function setChal(id, val, goal){
+  const p = Math.min(1, val / goal);
+  const bar = document.getElementById(id + 'Bar'), txt = document.getElementById(id + 'Txt');
+  if(bar) bar.style.width = (p * 100) + '%';
+  if(txt) txt.textContent = p >= 1 ? 'Terminé' : (id === 'ch1' ? Math.floor(val) + ' / ' + goal + ' m' : (id === 'ch2' ? val + ' / ' + goal : 'Pas encore'));
+}
+function renderNewMenu(){
+  const info = getRankForScore(totalPoints);
+  const n = document.getElementById('menuRankName');
+  if(n) n.textContent = 'Rang ' + info.current.name;
+  const nm = document.getElementById('wormRankName');
+  if(nm) nm.textContent = info.current.name;
+
+  const h = document.getElementById('menuRankHint');
+  const fillEl = document.getElementById('widgetRankFill');
+  if(info.next){
+    const span = info.next.minScore - info.current.minScore;
+    const done = Math.max(0, totalPoints - info.current.minScore);
+    const pct = Math.min(100, done / span * 100);
+    if(fillEl) fillEl.style.width = Math.max(pct, 3) + '%';
+    if(h) h.textContent = totalPoints.toLocaleString() + ' / ' + info.next.minScore.toLocaleString() + ' pts · ' + (info.next.minScore - totalPoints).toLocaleString() + ' avant ' + info.next.name;
+  } else {
+    if(fillEl) fillEl.style.width = '100%';
+    if(h) h.textContent = 'Rang maximum';
+  }
+
+  let d = {};
+  try{ d = JSON.parse(localStorage.getItem('burrowio_daily') || '{}'); }catch(e){}
+  const pk = d.date === todayStr() ? (d.pickups || 0) : 0;
+  setChal('ch1', currentBestDist, 500);
+  setChal('ch2', Math.min(pk, 3), 3);
+  setChal('ch3', stageForMeters(currentBestDist), 3);
+  const st = getStreak();
+  const streakEl = document.getElementById('streakTitle');
+  if(streakEl) streakEl.textContent = 'Série : ' + st + ' jour' + (st > 1 ? 's' : '');
+  const pbVal = document.getElementById('pbCardVal');
+  if(pbVal) pbVal.textContent = currentBestDist.toLocaleString() + ' m';
+  const pbSub = document.getElementById('pbCardSub');
+  if(pbSub){
+    const last = globalTopScores.length >= 10 ? Math.floor(globalTopScores[globalTopScores.length - 1].dist) : 0;
+    if(globalTopScores.length >= 10 && currentBestDist < last) pbSub.textContent = (last - currentBestDist).toLocaleString() + ' m pour entrer dans le top 10';
+    else if(globalTopScores.length >= 10) pbSub.textContent = 'Tu es dans le top 10 🎉';
+    else pbSub.textContent = totalPoints.toLocaleString() + ' pts cumulés';
+  }
+}
+
+window.addEventListener('keydown', (e)=>{
+  if(e.key !== 'Enter') return;
+  if(mainMenu.classList.contains('hidden')) return;
+  if(document.querySelector('.overlay.show')) return;
+  const tag = document.activeElement && document.activeElement.tagName;
+  if(tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
+  menuStartBtn.click();
+});
 
   function adjustBrightness(color, percent) {
     const num = parseInt(color.replace("#",""), 16);
@@ -3335,6 +3668,7 @@
   }
 
   function applyPowerup(kind){
+    bumpPickups();
     if(kind === 'boost') effects.boostTimer = Math.max(effects.boostTimer, 3);
     else if(kind === 'shield') effects.shieldCharges = Math.min(MAX_SHIELD_CHARGES, effects.shieldCharges + 1);
     else if(kind === 'shrink') effects.shrinkTimer = 5;
@@ -3380,7 +3714,7 @@
     if(id === 'wideTunnel' && effects.wideTunnelTimer >= MAX_WIDETUNNEL_TIME) return;
     if(id === 'shield' && effects.shieldCharges >= MAX_SHIELD_CHARGES) return;
 
-    powerInventory[id]--;
+    powerInventory[id]--; apiFetch('/power/use', { id });
     if(id === 'scoreX2'){
       effects.scoreX2Timer = Math.min(MAX_SCOREX2_TIME, effects.scoreX2Timer + power.duration);
     } else if(id === 'wideTunnel'){
@@ -3516,7 +3850,7 @@
       markVisited();
       if(run){
         mainMenu.classList.add('hidden');
-        completeGameOver(run.dist, run.bonus, true);
+        completeGameOver(run.dist, run.bonus, true, false);
       } else {
         mainMenu.classList.remove('hidden');
       }
@@ -3781,11 +4115,8 @@
         themeBlend = { from: themeBlend.to, to: newTheme, t: 0 };
         document.getElementById('stageVal').textContent = newStage;
 
-        totalPoints += 50;
-        saveLocalPoints(totalPoints);
-        syncPointsToFirebase();
-        totalAcorns += ACORNS_PER_STAGE;
-        saveLocalAcorns(totalAcorns);
+        checkpointRun();
+        /* glands : calculés par le serveur */
       }
 
       for(const pu of pickups){
@@ -3802,11 +4133,11 @@
       if(!devModeEnabled && (player.x - player.radius < c-hw || player.x + player.radius > c+hw)){
         if(reviveInvulnTimer > 0){
         } else if(effects.shieldCharges > 0){
-          effects.shieldCharges--;
+          effects.shieldCharges--; apiFetch('/power/use', { id:'shield' });
           player.x = centerAt(scrollDist + H);
           explodeShieldBreak(player.x, playerY);
         } else if(powerInventory.shield > 0){
-          powerInventory.shield--;
+          powerInventory.shield--; apiFetch('/power/use', { id:'shield' });
           savePowerInventory();
           renderAbilityHud();
           player.x = centerAt(scrollDist + H);
@@ -3891,13 +4222,13 @@
     }
   }
 
-  function completeGameOver(finalDist, runBonus, restored){
+  function completeGameOver(finalDist, runBonus, restored, credit = true){
     gameOverShown = true;
-    totalPoints += finalDist + runBonus;
+    if(credit) submitRun(finalDist, runBonus);
     saveLocalPoints(totalPoints);
     syncPointsToFirebase();
 
-    submitScoreIfHigher(finalDist);
+    /* record : géré par le serveur */
     const ranked = renderLeaderboard(restored ? finalDist : undefined);
     document.getElementById('endResults').innerHTML = ranked.map((p,i)=>`
       <div class="result-row ${p.me?'me':''}">
@@ -3978,6 +4309,30 @@
     playSFX('click');
   });
 
+})();
+</script>
+<script>
+(function(){
+  var DW = 1200, DH = 660;
+  function fit(){
+    var vw = document.documentElement.clientWidth, vh = document.documentElement.clientHeight;
+    var s = 1, t = 1;
+    if(vw > 820){
+      s = Math.max(0.5, Math.min((vw - 48) / DW, (vh - 112) / DH, 2.5));
+      t = Math.max(1, Math.min(s, 1.8));
+    }
+    s = Math.round(s * 100) / 100;
+    var old = window.__nmScale || 1;
+    var W = (vw > 820) ? Math.round(Math.min(1800, Math.max(DW, (vw - 48) / s))) : DW;
+    document.documentElement.style.setProperty('--nm-w', W + 'px');
+    document.documentElement.style.setProperty('--nm-s', s);
+    document.documentElement.style.setProperty('--nm-t', t);
+    window.__nmScale = s;
+    if(s !== old) window.dispatchEvent(new Event('resize'));
+  }
+  window.addEventListener('resize', fit);
+  window.addEventListener('orientationchange', function(){ setTimeout(fit, 250); });
+  fit();
 })();
 </script>
 </body>

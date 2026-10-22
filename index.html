@@ -1219,40 +1219,38 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
 .mini-row-empty{ opacity:.35; }
 .mini-row-empty .mini-dist{ color:var(--ink-dim); }
 
-/* STYLE DES MOTIFS DE TRAÎNÉE (SÉLECTEUR À DROITE) */
-.nm-colors.pattern-colors .color-grid {
-  grid-template-columns: repeat(2, 1fr);
-  gap: 6px;
+/* STYLE DES MOTIFS DE TRAÎNÉE : identique au menu des couleurs (1 colonne, même cadre) */
+.nm-stage .nm-colors.pattern-colors,
+.nm-stage .nm-colors.pattern-colors.customize-section{
+  left:auto; right:14px; top:10px; width:76px; max-width:76px;
 }
-.nm-colors.pattern-colors {
-  width: 90px !important;
-  max-width: 90px !important;
-  left: auto !important;
-  right: 14px !important;
+.nm-colors.pattern-colors h3::before{ content:'✨'; font-size:18px; }
+.nm-colors.pattern-colors .color-grid{ grid-template-columns:1fr; gap:8px; }
+.pattern-option{
+  width:100%; aspect-ratio:1; border-radius:10px; box-sizing:border-box;
+  border:2px solid rgba(255,107,53,0.55);
+  background:linear-gradient(135deg, rgba(27,36,73,0.95), rgba(40,52,100,0.95));
+  display:flex; align-items:center; justify-content:center;
+  font-size:24px; line-height:1; cursor:pointer; position:relative;
+  box-shadow:0 4px 12px rgba(0,0,0,0.3);
+  transition:all .2s ease;
 }
-.nm-colors.pattern-colors h3::before { content: '✨'; }
-.pattern-option {
-  width: 100%;
-  aspect-ratio: 1;
-  border-radius: 10px;
-  background: rgba(27,36,73,0.8);
-  border: 2px solid rgba(255,107,53,0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  cursor: pointer;
-  transition: all .2s ease;
+.pattern-option:hover{
+  transform:scale(1.08);
+  box-shadow:0 6px 20px rgba(255,107,53,0.4);
 }
-.pattern-option:hover {
-  transform: scale(1.08);
-  border-color: var(--accent-primary);
-  background: rgba(255,107,53,0.2);
+.pattern-option.selected{
+  border-color:var(--accent-primary);
+  box-shadow:0 0 0 2px rgba(255,107,53,0.35), 0 0 14px rgba(255,107,53,0.6);
 }
-.pattern-option.selected {
-  border-color: var(--ink);
-  background: rgba(255,107,53,0.4);
-  box-shadow: 0 0 12px rgba(255,107,53,0.6);
+/* Petite coche, comme sur les couleurs */
+.pattern-option.selected::after{
+  content:'✓'; position:absolute; right:-6px; bottom:-6px;
+  width:18px; height:18px; border-radius:50%;
+  background:var(--accent-primary); color:#fff;
+  font-size:11px; font-weight:bold;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 2px 6px rgba(0,0,0,0.4);
 }
 </style>
 </head>
@@ -2085,7 +2083,64 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
     el._t = setTimeout(()=>{ el.style.opacity = '0'; }, 3000);
   }
 
+  // ===== MODE TEST LOCAL : actif uniquement en file:// ou sur localhost =====
+  // Simule le serveur dans le navigateur pour pouvoir tester sans le Worker Cloudflare.
+  const LOCAL_DEV = location.protocol === 'file:' || ['localhost','127.0.0.1','[::1]'].includes(location.hostname);
+  const LOCAL_PROFILE_KEY = 'burrowio_localdev_profile';
+  function localLoadProfile(){
+    try{ return JSON.parse(localStorage.getItem(LOCAL_PROFILE_KEY)); }catch(e){ return null; }
+  }
+  function localSaveProfile(p){
+    try{ localStorage.setItem(LOCAL_PROFILE_KEY, JSON.stringify(p)); }catch(e){}
+    return p;
+  }
+  function localApi(path, body){
+    let p = localLoadProfile();
+    if(path === '/auth/guest'){
+      const nick = String((body && body.nickname) || '').trim();
+      if(nick.length < 3 || nick.length > 20) return { error:'bad_nickname' };
+      p = localLoadProfile();
+      if(!p || p.nickname !== nick){
+        p = { nickname:nick, best:0, points:0, acorns:2000, boost:false, inv:{ scoreX2:0, wideTunnel:0, shield:0 } };
+      }
+      return { token:'local-dev-token', profile: localSaveProfile(p) };
+    }
+    if(path === '/leaderboard'){
+      const top = [];
+      if(p && p.best > 0) top.push({ nickname:p.nickname, best:p.best });
+      return { top };
+    }
+    if(!p) return { error:'auth' };
+    if(path === '/me') return { profile:p };
+    if(path === '/run/start') return { ok:true };
+    if(path === '/run/end'){
+      const dist = Math.max(0, (body && body.dist) | 0), bonus = Math.max(0, (body && body.bonus) | 0);
+      p.best = Math.max(p.best, dist);
+      p.points = Math.max(p.points, dist + bonus);
+      p.acorns += Math.floor(dist / 10);
+      return { ok:true, profile: localSaveProfile(p) };
+    }
+    if(path === '/shop/buy'){
+      const pw = SHOP_POWERS[body && body.id];
+      if(!pw || p.acorns < pw.price) return { ok:false, profile:p };
+      p.acorns -= pw.price; p.inv[body.id] = (p.inv[body.id] | 0) + 1;
+      return { ok:true, profile: localSaveProfile(p) };
+    }
+    if(path === '/shop/boost'){
+      if(p.boost || p.acorns < BOOST_PRICE) return { ok:false, profile:p };
+      p.acorns -= BOOST_PRICE; p.boost = true;
+      return { ok:true, profile: localSaveProfile(p) };
+    }
+    if(path === '/power/use'){
+      const id = body && body.id;
+      if(id && p.inv[id] > 0) p.inv[id]--;
+      return { ok:true, profile: localSaveProfile(p) };
+    }
+    return { ok:true };
+  }
+
   async function apiFetch(path, body){
+    if(LOCAL_DEV) return localApi(path, body);
     try{
       const opts = { headers: {} };
       if(sessionToken && path !== '/leaderboard') opts.headers.Authorization = 'Bearer ' + sessionToken;
@@ -3766,6 +3821,9 @@ window.addEventListener('keydown', (e)=>{
   const SEGMENTS = 9, SEG_SPACING = 13;
   let particles = [];
   let patternTrailParticles = []; // Traînée de motifs pour le ver
+  let lastTrailSpawnD = 0;        // profondeur du dernier motif posé
+  const TRAIL_SPACING = 24;       // distance régulière entre deux motifs
+  const TRAIL_LENGTH  = 300;      // longueur de la traînée avant disparition complète
 
   function explode(x,y){
     const rockColor = activeColors().rock;
@@ -3807,7 +3865,7 @@ window.addEventListener('keydown', (e)=>{
     announcedStage = 1;
     effects = { boostTimer:0, shieldCharges:0, shrinkTimer:0, scoreX2Timer:0, wideTunnelTimer:0, wideTunnelBonus:0 };
     player.radius = BASE_RADIUS;
-    scrollDist = 0; speed = 95; running = false; gameOverShown = false; paused = false; trail = []; particles = []; patternTrailParticles = []; bonusScore = 0;
+    scrollDist = 0; speed = 95; running = false; gameOverShown = false; paused = false; trail = []; particles = []; patternTrailParticles = []; lastTrailSpawnD = 0; bonusScore = 0;
     ensureGenerated(H*2 + 300);
     player.x = centerAt(H);
     reviveUsedThisRun = false;
@@ -4105,31 +4163,6 @@ window.addEventListener('keydown', (e)=>{
       trail.push({d:scrollDist, x:player.x});
       while(trail.length && trail[0].d < scrollDist - SEGMENTS*SEG_SPACING - 40) trail.shift();
 
-      // Génération de la traînée de motifs depuis la fin exacte du ver (queue) avec une densité réduite
-      if(Math.random() < 0.18) {
-        let patternSymbol = '⭐';
-        if(selectedPattern === 'tp') patternSymbol = '🧻';
-        else if(selectedPattern === 'gem') patternSymbol = '💎';
-        else if(selectedPattern === 'flower') patternSymbol = '🌸';
-        
-        // Calcul de la position exacte de la queue du ver
-        const tailDepth = scrollDist - SEGMENTS * SEG_SPACING;
-        let tailX = player.x;
-        for(let idx = trail.length - 1; idx >= 0; idx--) {
-          if(trail[idx].d <= tailDepth) { tailX = trail[idx].x; break; }
-          tailX = trail[idx].x;
-        }
-        const tailY = playerY + SEGMENTS * SEG_SPACING + 5; // Directement après le dernier segment de la queue
-
-        patternTrailParticles.push({
-          x: tailX + (Math.random() - 0.5) * 8,
-          y: tailY,
-          symbol: patternSymbol,
-          life: 1.0, // S'estompe progressivement vers le bas
-          size: 13 + Math.random() * 5
-        });
-      }
-
       if(effects.boostTimer > 0) effects.boostTimer -= dt;
       if(effects.shrinkTimer > 0) effects.shrinkTimer -= dt;
       if(effects.scoreX2Timer > 0) effects.scoreX2Timer -= dt;
@@ -4141,6 +4174,29 @@ window.addEventListener('keydown', (e)=>{
       speed = Math.min(480, 95 + 220*(1 - Math.exp(-realMetersNow/500)) + realMetersNow*0.02);
       const distanceGained = speed*dt*speedMul;
       scrollDist += distanceGained;
+
+      // Traînée de motifs : posée à intervalle régulier de distance, dans le prolongement exact de la queue
+      {
+        let patternSymbol = '⭐';
+        if(selectedPattern === 'tp') patternSymbol = '🧻';
+        else if(selectedPattern === 'gem') patternSymbol = '💎';
+        else if(selectedPattern === 'flower') patternSymbol = '🌸';
+        while(scrollDist - lastTrailSpawnD >= TRAIL_SPACING){
+          lastTrailSpawnD += TRAIL_SPACING;
+          const tailDepth = lastTrailSpawnD - SEGMENTS * SEG_SPACING;
+          let tailX = player.x;
+          for(let idx = trail.length - 1; idx >= 0; idx--){
+            if(trail[idx].d <= tailDepth){ tailX = trail[idx].x; break; }
+            tailX = trail[idx].x;
+          }
+          patternTrailParticles.push({
+            x: tailX + (Math.random() - 0.5) * 6,
+            d: lastTrailSpawnD,
+            symbol: patternSymbol,
+            size: 16 + Math.random() * 2
+          });
+        }
+      }
       if(effects.scoreX2Timer > 0) bonusScore += (distanceGained/8) * 3;
 
       const currentDisplayMeters = Math.floor(realMetersNow * (effects.scoreX2Timer > 0 ? 2 : 1));
@@ -4203,20 +4259,25 @@ window.addEventListener('keydown', (e)=>{
       updateAmbienceSound(speed, false);
     }
 
-    // Affichage et estompage de la traînée de motifs (disparaît avant le bas de l'écran)
+    // Traînée de motifs : défile exactement à la vitesse du niveau, l'opacité diminue avec la distance à la queue
     ctx.save();
-    for(let pt of patternTrailParticles) {
-      pt.y += speed * 0.05 * dt * 60; // Suit le défilement du niveau
-      pt.life -= dt * 1.2; // Vitesse d'estompage pour s'estomper avant le bas de l'écran
-      if(pt.life > 0 && pt.y < H - 80) {
-        ctx.globalAlpha = Math.max(0, pt.life);
-        ctx.font = `${Math.floor(pt.size)}px sans-serif`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(pt.symbol, pt.x, pt.y);
-      }
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const trailStartY = playerY + SEGMENTS * SEG_SPACING + 8;
+    const bottomY = H - 80;
+    patternTrailParticles = patternTrailParticles.filter(pt => (scrollDist - pt.d) < TRAIL_LENGTH);
+    for(const pt of patternTrailParticles){
+      const age = scrollDist - pt.d;              // distance parcourue depuis la pose
+      const k = Math.min(1, Math.max(0, age / TRAIL_LENGTH)); // 0 = frais, 1 = disparu
+      const y = trailStartY + age;
+      if(y > bottomY) continue;
+      let alpha = Math.pow(1 - k, 1.4) * 0.95;    // dégradé progressif
+      if(y > bottomY - 40) alpha *= (bottomY - y) / 40; // jamais coupé net en bas
+      if(alpha <= 0.01) continue;
+      ctx.globalAlpha = alpha;
+      ctx.font = `${Math.floor(pt.size * (1 - k * 0.35))}px sans-serif`;
+      ctx.fillText(pt.symbol, pt.x, y);
     }
-    patternTrailParticles = patternTrailParticles.filter(pt => pt.life > 0 && pt.y < H - 80);
     ctx.restore();
 
     drawWorm();

@@ -1,329 +1,246 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="robots" content="noindex,nofollow">
-    <title>Admin Dashboard - Analytics</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Chart.js pour l'affichage graphique -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>Admin Dashboard - Analytics</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="bg-slate-900 text-slate-100 font-sans min-h-screen">
 
-    <!-- Écran de connexion -->
-    <div id="login" class="min-h-screen flex items-center justify-center p-6">
-        <form id="loginForm" class="bg-slate-800 p-8 rounded-xl border border-slate-700 shadow-lg w-full max-w-sm space-y-4">
-            <h1 class="text-xl font-bold text-indigo-400">⚡ Admin Panel</h1>
-            <p class="text-sm text-slate-400">Accès réservé à l'administrateur</p>
-            <input id="email" type="email" autocomplete="username" required placeholder="E-mail" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 outline-none focus:border-indigo-500">
-            <input id="password" type="password" autocomplete="current-password" required placeholder="Mot de passe" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 outline-none focus:border-indigo-500">
-            <p id="loginError" class="text-red-400 text-sm min-h-[1.25rem]"></p>
-            <button type="submit" class="w-full py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 font-medium transition">Se connecter</button>
-        </form>
+<div id="login" class="min-h-screen flex items-center justify-center p-6">
+  <div class="bg-slate-800 p-8 rounded-xl border border-slate-700 shadow-lg w-full max-w-sm space-y-4 text-center">
+    <h1 class="text-xl font-bold text-indigo-400">⚡ Admin Panel</h1>
+    <p class="text-sm text-slate-400">Accès réservé à l'administrateur</p>
+    <button id="discordBtn" type="button" class="w-full py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 font-medium transition">🎮 Se connecter avec Discord</button>
+    <p id="loginError" class="text-red-400 text-sm min-h-[1.25rem]"></p>
+  </div>
+</div>
+
+<div id="app" class="flex h-screen overflow-hidden" style="display:none">
+  <aside class="w-64 bg-slate-800 border-r border-slate-700 hidden md:flex flex-col">
+    <div class="p-6 border-b border-slate-700"><h1 class="text-xl font-bold text-indigo-400">⚡ Admin Panel</h1></div>
+    <nav class="flex-1 p-4 space-y-2"><a href="#" class="block px-4 py-2 rounded-lg bg-indigo-600 text-white font-medium">Dashboard</a></nav>
+  </aside>
+
+  <main class="flex-1 flex flex-col overflow-y-auto">
+    <header class="bg-slate-800 border-b border-slate-700 p-6 flex justify-between items-center">
+      <h2 class="text-2xl font-bold">Analytics & Statistiques</h2>
+      <div class="flex items-center space-x-2">
+        <span class="inline-block w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></span>
+        <span class="text-sm text-slate-400">Système connecté</span>
+        <button id="logout" class="ml-4 px-3 py-1 text-sm rounded-md border border-slate-600 text-slate-300 hover:text-white hover:border-red-400 transition">Déconnexion</button>
+      </div>
+    </header>
+
+    <div class="p-6 space-y-6">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg">
+          <p class="text-sm text-slate-400">Joueurs actuellement connectés</p>
+          <h3 id="stat-online" class="text-3xl font-bold text-indigo-400 mt-2">0</h3>
+        </div>
+        <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg">
+          <p class="text-sm text-slate-400">Meilleur Score Global</p>
+          <h3 id="stat-highscore" class="text-3xl font-bold text-emerald-400 mt-2">0 m</h3>
+        </div>
+        <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg">
+          <p class="text-sm text-slate-400">Total Joueurs Inscrits / Comptes</p>
+          <h3 id="stat-total-players" class="text-3xl font-bold text-amber-400 mt-2">0</h3>
+        </div>
+        <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg">
+          <p class="text-sm text-slate-400">Total Glands 🌰 en circulation</p>
+          <h3 id="stat-total-coins" class="text-3xl font-bold text-purple-400 mt-2">0</h3>
+        </div>
+      </div>
+
+      <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+          <h3 class="text-lg font-bold">Évolution de l'activité des joueurs</h3>
+          <div class="flex flex-wrap gap-2 bg-slate-900 p-1 rounded-lg border border-slate-700" id="time-filters">
+            <button onclick="changeTimeRange('24h')" class="px-3 py-1 text-sm rounded-md bg-indigo-600 text-white font-medium transition" data-range="24h">24h</button>
+            <button onclick="changeTimeRange('7j')" class="px-3 py-1 text-sm rounded-md text-slate-400 hover:text-white transition" data-range="7j">7j</button>
+            <button onclick="changeTimeRange('1m')" class="px-3 py-1 text-sm rounded-md text-slate-400 hover:text-white transition" data-range="1m">1 mois</button>
+            <button onclick="changeTimeRange('6m')" class="px-3 py-1 text-sm rounded-md text-slate-400 hover:text-white transition" data-range="6m">6 mois</button>
+            <button onclick="changeTimeRange('1y')" class="px-3 py-1 text-sm rounded-md text-slate-400 hover:text-white transition" data-range="1y">1 an</button>
+          </div>
+        </div>
+        <div class="h-80 relative"><canvas id="playersChart"></canvas></div>
+      </div>
     </div>
+  </main>
+</div>
 
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-database-compat.js"></script>
+<script>
+const API = 'https://burrow-api.burrow-game.workers.dev';
+const DISCORD_CLIENT_ID = '1548208651288969276';
+const TOKEN_STORE = 'burrow_admin_token';
+const $ = id => document.getElementById(id);
+let token = sessionStorage.getItem(TOKEN_STORE) || '';
+let started = false;
+let refreshTimer = null;
+let currentRange = '24h';
+let cache = null;
 
-    <div id="app" class="flex h-screen overflow-hidden" style="display:none">
-        <!-- Sidebar -->
-        <aside class="w-64 bg-slate-800 border-r border-slate-700 hidden md:flex flex-col">
-            <div class="p-6 border-b border-slate-700">
-                <h1 class="text-xl font-bold text-indigo-400">⚡ Admin Panel</h1>
-            </div>
-            <nav class="flex-1 p-4 space-y-2">
-                <a href="#" class="block px-4 py-2 rounded-lg bg-indigo-600 text-white font-medium">Dashboard</a>
-            </nav>
-        </aside>
+async function adminFetch(path){
+  const r = await fetch(API + path, { headers: { Authorization: 'Bearer ' + token } });
+  if (r.status === 401 || r.status === 403) throw new Error('auth');
+  if (!r.ok) throw new Error('http_' + r.status);
+  return r.json();
+}
 
-        <!-- Main Content -->
-        <main class="flex-1 flex flex-col overflow-y-auto">
-            <!-- Header -->
-            <header class="bg-slate-800 border-b border-slate-700 p-6 flex justify-between items-center">
-                <h2 class="text-2xl font-bold">Analytics & Statistiques Réelles</h2>
-                <div class="flex items-center space-x-2">
-                    <span class="inline-block w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></span>
-                    <span class="text-sm text-slate-400">Système connecté</span>
-                    <button id="logout" class="ml-4 px-3 py-1 text-sm rounded-md border border-slate-600 text-slate-300 hover:text-white hover:border-red-400 transition">Déconnexion</button>
-                </div>
-            </header>
+const playersChart = new Chart($('playersChart').getContext('2d'), {
+  type: 'line',
+  data: { labels: [], datasets: [{ label: 'Parties', data: [], borderColor: '#6366f1', backgroundColor: 'rgba(99,102,241,0.1)', borderWidth: 2, fill: true, tension: 0.2 }] },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' } },
+      y: { grid: { color: '#334155' }, ticks: { color: '#94a3b8', precision: 0 }, beginAtZero: true }
+    }
+  }
+});
 
-            <!-- Dashboard Body -->
-            <div class="p-6 space-y-6">
-                <!-- Cartes de stats -->
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg">
-                        <p class="text-sm text-slate-400">Joueurs actuellement connectés</p>
-                        <h3 id="stat-online" class="text-3xl font-bold text-indigo-400 mt-2">0</h3>
-                    </div>
-                    <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg">
-                        <p class="text-sm text-slate-400">Meilleur Score Global</p>
-                        <h3 id="stat-highscore" class="text-3xl font-bold text-emerald-400 mt-2">0 m</h3>
-                    </div>
-                    <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg">
-                        <p class="text-sm text-slate-400">Total Joueurs Inscrits / Comptes</p>
-                        <h3 id="stat-total-players" class="text-3xl font-bold text-amber-400 mt-2">0</h3>
-                    </div>
-                    <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg">
-                        <p class="text-sm text-slate-400">Total Pièces en circulation</p>
-                        <h3 id="stat-total-coins" class="text-3xl font-bold text-purple-400 mt-2">0</h3>
-                    </div>
-                </div>
+const sameDay = (a, b) => a.getDate() === b.getDate() && a.getMonth() === b.getMonth() && a.getFullYear() === b.getFullYear();
+const sameMonth = (a, b) => a.getMonth() === b.getMonth() && a.getFullYear() === b.getFullYear();
 
-                <!-- Section Graphique -->
-                <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-                        <h3 class="text-lg font-bold">Évolution de l'activité des joueurs</h3>
-                        <!-- Boutons de filtre temporel -->
-                        <div class="flex flex-wrap gap-2 bg-slate-900 p-1 rounded-lg border border-slate-700" id="time-filters">
-                            <button onclick="changeTimeRange('24h')" class="px-3 py-1 text-sm rounded-md bg-indigo-600 text-white font-medium transition" data-range="24h">24h</button>
-                            <button onclick="changeTimeRange('7j')" class="px-3 py-1 text-sm rounded-md text-slate-400 hover:text-white transition" data-range="7j">7j</button>
-                            <button onclick="changeTimeRange('1m')" class="px-3 py-1 text-sm rounded-md text-slate-400 hover:text-white transition" data-range="1m">1 mois</button>
-                            <button onclick="changeTimeRange('6m')" class="px-3 py-1 text-sm rounded-md text-slate-400 hover:text-white transition" data-range="6m">6 mois</button>
-                            <button onclick="changeTimeRange('1y')" class="px-3 py-1 text-sm rounded-md text-slate-400 hover:text-white transition" data-range="1y">1 an</button>
-                        </div>
-                    </div>
-                    <!-- Canvas du Graphique -->
-                    <div class="h-80 relative">
-                        <canvas id="playersChart"></canvas>
-                    </div>
-                </div>
-            </div>
-        </main>
-    </div>
+function renderChart(range){
+  const ts = (cache && cache.runs ? cache.runs : []).filter(t => typeof t === 'number' && t > 0).map(t => new Date(t));
+  const now = new Date();
+  const labels = [], data = [];
+  if (range === '24h'){
+    for (let i = 23; i >= 0; i--){
+      const d = new Date(now.getTime() - i * 3600e3);
+      labels.push(d.getHours() + ':00');
+      data.push(ts.filter(t => sameDay(t, d) && t.getHours() === d.getHours()).length);
+    }
+  } else if (range === '7j' || range === '1m'){
+    const n = range === '7j' ? 7 : 30;
+    for (let i = n - 1; i >= 0; i--){
+      const d = new Date(now.getTime() - i * 864e5);
+      labels.push(range === '7j'
+        ? d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' })
+        : d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }));
+      data.push(ts.filter(t => sameDay(t, d)).length);
+    }
+  } else {
+    const n = range === '6m' ? 6 : 12;
+    for (let i = n - 1; i >= 0; i--){
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      labels.push(d.toLocaleDateString('fr-FR', range === '6m' ? { month: 'short' } : { month: 'short', year: '2-digit' }));
+      data.push(ts.filter(t => sameMonth(t, d)).length);
+    }
+  }
+  playersChart.data.labels = labels;
+  playersChart.data.datasets[0].data = data;
+  playersChart.update();
+}
 
-    <!-- Script Firebase & Logique Dashboard -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, get, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+window.changeTimeRange = function(range){
+  currentRange = range;
+  document.querySelectorAll('#time-filters button').forEach(btn => {
+    btn.className = btn.dataset.range === range
+      ? 'px-3 py-1 text-sm rounded-md bg-indigo-600 text-white font-medium transition'
+      : 'px-3 py-1 text-sm rounded-md text-slate-400 hover:text-white transition';
+  });
+  renderChart(range);
+};
 
-        // Configuration Firebase réelle de ton projet "burrow"
-        const firebaseConfig = {
-            apiKey: "AIzaSyD4gWV0Jqz7daOKNTWgsyFBBeJoErHjndM",
-            authDomain: "burrow-c3f39.firebaseapp.com",
-            databaseURL: "https://burrow-c3f39-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "burrow-c3f39",
-            storageBucket: "burrow-c3f39.firebasestorage.app",
-            messagingSenderId: "290540859884",
-            appId: "1:290540859884:web:75b91e48b2ae5e6ace10c9"
-        };
+async function loadStats(){
+  try {
+    cache = await adminFetch('/admin/stats');
+    $('stat-highscore').textContent = (cache.highScore || 0).toLocaleString() + ' m';
+    $('stat-total-players').textContent = (cache.totalPlayers || 0).toLocaleString();
+    $('stat-total-coins').textContent = (cache.totalAcorns || 0).toLocaleString();
+    renderChart(currentRange);
+  } catch (e){
+    if (e.message === 'auth') return logout('Session expirée, reconnecte-toi.');
+    console.error('Erreur stats Worker :', e);
+  }
+}
 
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-        const auth = getAuth(app);
-        const ADMIN_UID = '29KbnHKCEMY5EebjBZrMgvLWZEr1'; // affichage uniquement : la vraie protection est dans les règles Firebase
+function initOnline(){
+  try {
+    firebase.initializeApp({
+      apiKey: "AIzaSyD4gWV0Jqz7daOKNTWgsyFBBeJoErHjndM",
+      authDomain: "burrow-c3f39.firebaseapp.com",
+      databaseURL: "https://burrow-c3f39-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "burrow-c3f39",
+      appId: "1:290540859884:web:75b91e48b2ae5e6ace10c9"
+    });
+    firebase.auth().signInAnonymously().then(() => {
+      firebase.database().ref('players').on('value', snap => {
+        const val = snap.val() || {}, now = Date.now();
+        $('stat-online').textContent = Object.values(val).filter(p => p.ts && now - p.ts < 10000).length;
+      });
+    }).catch(() => { $('stat-online').textContent = '?'; });
+  } catch (e){ $('stat-online').textContent = '?'; }
+}
 
-        // Initialisation de Chart.js
-        const ctx = document.getElementById('playersChart').getContext('2d');
-        let playersChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: [],
-                datasets: [{
-                    label: 'Parties / Activité réelle enregistrée',
-                    data: [],
-                    borderColor: '#6366f1',
-                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
-                    borderWidth: 2,
-                    fill: true,
-                    tension: 0.2
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    x: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' } },
-                    y: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' }, beginAtZero: true, precision: 0 }
-                }
-            }
-        });
+function showApp(){
+  $('login').style.display = 'none';
+  $('app').style.display = 'flex';
+  if (!started){
+    started = true;
+    initOnline();
+    loadStats();
+    refreshTimer = setInterval(loadStats, 60000);
+  }
+}
+function logout(msg){
+  sessionStorage.removeItem(TOKEN_STORE);
+  token = '';
+  started = false;
+  clearInterval(refreshTimer);
+  $('app').style.display = 'none';
+  $('login').style.display = 'flex';
+  $('loginError').textContent = msg || '';
+}
 
-        // Fonction globale pour changer la période du graphique
-        window.changeTimeRange = function(range) {
-            document.querySelectorAll('#time-filters button').forEach(btn => {
-                if (btn.dataset.range === range) {
-                    btn.className = "px-3 py-1 text-sm rounded-md bg-indigo-600 text-white font-medium transition";
-                } else {
-                    btn.className = "px-3 py-1 text-sm rounded-md text-slate-400 hover:text-white transition";
-                }
-            });
-            loadChartData(range);
-        };
+$('discordBtn').addEventListener('click', () => {
+  const params = new URLSearchParams({
+    client_id: DISCORD_CLIENT_ID,
+    redirect_uri: location.origin + location.pathname,
+    response_type: 'token',
+    scope: 'identify'
+  });
+  location.href = 'https://discord.com/oauth2/authorize?' + params.toString();
+});
+$('logout').addEventListener('click', () => logout());
 
-        // Chargement 100% RÉEL des données graphiques depuis Firebase (sans donnée fictive)
-        async function loadChartData(range) {
-            try {
-                const scoresRef = ref(db, 'scores');
-                const snapshot = await get(scoresRef);
-                const scoresData = snapshot.exists() ? snapshot.val() : {};
+async function handleDiscordReturn(){
+  if (!location.hash || location.hash.indexOf('access_token') === -1) return false;
+  const discordToken = new URLSearchParams(location.hash.slice(1)).get('access_token');
+  history.replaceState(null, '', location.pathname + location.search);
+  if (!discordToken) return false;
+  try {
+    const r = await fetch(API + '/admin/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: discordToken })
+    });
+    if (r.status === 401) { $('loginError').textContent = "Ce compte Discord n'a pas accès au dashboard."; return false; }
+    if (!r.ok) throw new Error('http_' + r.status);
+    const data = await r.json();
+    if (!data.token) throw new Error('no_token');
+    token = data.token;
+    sessionStorage.setItem(TOKEN_STORE, token);
+    return true;
+  } catch (e){
+    $('loginError').textContent = 'Serveur injoignable ou route /admin/login absente.';
+    return false;
+  }
+}
 
-                let labels = [];
-                let data = [];
-                const now = new Date();
-
-                // On extrait uniquement les vrais horodatages (timestamps) des parties jouées enregistrées dans Firebase
-                const timestamps = Object.values(scoresData)
-                    .map(s => s.ts)
-                    .filter(ts => typeof ts === 'number' && ts > 0);
-
-                if (range === '24h') {
-                    for (let i = 23; i >= 0; i--) {
-                        const d = new Date(now.getTime() - i * 60 * 60 * 1000);
-                        labels.push(d.getHours() + ':00');
-                        // Compte exact des parties enregistrées pendant cette heure précise
-                        const count = timestamps.filter(ts => {
-                            const tDate = new Date(ts);
-                            return tDate.getDate() === d.getDate() &&
-                                   tDate.getMonth() === d.getMonth() &&
-                                   tDate.getFullYear() === d.getFullYear() &&
-                                   tDate.getHours() === d.getHours();
-                        }).length;
-                        data.push(count);
-                    }
-                } else if (range === '7j') {
-                    for (let i = 6; i >= 0; i--) {
-                        const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
-                        labels.push(d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' }));
-                        const count = timestamps.filter(ts => {
-                            const tDate = new Date(ts);
-                            return tDate.getDate() === d.getDate() &&
-                                   tDate.getMonth() === d.getMonth() &&
-                                   tDate.getFullYear() === d.getFullYear();
-                        }).length;
-                        data.push(count);
-                    }
-                } else if (range === '1m') {
-                    for (let i = 29; i >= 0; i--) {
-                        const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
-                        labels.push(d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }));
-                        const count = timestamps.filter(ts => {
-                            const tDate = new Date(ts);
-                            return tDate.getDate() === d.getDate() &&
-                                   tDate.getMonth() === d.getMonth() &&
-                                   tDate.getFullYear() === d.getFullYear();
-                        }).length;
-                        data.push(count);
-                    }
-                } else if (range === '6m') {
-                    for (let i = 5; i >= 0; i--) {
-                        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-                        labels.push(d.toLocaleDateString('fr-FR', { month: 'short' }));
-                        const count = timestamps.filter(ts => {
-                            const tDate = new Date(ts);
-                            return tDate.getMonth() === d.getMonth() && tDate.getFullYear() === d.getFullYear();
-                        }).length;
-                        data.push(count);
-                    }
-                } else if (range === '1y') {
-                    for (let i = 11; i >= 0; i--) {
-                        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-                        labels.push(d.toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' }));
-                        const count = timestamps.filter(ts => {
-                            const tDate = new Date(ts);
-                            return tDate.getMonth() === d.getMonth() && tDate.getFullYear() === d.getFullYear();
-                        }).length;
-                        data.push(count);
-                    }
-                }
-
-                playersChart.data.labels = labels;
-                playersChart.data.datasets[0].data = data;
-                playersChart.update();
-            } catch (e) {
-                console.error("Erreur lors de la récupération des données réelles Firebase:", e);
-            }
-        }
-
-        // Récupération en temps réel des statistiques exactes de Firebase
-        function initRealtimeStats() {
-            // Nombre de joueurs actifs en temps réel (dans le nœud /players)
-            const playersRef = ref(db, 'players');
-            onValue(playersRef, (snapshot) => {
-                if (snapshot.exists()) {
-                    const data = snapshot.val();
-                    const now = Date.now();
-                    // Filtre pour ne garder que les joueurs actifs lors des 10 dernières secondes
-                    const activeOnline = Object.values(data).filter(p => p.ts && (now - p.ts < 10000)).length;
-                    document.getElementById('stat-online').innerText = activeOnline;
-                } else {
-                    document.getElementById('stat-online').innerText = "0";
-                }
-            });
-
-            // Meilleur score absolu et total d'enregistrements (dans le nœud /scores)
-            const scoresRef = ref(db, 'scores');
-            onValue(scoresRef, (snapshot) => {
-                if (snapshot.exists()) {
-                    let maxScore = 0;
-                    let totalScores = 0;
-                    snapshot.forEach((child) => {
-                        totalScores++;
-                        const val = child.val();
-                        const dist = val.dist || 0;
-                        if (dist > maxScore) maxScore = dist;
-                    });
-                    document.getElementById('stat-highscore').innerText = maxScore.toLocaleString() + " m";
-                    document.getElementById('stat-total-players').innerText = totalScores;
-                } else {
-                    document.getElementById('stat-highscore').innerText = "0 m";
-                    document.getElementById('stat-total-players').innerText = "0";
-                }
-            });
-
-            // Total des pièces enregistrées (dans le nœud /coins)
-            const coinsRef = ref(db, 'coins');
-            onValue(coinsRef, (snapshot) => {
-                if (snapshot.exists()) {
-                    let totalCoins = 0;
-                    snapshot.forEach((child) => {
-                        const val = child.val();
-                        totalCoins += (typeof val === 'number' ? val : (val.coins || 0));
-                    });
-                    document.getElementById('stat-total-coins').innerText = totalCoins.toLocaleString();
-                } else {
-                    document.getElementById('stat-total-coins').innerText = "0";
-                }
-            }, () => { document.getElementById('stat-total-coins').innerText = "0"; });
-        }
-
-        // Connexion administrateur
-        const $ = id => document.getElementById(id);
-        let started = false;
-
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            $('loginError').textContent = '';
-            try {
-                await signInWithEmailAndPassword(auth, $('email').value.trim(), $('password').value);
-            } catch (err) {
-                const m = {
-                    'auth/invalid-credential': 'E-mail ou mot de passe incorrect.',
-                    'auth/invalid-email': "L'adresse e-mail n'est pas valide.",
-                    'auth/too-many-requests': 'Trop de tentatives. Réessaie plus tard.'
-                };
-                $('loginError').textContent = m[err.code] || ('Erreur : ' + (err.code || err.message));
-            }
-        });
-        $('logout').addEventListener('click', () => signOut(auth));
-
-        onAuthStateChanged(auth, (user) => {
-            if (user && !user.isAnonymous && user.uid === ADMIN_UID) {
-                $('login').style.display = 'none';
-                $('app').style.display = 'flex';
-                if (!started) {
-                    started = true;
-                    initRealtimeStats();
-                    loadChartData('24h');
-                }
-            } else {
-                $('app').style.display = 'none';
-                $('login').style.display = 'flex';
-                if (user && !user.isAnonymous) $('loginError').textContent = "Ce compte n'a pas accès au dashboard.";
-            }
-        });
-    </script>
+(async () => {
+  if (await handleDiscordReturn()) showApp();
+  else if (token) showApp();
+})();
+</script>
 </body>
 </html>

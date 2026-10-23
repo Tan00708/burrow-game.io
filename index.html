@@ -1228,9 +1228,10 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
 /* STYLE DES MOTIFS DE TRAÎNÉE : identique au menu des couleurs (1 colonne, même cadre) */
 .nm-stage .nm-colors.pattern-colors,
 .nm-stage .nm-colors.pattern-colors.customize-section{
-  left:auto; right:14px; top:10px; width:76px; max-width:76px;
+  left:auto; right:14px; top:10px; width:82px; max-width:82px;
 }
-.nm-colors.pattern-colors h3::before{ content:'✨'; font-size:18px; }
+.nm-colors.pattern-colors h3{ font-size:10px; margin-bottom:8px; white-space:nowrap; }
+.nm-colors.pattern-colors h3::before{ content:none; }
 .nm-colors.pattern-colors .color-grid{ grid-template-columns:1fr; gap:8px; }
 .pattern-option{
   width:100%; aspect-ratio:1; border-radius:10px; box-sizing:border-box;
@@ -1337,7 +1338,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
 
         <!-- SÉLECTEUR DE MOTIFS À DROITE (À LA PLACE DE LA PALETTE) -->
         <div class="customize-section nm-colors pattern-colors">
-          <h3 title="Motifs">✨ Motifs</h3>
+          <h3 title="Traînées">Traînées</h3>
           <div class="color-grid">
             <div class="pattern-option selected" data-pattern="star" title="Étoiles">⭐</div>
             <div class="pattern-option" data-pattern="tp" title="Papier Toilette">🧻</div>
@@ -1434,7 +1435,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
     <div class="palette-grid" id="wormPaletteGrid"></div>
     <div class="worm-custom-actions">
       <button class="btn btn-secondary" id="wormRandomBtn" type="button" data-i18n="random">🎲 Aléatoire</button>
-      <button class="btn btn-secondary" id="wormResetBtn" type="button" data-i18n="solid">↺ Uni</button>
+      <button class="btn btn-secondary" id="wormResetBtn" type="button" data-i18n="solid">● Uni</button>
     </div>
     <div class="worm-custom-actions">
       <button class="btn btn-secondary" id="wormCancelBtn" type="button" data-i18n="cancel">Annuler</button>
@@ -1667,7 +1668,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
       customWormTitle: "🐛 Personnalise ton ver",
       customWormDesc: "Clique sur une boule, puis choisis sa couleur dans la palette.",
       random: "🎲 Aléatoire",
-      solid: "↺ Uni",
+      solid: "● Uni",
       cancel: "Annuler",
       save: "Enregistrer",
       shopTitle: "🛒 Boutique",
@@ -1720,7 +1721,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
       customWormTitle: "🐛 Customize your worm",
       customWormDesc: "Click a segment, then pick its color from the palette.",
       random: "🎲 Random",
-      solid: "↺ Solid",
+      solid: "● Solid",
       cancel: "Cancel",
       save: "Save",
       shopTitle: "🛒 Shop",
@@ -1773,7 +1774,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
       customWormTitle: "🐛 Personaliza tu gusano",
       customWormDesc: "Haz clic en un segmento y elige su color de la paleta.",
       random: "🎲 Aleatorio",
-      solid: "↺ Liso",
+      solid: "● Liso",
       cancel: "Cancelar",
       save: "Guardar",
       shopTitle: "🛒 Tienda",
@@ -1826,7 +1827,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
       customWormTitle: "🐛 Passe deinen Wurm an",
       customWormDesc: "Klicke auf ein Segment und wähle seine Farbe aus der Palette.",
       random: "🎲 Zufall",
-      solid: "↺ Einfarbig",
+      solid: "● Einfarbig",
       cancel: "Abbrechen",
       save: "Speichern",
       shopTitle: "🛒 Shop",
@@ -4021,6 +4022,7 @@ window.addEventListener('keydown', (e)=>{
   let lastTrailSpawnD = 0;        // profondeur du dernier motif posé
   const TRAIL_SPACING = 24;       // distance régulière entre deux motifs
   const TRAIL_LENGTH  = 300;      // longueur de la traînée avant disparition complète
+  const TRAIL_LATERAL_OFFSETS = [-8, 0, 8]; // léger décalage : gauche, centre ou droite
 
   function explode(x,y){
     const rockColor = activeColors().rock;
@@ -4381,7 +4383,7 @@ window.addEventListener('keydown', (e)=>{
       const distanceGained = speed*dt*speedMul;
       scrollDist += distanceGained;
 
-      // Traînée de motifs : posée à intervalle régulier de distance, dans le prolongement exact de la queue
+      // Traînée de motifs : posée derrière la queue, avec un très léger décalage naturel.
       {
         let patternSymbol = '⭐';
         if(selectedPattern === 'tp') patternSymbol = '🧻';
@@ -4397,8 +4399,9 @@ window.addEventListener('keydown', (e)=>{
             if(trail[idx].d <= tailDepth){ tailX = trail[idx].x; break; }
             tailX = trail[idx].x;
           }
+          const lateralOffset = TRAIL_LATERAL_OFFSETS[Math.floor(Math.random() * TRAIL_LATERAL_OFFSETS.length)] + (Math.random() - 0.5) * 2;
           patternTrailParticles.push({
-            x: tailX + (Math.random() - 0.5) * 6,
+            x: clamp(tailX + lateralOffset, 10, W - 10),
             d: lastTrailSpawnD,
             symbol: patternSymbol,
             size: 16 + Math.random() * 2

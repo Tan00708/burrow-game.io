@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Burrow.game.fun</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700;800&family=Inter:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --navy:#111a3e; --panel:#1b254d; --line:#714158; --orange:#ff7427; --muted:#aeb8d5; }
+    * { box-sizing:border-box; }
+    html, body { width:100%; height:100%; margin:0; overflow:hidden; background:var(--navy); color:#fff; font-family:Inter, sans-serif; }
+    #game-frame { position:fixed; inset:0; width:100%; height:100%; border:0; background:var(--navy); }
+    #menu { position:fixed; inset:0; z-index:5; padding:22px 28px 26px; background:var(--navy); transition:opacity .25s ease; }
+    #menu.is-hidden { opacity:0; pointer-events:none; }
+    .topbar { height:32px; display:flex; justify-content:space-between; align-items:center; }
+    .brand { font:800 26px Fredoka,sans-serif; letter-spacing:-1px; } .brand b { color:var(--orange); }
+    .controls { display:flex; gap:10px; }
+    .pill { min-width:54px; height:32px; padding:0 14px; border:1.5px solid var(--line); border-radius:20px; background:transparent; color:#fff; font:700 12px Inter,sans-serif; cursor:pointer; }
+    .layout { display:grid; grid-template-columns:minmax(180px, 214px) minmax(330px, 390px) minmax(180px, 214px); gap:20px; justify-content:center; height:calc(100% - 44px); padding-top:14px; }
+    .column { display:flex; min-height:0; flex-direction:column; gap:12px; }
+    .panel { border:1.5px solid var(--line); border-radius:15px; background:rgba(27,37,77,.74); padding:14px; }
+    h2, h3, p { margin:0; } h2 { font:700 16px Fredoka,sans-serif; } h3 { font:700 11px Fredoka,sans-serif; text-transform:uppercase; letter-spacing:.2px; }
+    .challenges { flex:1; } .challenge { margin-top:14px; } .challenge h3 { text-transform:none; } .challenge small, .panel small { display:block; margin-top:5px; color:var(--muted); font-size:10px; font-weight:600; }
+    .track { height:7px; margin-top:7px; overflow:hidden; border-radius:8px; background:#4b587e; } .track i { display:block; height:100%; width:68%; border-radius:inherit; background:var(--orange); } .track.orange i { width:78%; } .track.short i { width:0; }
+    .streak { min-height:49px; } .streak h2 { font-size:13px; } .streak small { margin-top:2px; }
+    .center { position:relative; display:flex; min-height:0; flex-direction:column; align-items:center; border:1.5px solid #a87419; background:#101938; }
+    .worm-label { margin-top:2px; color:#c5cde4; font:600 10px Fredoka,sans-serif; }
+    .customizers { position:absolute; top:27px; left:20px; display:block; }
+    .customizer + .customizer { position:absolute; top:0; left:244px; }
+    .customizer { overflow:hidden; border:1px solid #27345b; background:#171f42; }
+    .customizer h3 { padding:8px 9px 6px; font-size:9px; }
+    .colors { display:grid; grid-template-columns:repeat(2, 1fr); gap:5px; padding:0 8px 9px; }
+    .color { height:53px; border:0; border-radius:5px; cursor:pointer; } .color.active { outline:2px solid #fff; outline-offset:2px; } .color.add { color:#ff8c58; font-size:20px; background:#293154; border:1px dashed #ff7543; }
+    .cosmetics { display:grid; grid-template-columns:repeat(2, 1fr); gap:5px; padding:0 8px 9px; } .cosmetics button { height:53px; border:1px dashed #657299; border-radius:5px; background:#273052; color:#c9d1e6; font:600 16px Inter,sans-serif; cursor:pointer; }
+    .worm { position:absolute; top:50px; left:50%; width:57px; height:260px; transform:translateX(-50%); filter:drop-shadow(0 7px 2px rgba(0,0,0,.35)); }
+    .segment { position:absolute; left:50%; width:29px; height:29px; transform:translateX(-50%); border:3px solid rgba(35,31,49,.85); border-radius:50%; background:var(--worm,#77b9d7); } .segment:nth-child(1){top:0;width:56px;height:47px;border-radius:48%;} .segment:nth-child(2){top:40px}.segment:nth-child(3){top:67px}.segment:nth-child(4){top:94px}.segment:nth-child(5){top:121px}.segment:nth-child(6){top:148px}.segment:nth-child(7){top:175px;width:25px;height:25px}.segment:nth-child(8){top:199px;width:21px;height:21px}.segment:nth-child(9){top:220px;width:17px;height:17px}.segment:nth-child(10){top:237px;width:13px;height:13px}
+    .eyes { position:absolute; z-index:1; top:14px; left:17px; display:flex; gap:16px; } .eyes i { width:5px; height:6px; border-radius:50%; background:#25223a; }
+    .play { position:absolute; bottom:26px; width:274px; height:59px; border:0; border-radius:13px; background:linear-gradient(180deg,#ff7b2e,#ff9a1c); color:#101a3b; font:800 20px Fredoka,sans-serif; cursor:pointer; box-shadow:0 5px 0 #c45725; }
+    .record { position:absolute; bottom:0; transform:translateY(-100%); margin-bottom:8px; color:#b8c1db; font-size:10px; font-weight:600; } .record b { color:var(--orange); }
+    .privacy { position:absolute; bottom:-24px; color:#fff; font:600 11px Fredoka,sans-serif; text-decoration:none; }
+    .rank { min-height:80px; } .rank h2 { margin-bottom:9px; } .rank .track i { width:70%; }
+    .top { flex:1; } .scores { display:grid; gap:12px; margin-top:17px; font:700 12px Fredoka,sans-serif; } .score { display:flex; justify-content:space-between; } .score b { color:var(--orange); }
+    @media (max-width:760px) { #menu { overflow:auto; padding:14px; } .layout { grid-template-columns:minmax(300px,390px); height:auto; } .left, .right { display:none; } .center { height:430px; min-height:430px; } .customizers { left:12px; top:27px; } .customizer + .customizer { left:218px; } .color, .cosmetics button { height:43px; } .customizers h3 { font-size:8px; } .brand { font-size:20px; } .pill { padding:0 9px; } }
+  </style>
+</head>
+<body>
+  <iframe id="game-frame" src="index.html" title="Burrow game"></iframe>
+  <main id="menu">
+    <header class="topbar"><div class="brand">BURROW-<span>game.</span><b>fun</b></div><div class="controls"><button class="pill" id="shop">0 glands</button><select class="pill" id="language" aria-label="Langue"><option value="fr">FR</option><option value="en">EN</option><option value="es">ES</option><option value="de">DE</option></select><button class="pill" id="sound">Son</button></div></header>
+    <section class="layout">
+      <aside class="column left"><section class="panel challenges"><h2>Défis du jour</h2><div class="challenge"><h3>Atteindre 500 m</h3><div class="track orange"><i></i></div><small>Terminé · +10 glands</small></div><div class="challenge"><h3>Ramasser 3 bonus</h3><div class="track"><i></i></div><small>2 / 3</small></div><div class="challenge"><h3>Passer le stage 3</h3><div class="track short"><i></i></div><small>Pas encore</small></div></section><section class="panel streak"><h2>Série : 3 jours</h2><small>Reviens demain pour un coffre</small></section></aside>
+      <section class="center"><p class="worm-label">Ton ver · <span id="rank-name">Rang Bronze</span></p><div class="customizers"><section class="customizer"><h3>◉ Couleur</h3><div class="colors"><button class="color add" id="customize" title="Personnaliser">+</button><button class="color" data-color="#6BA3C4" style="background:#6ba3c4"></button><button class="color" data-color="#78D4A8" style="background:#78d4a8"></button><button class="color active" data-color="#FF6FA5" style="background:#ff6fa5"></button></div></section><section class="customizer"><h3>✦ Cosmétique</h3><div class="cosmetics"><button class="cosmetic" title="Personnaliser">✦</button><button class="cosmetic" title="Personnaliser">★</button><button class="cosmetic" title="Personnaliser">☄</button><button class="cosmetic" title="Personnaliser">?</button></div></section></div><div class="worm" id="worm"><div class="eyes"><i></i><i></i></div><span class="segment"></span><span class="segment"></span><span class="segment"></span><span class="segment"></span><span class="segment"></span><span class="segment"></span><span class="segment"></span><span class="segment"></span><span class="segment"></span><span class="segment"></span></div><p class="record">Record : <b id="record">0 m</b> · Touche Entrée pour lancer</p><button class="play" id="play">JOUER</button><a class="privacy" href="confidentialite.html" target="_blank" rel="noopener">Confidentialité</a></section>
+      <aside class="column right"><section class="panel rank"><h2 id="rank-title">Rang Bronze</h2><div class="track"><i></i></div><small id="rank-progress">Continue pour atteindre le prochain rang</small></section><section class="panel top"><h2>Top du jour</h2><div class="scores" id="scores"><div class="score"><span>1. Mika</span><b>2 310 m</b></div><div class="score"><span>2. Rooty</span><b>1 980 m</b></div><div class="score"><span>3. Glim</span><b>1 540 m</b></div><div class="score"><span>Toi</span><b id="your-score">0 m</b></div></div></section></aside>
+    </section>
+  </main>
+  <script>
+    const frame = document.getElementById('game-frame');
+    const menu = document.getElementById('menu');
+    const click = id => frame.contentDocument.getElementById(id).click();
+    function sync() {
+      const doc = frame.contentDocument; if (!doc) return;
+      const acorns = doc.getElementById('acornsVal'); const best = doc.getElementById('personalBestVal');
+      const rank = doc.getElementById('widgetRankSquare');
+      if (acorns) document.getElementById('shop').textContent = `${acorns.textContent} glands`;
+      if (best) { document.getElementById('record').textContent = best.textContent; document.getElementById('your-score').textContent = best.textContent; }
+      if (rank) { const name = rank.title || 'Rang'; document.getElementById('rank-name').textContent = name; document.getElementById('rank-title').textContent = name; }
+    }
+    function showMenu() { menu.classList.remove('is-hidden'); sync(); }
+    frame.addEventListener('load', () => {
+      const doc = frame.contentDocument;
+      const innerMenu = doc.getElementById('mainMenu');
+      const observer = new MutationObserver(() => { if (!innerMenu.classList.contains('hidden')) showMenu(); });
+      observer.observe(innerMenu, { attributes:true, attributeFilter:['class'] });
+      document.getElementById('language').value = doc.getElementById('langSelect').value;
+      document.getElementById('play').onclick = () => { click('menuStartBtn'); menu.classList.add('is-hidden'); };
+      document.getElementById('shop').onclick = () => { click('shopBtn'); menu.classList.add('is-hidden'); };
+      document.getElementById('sound').onclick = () => click('audioToggleBtn');
+      document.getElementById('language').onchange = event => { const select = doc.getElementById('langSelect'); select.value = event.target.value; select.dispatchEvent(new Event('change', { bubbles:true })); };
+      ['wormCustomizeBtn', 'wormCancelBtn', 'wormSaveBtn'].forEach(id => doc.getElementById(id).addEventListener('click', () => setTimeout(showMenu, 0)));
+      document.getElementById('customize').onclick = () => { click('wormCustomizeBtn'); menu.classList.add('is-hidden'); };
+      document.querySelectorAll('.cosmetic').forEach(button => button.onclick = () => { click('wormCustomizeBtn'); menu.classList.add('is-hidden'); });
+      doc.getElementById('shopCloseBtn').addEventListener('click', () => setTimeout(showMenu, 0));
+      document.querySelectorAll('.color[data-color]').forEach(button => button.onclick = () => { const color = button.dataset.color; doc.querySelector(`.color-option[data-color="${color}"]`).click(); document.documentElement.style.setProperty('--worm', color); document.querySelectorAll('.color').forEach(item => item.classList.toggle('active', item === button)); });
+      setInterval(sync, 500); sync();
+    });
+    window.addEventListener('keydown', event => { if (event.key === 'Enter' && !menu.classList.contains('is-hidden')) document.getElementById('play').click(); });
+  </script>
+</body>
+</html>

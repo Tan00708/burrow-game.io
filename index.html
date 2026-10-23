@@ -644,6 +644,8 @@
   #onboardOverlay{ z-index:20; }
   #wormCustomOverlay{ z-index:20; }
   #shopOverlay{ z-index:20; }
+  /* La récompense arc-en-ciel s'ouvre au-dessus du menu (z-index:15), jamais sous lui. */
+  #rainbowShareOverlay{ z-index:30; }
 
   /* Compte à rebours (première partie) */
   #countdownOverlay {
@@ -1116,8 +1118,12 @@
 .nm-bar{ height:7px; border-radius:4px; background:rgba(255,255,255,0.15); overflow:hidden; }
 .nm-bar i{ display:block; height:100%; width:0; background:linear-gradient(90deg,var(--accent-primary),var(--accent-secondary)); border-radius:4px; }
 .nm-chal-s{ font-size:11px; color:var(--ink-dim); margin-top:5px; }
+.nm-daily-reward{ margin-top:4px; padding:9px; border-radius:9px; font-size:11px; font-weight:700; color:#ffd166; background:rgba(255,209,102,.10); border:1px solid rgba(255,209,102,.28); }
 .nm-streak b{ display:block; font-family:'Fredoka',sans-serif; font-size:14px; }
 .nm-streak span{ font-size:11px; color:var(--ink-dim); }
+.nm-streak #streakTitle{ font:inherit; color:var(--ink); }
+.streak-flame{ display:inline-block; margin-right:5px; filter:grayscale(1); opacity:.38; transition:filter .25s ease, opacity .25s ease, transform .25s ease; }
+.streak-flame.is-lit{ filter:none; opacity:1; transform:scale(1.12); }
 button.nm-rank{ width:100%; font-family:inherit; cursor:pointer; transition:all .2s ease; }
 button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-2px); }
 .nm-rank .nm-bar{ margin:10px 0 8px; }
@@ -1222,9 +1228,10 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
 /* STYLE DES MOTIFS DE TRAÎNÉE : identique au menu des couleurs (1 colonne, même cadre) */
 .nm-stage .nm-colors.pattern-colors,
 .nm-stage .nm-colors.pattern-colors.customize-section{
-  left:auto; right:14px; top:10px; width:76px; max-width:76px;
+  left:auto; right:14px; top:10px; width:82px; max-width:82px;
 }
-.nm-colors.pattern-colors h3::before{ content:'✨'; font-size:18px; }
+.nm-colors.pattern-colors h3{ font-size:10px; margin-bottom:8px; white-space:nowrap; }
+.nm-colors.pattern-colors h3::before{ content:none; }
 .nm-colors.pattern-colors .color-grid{ grid-template-columns:1fr; gap:8px; }
 .pattern-option{
   width:100%; aspect-ratio:1; border-radius:10px; box-sizing:border-box;
@@ -1252,6 +1259,25 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
   display:flex; align-items:center; justify-content:center;
   box-shadow:0 2px 6px rgba(0,0,0,0.4);
 }
+.pattern-option.locked{
+  filter:grayscale(1); opacity:.42; cursor:not-allowed;
+  border-color:rgba(255,255,255,.28);
+}
+.pattern-option.locked:hover{ transform:none; box-shadow:0 4px 12px rgba(0,0,0,.3); }
+.pattern-option.locked::before{
+  content:'🔒'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  font-size:20px; background:rgba(10,14,39,.35); border-radius:8px;
+}
+/* Récompense gratuite : le vert la distingue des traînées gagnées via les quêtes. */
+.pattern-option.locked[data-pattern="rainbow"]{
+  filter:none; opacity:1; border-color:#5ee38b;
+  box-shadow:0 0 12px rgba(94,227,139,.42);
+}
+.pattern-option.locked[data-pattern="rainbow"]::before{
+  background:rgba(25,130,72,.42); color:#d8ffe5;
+  text-shadow:0 0 8px rgba(94,227,139,.9);
+}
+.pattern-option.locked[data-pattern="rainbow"]:hover{ box-shadow:0 0 18px rgba(94,227,139,.7); }
 </style>
 </head>
 <script src="analytics.js"></script>
@@ -1285,11 +1311,12 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
     <div class="nm-col">
       <div class="nm-card nm-grow">
         <h3>Défis du jour</h3>
-        <div class="nm-chal"><div class="nm-chal-t">Atteindre 500 m</div><div class="nm-bar"><i id="ch1Bar"></i></div><div class="nm-chal-s" id="ch1Txt"></div></div>
-        <div class="nm-chal"><div class="nm-chal-t">Ramasser 3 bonus</div><div class="nm-bar"><i id="ch2Bar"></i></div><div class="nm-chal-s" id="ch2Txt"></div></div>
-        <div class="nm-chal"><div class="nm-chal-t">Passer le stage 3</div><div class="nm-bar"><i id="ch3Bar"></i></div><div class="nm-chal-s" id="ch3Txt"></div></div>
+        <div class="nm-chal"><div class="nm-chal-t" id="ch1Title"></div><div class="nm-bar"><i id="ch1Bar"></i></div><div class="nm-chal-s" id="ch1Txt"></div></div>
+        <div class="nm-chal"><div class="nm-chal-t" id="ch2Title"></div><div class="nm-bar"><i id="ch2Bar"></i></div><div class="nm-chal-s" id="ch2Txt"></div></div>
+        <div class="nm-chal"><div class="nm-chal-t" id="ch3Title"></div><div class="nm-bar"><i id="ch3Bar"></i></div><div class="nm-chal-s" id="ch3Txt"></div></div>
+        <div class="nm-daily-reward" id="dailyRewardInfo"></div>
       </div>
-      <div class="nm-card nm-streak"><b id="streakTitle">Série : 1 jour</b><span>Reviens demain pour continuer ta série</span></div>
+      <div class="nm-card nm-streak"><b><i class="streak-flame" id="streakFlame" aria-hidden="true">🔥</i><span id="streakTitle">Série : 0 jour</span></b><span id="streakHint">Termine une partie pour valider aujourd’hui</span></div>
     </div>
 
     <!-- CENTRE -->
@@ -1311,12 +1338,14 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
 
         <!-- SÉLECTEUR DE MOTIFS À DROITE (À LA PLACE DE LA PALETTE) -->
         <div class="customize-section nm-colors pattern-colors">
-          <h3 title="Motifs">✨ Motifs</h3>
+          <h3 title="Traînées">Traînées</h3>
           <div class="color-grid">
             <div class="pattern-option selected" data-pattern="star" title="Étoiles">⭐</div>
             <div class="pattern-option" data-pattern="tp" title="Papier Toilette">🧻</div>
             <div class="pattern-option" data-pattern="gem" title="Cristaux">💎</div>
             <div class="pattern-option" data-pattern="flower" title="Fleurs">🌸</div>
+            <div class="pattern-option" data-pattern="fire" title="Flammes">🔥</div>
+            <div class="pattern-option" data-pattern="rainbow" title="Arc-en-ciel">🌈</div>
           </div>
         </div>
 
@@ -1406,7 +1435,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
     <div class="palette-grid" id="wormPaletteGrid"></div>
     <div class="worm-custom-actions">
       <button class="btn btn-secondary" id="wormRandomBtn" type="button" data-i18n="random">🎲 Aléatoire</button>
-      <button class="btn btn-secondary" id="wormResetBtn" type="button" data-i18n="solid">↺ Uni</button>
+      <button class="btn btn-secondary" id="wormResetBtn" type="button" data-i18n="solid">● Uni</button>
     </div>
     <div class="worm-custom-actions">
       <button class="btn btn-secondary" id="wormCancelBtn" type="button" data-i18n="cancel">Annuler</button>
@@ -1421,6 +1450,20 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
     <p class="shop-balance" id="shopBalance">0 glands disponibles</p>
     <div class="shop-items" id="shopItems"></div>
     <button class="btn btn-shop-close" id="shopCloseBtn" type="button" data-i18n="close">Fermer</button>
+  </div>
+</div>
+
+<div class="overlay dismissable-overlay" id="rainbowShareOverlay">
+  <div class="card" style="max-width:460px;">
+    <h2>🌈 Traînée Arc-en-ciel gratuite</h2>
+    <p>Partage ce lien avec un ami pour débloquer cette traînée. C’est une récompense sur l’honneur.</p>
+    <input class="nickname-input" id="rainbowShareUrl" value="https://tan00708.github.io/burrow-game.io/" readonly aria-label="Lien du jeu" style="font-size:13px; margin:14px 0 10px;">
+    <button class="btn btn-secondary" id="copyRainbowLinkBtn" type="button">📋 Copier le lien</button>
+    <label style="display:flex; gap:9px; align-items:center; margin:16px 0; text-align:left; font-size:13px; cursor:pointer;">
+      <input id="rainbowShareConfirm" type="checkbox"> J’ai partagé le lien avec un ami
+    </label>
+    <button class="btn" id="unlockRainbowBtn" type="button" disabled>Débloquer la traînée 🌈</button>
+    <button class="btn btn-secondary" id="closeRainbowShareBtn" type="button" style="margin-top:10px;">Annuler</button>
   </div>
 </div>
 
@@ -1625,7 +1668,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
       customWormTitle: "🐛 Personnalise ton ver",
       customWormDesc: "Clique sur une boule, puis choisis sa couleur dans la palette.",
       random: "🎲 Aléatoire",
-      solid: "↺ Uni",
+      solid: "● Uni",
       cancel: "Annuler",
       save: "Enregistrer",
       shopTitle: "🛒 Boutique",
@@ -1678,7 +1721,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
       customWormTitle: "🐛 Customize your worm",
       customWormDesc: "Click a segment, then pick its color from the palette.",
       random: "🎲 Random",
-      solid: "↺ Solid",
+      solid: "● Solid",
       cancel: "Cancel",
       save: "Save",
       shopTitle: "🛒 Shop",
@@ -1731,7 +1774,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
       customWormTitle: "🐛 Personaliza tu gusano",
       customWormDesc: "Haz clic en un segmento y elige su color de la paleta.",
       random: "🎲 Aleatorio",
-      solid: "↺ Liso",
+      solid: "● Liso",
       cancel: "Cancelar",
       save: "Guardar",
       shopTitle: "🛒 Tienda",
@@ -1784,7 +1827,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
       customWormTitle: "🐛 Passe deinen Wurm an",
       customWormDesc: "Klicke auf ein Segment und wähle seine Farbe aus der Palette.",
       random: "🎲 Zufall",
-      solid: "↺ Einfarbig",
+      solid: "● Einfarbig",
       cancel: "Abbrechen",
       save: "Speichern",
       shopTitle: "🛒 Shop",
@@ -1853,12 +1896,75 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
       opt.classList.add('selected');
     }
     opt.addEventListener('click', () => {
+      if(!isTrailUnlocked(opt.dataset.pattern)) {
+        if(opt.dataset.pattern === 'rainbow') openRainbowShare();
+        playSFX('click'); return;
+      }
       document.querySelectorAll('.pattern-option').forEach(o => o.classList.remove('selected'));
       opt.classList.add('selected');
       selectedPattern = opt.dataset.pattern;
       localStorage.setItem('burrowio_pattern', selectedPattern);
       playSFX('click');
     });
+  });
+
+  function isTrailUnlocked(pattern){
+    try { return (JSON.parse(localStorage.getItem('burrowio_trail_unlocks') || '["star"]')).includes(pattern); }
+    catch(e) { return pattern === 'star'; }
+  }
+  function renderTrailLocks(){
+    document.querySelectorAll('.pattern-option').forEach(opt => {
+      const unlocked = isTrailUnlocked(opt.dataset.pattern);
+      opt.classList.toggle('locked', !unlocked);
+      opt.setAttribute('aria-disabled', String(!unlocked));
+      if(!unlocked) opt.title = opt.dataset.pattern === 'rainbow'
+        ? '🎁 Gratuit : partage le lien pour la débloquer'
+        : '🔒 Termine les 3 quêtes quotidiennes pour obtenir une traînée';
+    });
+    if(!isTrailUnlocked(selectedPattern)){
+      selectedPattern = 'star';
+      localStorage.setItem('burrowio_pattern', selectedPattern);
+    }
+  }
+  renderTrailLocks();
+
+  function openRainbowShare(){
+    const confirm = document.getElementById('rainbowShareConfirm');
+    confirm.checked = false;
+    document.getElementById('unlockRainbowBtn').disabled = true;
+    document.getElementById('rainbowShareOverlay').classList.add('show');
+  }
+  // Capture le clic directement sur le cadenas : le déblocage gratuit reste accessible
+  // même si d'autres gestionnaires de sélection de traînée sont ajoutés plus tard.
+  document.querySelector('[data-pattern="rainbow"]').addEventListener('click', (e)=>{
+    if(isTrailUnlocked('rainbow')) return;
+    e.stopImmediatePropagation();
+    openRainbowShare();
+    playSFX('click');
+  }, true);
+  document.getElementById('rainbowShareConfirm').addEventListener('change', (e)=>{
+    document.getElementById('unlockRainbowBtn').disabled = !e.target.checked;
+  });
+  document.getElementById('copyRainbowLinkBtn').addEventListener('click', async ()=>{
+    const input = document.getElementById('rainbowShareUrl');
+    input.select();
+    try { await navigator.clipboard.writeText(input.value); } catch(e) { document.execCommand('copy'); }
+    document.getElementById('copyRainbowLinkBtn').textContent = '✓ Lien copié';
+  });
+  document.getElementById('closeRainbowShareBtn').addEventListener('click', ()=>{
+    document.getElementById('rainbowShareOverlay').classList.remove('show');
+  });
+  document.getElementById('unlockRainbowBtn').addEventListener('click', ()=>{
+    if(!document.getElementById('rainbowShareConfirm').checked) return;
+    let unlocked;
+    try { unlocked = JSON.parse(localStorage.getItem('burrowio_trail_unlocks') || '["star"]'); } catch(e) { unlocked = ['star']; }
+    if(!unlocked.includes('rainbow')) localStorage.setItem('burrowio_trail_unlocks', JSON.stringify([...unlocked, 'rainbow']));
+    selectedPattern = 'rainbow';
+    localStorage.setItem('burrowio_pattern', selectedPattern);
+    document.querySelectorAll('.pattern-option').forEach(o => o.classList.toggle('selected', o.dataset.pattern === 'rainbow'));
+    renderTrailLocks();
+    document.getElementById('rainbowShareOverlay').classList.remove('show');
+    playSFX('powerup');
   });
 
   function getRankNames() {
@@ -1998,7 +2104,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
   document.getElementById('roadPlayBtn').addEventListener('click', ()=>{
     document.getElementById('rankProgressionOverlay').classList.remove('show');
     mainMenu.classList.add('hidden');
-    resetGame();
+    launchGame();
     playSFX('click');
   });
 
@@ -3217,7 +3323,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
 
   menuStartBtn.addEventListener('click', () => {
     mainMenu.classList.add('hidden');
-    resetGame();
+    launchGame();
     playSFX('click');
   });
 
@@ -3231,32 +3337,109 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
     playSFX('click');
   });
 
-  renderMenuRecords();
-
   function todayStr(){ return new Date().toISOString().slice(0,10); }
-function bumpPickups(){
-  let d = {};
-  try{ d = JSON.parse(localStorage.getItem('burrowio_daily') || '{}'); }catch(e){}
-  if(d.date !== todayStr()) d = { date: todayStr(), pickups: 0 };
-  d.pickups++;
-  try{ localStorage.setItem('burrowio_daily', JSON.stringify(d)); }catch(e){}
-}
+  const DAILY_KEY = 'burrowio_daily';
+  const STREAK_KEY = 'burrowio_streak_v2';
+  const DAILY_TRAILS = ['tp', 'gem', 'flower', 'fire'];
+  const DAILY_TRAIL_META = {
+    tp:{ emoji:'🧻', name:'Papier toilette' }, gem:{ emoji:'💎', name:'Cristaux' },
+    flower:{ emoji:'🌸', name:'Fleurs' }, fire:{ emoji:'🔥', name:'Flammes' },
+    rainbow:{ emoji:'🌈', name:'Arc-en-ciel' }
+  };
+  const DAILY_QUESTS = {
+    easy: [
+      { type:'distance', goals:[250,350,450], reward:15 },
+      { type:'pickups', goals:[2,3,4], reward:15 },
+      { type:'stage', goals:[2,3], reward:15 }
+    ],
+    medium: [
+      { type:'distance', goals:[700,850,1000], reward:30 },
+      { type:'pickups', goals:[5,6,7], reward:30 },
+      { type:'stage', goals:[4,5], reward:30 }
+    ],
+    hard: [
+      { type:'distance', goals:[1400,1700,2000], reward:55 },
+      { type:'pickups', goals:[9,11,13], reward:55 },
+      { type:'stage', goals:[6,7,8], reward:55 }
+    ]
+  };
+  function daySeed(){ return Math.floor(Date.parse(todayStr() + 'T00:00:00Z') / 864e5); }
+  function dailyQuestFor(level, offset){
+    const pool = DAILY_QUESTS[level], seed = daySeed() + offset * 17;
+    const base = pool[seed % pool.length];
+    return { ...base, level, goal:base.goals[Math.floor(seed / pool.length) % base.goals.length] };
+  }
+  function getDaily(){
+    let d = {};
+    try{ d = JSON.parse(localStorage.getItem(DAILY_KEY) || '{}'); }catch(e){}
+    if(d.date !== todayStr()) d = { date:todayStr(), pickups:0, bestRun:0, maxStage:1, claimed:[] };
+    d.claimed = Array.isArray(d.claimed) ? d.claimed : [];
+    return d;
+  }
+  function saveDaily(d){ try{ localStorage.setItem(DAILY_KEY, JSON.stringify(d)); }catch(e){} }
+  function questLabel(q){
+    if(q.type === 'distance') return `Atteindre ${q.goal} m`;
+    if(q.type === 'pickups') return `Ramasser ${q.goal} pouvoir${q.goal > 1 ? 's' : ''}`;
+    return `Passer le stage ${q.goal}`;
+  }
+  function questValue(q, d){ return q.type === 'distance' ? d.bestRun : (q.type === 'pickups' ? d.pickups : d.maxStage); }
+  function bumpPickups(){
+    const d = getDaily(); d.pickups++; saveDaily(d); checkDailyCompletion(d); renderMenuRecords();
+  }
+  function recordDailyRun(distance){
+    const d = getDaily();
+    d.bestRun = Math.max(d.bestRun || 0, Math.floor(distance));
+    d.maxStage = Math.max(d.maxStage || 1, stageForMeters(distance));
+    saveDaily(d); checkDailyCompletion(d);
+  }
+  function unlockDailyTrail(){
+    let unlocked;
+    try{ unlocked = JSON.parse(localStorage.getItem('burrowio_trail_unlocks') || '["star"]'); }catch(e){ unlocked = ['star']; }
+    const next = DAILY_TRAILS.find(p => !unlocked.includes(p));
+    if(!next) return null;
+    unlocked.push(next); localStorage.setItem('burrowio_trail_unlocks', JSON.stringify(unlocked));
+    renderTrailLocks();
+    return next;
+  }
+  function nextDailyTrail(){ return DAILY_TRAILS.find(p => !isTrailUnlocked(p)); }
+  function checkDailyCompletion(d){
+    const quests = [dailyQuestFor('easy', 0), dailyQuestFor('medium', 1), dailyQuestFor('hard', 2)];
+    quests.forEach((q, i) => {
+      if(questValue(q, d) < q.goal || d.claimed.includes(i)) return;
+      d.claimed.push(i); totalAcorns += q.reward; saveLocalAcorns(totalAcorns);
+    });
+    if(d.claimed.length === 3 && !d.trailClaimed){
+      d.trailClaimed = true;
+      const trail = unlockDailyTrail();
+      if(trail) setTimeout(()=> alert(`🎉 Toutes les quêtes sont terminées ! Traînée ${DAILY_TRAIL_META[trail].emoji} ${DAILY_TRAIL_META[trail].name} débloquée.`), 100);
+      else {
+        totalAcorns += 100;
+        saveLocalAcorns(totalAcorns);
+        setTimeout(()=> alert('🎉 Toutes les quêtes sont terminées ! Collection complète : +100 🌰'), 100);
+      }
+    }
+    saveDaily(d);
+  }
 function getStreak(){
   let s = {};
-  try{ s = JSON.parse(localStorage.getItem('burrowio_streak') || '{}'); }catch(e){}
-  if(s.last !== todayStr()){
-    const y = new Date(Date.now() - 864e5).toISOString().slice(0,10);
-    s.n = (s.last === y ? (s.n || 0) : 0) + 1;
-    s.last = todayStr();
-    try{ localStorage.setItem('burrowio_streak', JSON.stringify(s)); }catch(e){}
-  }
-  return s.n || 1;
+  try{ s = JSON.parse(localStorage.getItem(STREAK_KEY) || '{}'); }catch(e){}
+  return { n:s.n || 0, validated:s.last === todayStr() };
 }
-function setChal(id, val, goal){
+function validateStreakForToday(){
+  let s = {};
+  try{ s = JSON.parse(localStorage.getItem(STREAK_KEY) || '{}'); }catch(e){}
+  if(s.last === todayStr()) return getStreak();
+  const yesterday = new Date(Date.now() - 864e5).toISOString().slice(0,10);
+  s.n = s.last === yesterday ? (s.n || 0) + 1 : 1;
+  s.last = todayStr();
+  try{ localStorage.setItem(STREAK_KEY, JSON.stringify(s)); }catch(e){}
+  return { n:s.n, validated:true };
+}
+function setChal(id, val, goal, reward){
   const p = Math.min(1, val / goal);
   const bar = document.getElementById(id + 'Bar'), txt = document.getElementById(id + 'Txt');
   if(bar) bar.style.width = (p * 100) + '%';
-  if(txt) txt.textContent = p >= 1 ? 'Terminé' : (id === 'ch1' ? Math.floor(val) + ' / ' + goal + ' m' : (id === 'ch2' ? val + ' / ' + goal : 'Pas encore'));
+  if(txt) txt.textContent = p >= 1 ? `Terminé · +${reward} 🌰` : `${Math.floor(val)} / ${goal} · +${reward} 🌰`;
 }
 function renderNewMenu(){
   const info = getRankForScore(totalPoints);
@@ -3278,15 +3461,27 @@ function renderNewMenu(){
     if(h) h.textContent = 'Rang maximum';
   }
 
-  let d = {};
-  try{ d = JSON.parse(localStorage.getItem('burrowio_daily') || '{}'); }catch(e){}
-  const pk = d.date === todayStr() ? (d.pickups || 0) : 0;
-  setChal('ch1', currentBestDist, 500);
-  setChal('ch2', Math.min(pk, 3), 3);
-  setChal('ch3', stageForMeters(currentBestDist), 3);
+  const d = getDaily();
+  const quests = [dailyQuestFor('easy', 0), dailyQuestFor('medium', 1), dailyQuestFor('hard', 2)];
+  quests.forEach((q, i) => {
+    const id = 'ch' + (i + 1), title = document.getElementById(id + 'Title');
+    if(title) title.textContent = `${i === 0 ? 'Facile' : i === 1 ? 'Moyenne' : 'Difficile'} · ${questLabel(q)}`;
+    setChal(id, questValue(q, d), q.goal, q.reward);
+  });
+  const rewardInfo = document.getElementById('dailyRewardInfo');
+  if(rewardInfo){
+    const nextTrail = nextDailyTrail();
+    rewardInfo.textContent = nextTrail
+      ? `🎁 Récompense des 3 quêtes : traînée ${DAILY_TRAIL_META[nextTrail].emoji} ${DAILY_TRAIL_META[nextTrail].name}`
+      : '🎁 Collection complète : +100 🌰 pour les 3 quêtes';
+  }
   const st = getStreak();
   const streakEl = document.getElementById('streakTitle');
-  if(streakEl) streakEl.textContent = 'Série : ' + st + ' jour' + (st > 1 ? 's' : '');
+  if(streakEl) streakEl.textContent = 'Série : ' + st.n + ' jour' + (st.n > 1 ? 's' : '');
+  const flame = document.getElementById('streakFlame');
+  if(flame) flame.classList.toggle('is-lit', st.validated);
+  const streakHint = document.getElementById('streakHint');
+  if(streakHint) streakHint.textContent = st.validated ? 'Série validée aujourd’hui' : 'Termine une partie pour valider aujourd’hui';
   const pbVal = document.getElementById('pbCardVal');
   if(pbVal) pbVal.textContent = currentBestDist.toLocaleString() + ' m';
   const pbSub = document.getElementById('pbCardSub');
@@ -3297,6 +3492,9 @@ function renderNewMenu(){
     else pbSub.textContent = totalPoints.toLocaleString() + ' pts cumulés';
   }
 }
+
+  // Les définitions des quêtes sont maintenant prêtes : on peut rendre le menu.
+  renderMenuRecords();
 
 window.addEventListener('keydown', (e)=>{
   if(e.key !== 'Enter') return;
@@ -3824,6 +4022,7 @@ window.addEventListener('keydown', (e)=>{
   let lastTrailSpawnD = 0;        // profondeur du dernier motif posé
   const TRAIL_SPACING = 24;       // distance régulière entre deux motifs
   const TRAIL_LENGTH  = 300;      // longueur de la traînée avant disparition complète
+  const TRAIL_LATERAL_OFFSETS = [-8, 0, 8]; // léger décalage : gauche, centre ou droite
 
   function explode(x,y){
     const rockColor = activeColors().rock;
@@ -3890,6 +4089,7 @@ window.addEventListener('keydown', (e)=>{
   }
 
   function startCountdownAndGame() {
+    try{ localStorage.setItem('burrowio_countdown_seen', '1'); }catch(e){}
     const overlay = document.getElementById('countdownOverlay');
     const numEl = document.getElementById('countdownNum');
     overlay.classList.add('show');
@@ -3910,6 +4110,14 @@ window.addEventListener('keydown', (e)=>{
         resetGame();
       }
     }, 1000);
+  }
+
+  // Le compte à rebours est une aide de première prise en main, pas une étape répétée.
+  function launchGame(){
+    let countdownSeen = false;
+    try{ countdownSeen = localStorage.getItem('burrowio_countdown_seen') === '1'; }catch(e){}
+    if(countdownSeen) resetGame();
+    else startCountdownAndGame();
   }
 
   const HAS_VISITED_KEY = 'burrowio_has_visited';
@@ -3943,7 +4151,7 @@ window.addEventListener('keydown', (e)=>{
       if(!hasVisitedBefore()){
         markVisited();
         mainMenu.classList.add('hidden');
-        startCountdownAndGame();
+        launchGame();
       } else {
         mainMenu.classList.remove('hidden');
       }
@@ -3952,7 +4160,7 @@ window.addEventListener('keydown', (e)=>{
 
     markVisited();
     mainMenu.classList.add('hidden');
-    startCountdownAndGame();
+    launchGame();
   }
   initialLaunch();
 
@@ -4175,12 +4383,14 @@ window.addEventListener('keydown', (e)=>{
       const distanceGained = speed*dt*speedMul;
       scrollDist += distanceGained;
 
-      // Traînée de motifs : posée à intervalle régulier de distance, dans le prolongement exact de la queue
+      // Traînée de motifs : posée derrière la queue, avec un très léger décalage naturel.
       {
         let patternSymbol = '⭐';
         if(selectedPattern === 'tp') patternSymbol = '🧻';
         else if(selectedPattern === 'gem') patternSymbol = '💎';
         else if(selectedPattern === 'flower') patternSymbol = '🌸';
+        else if(selectedPattern === 'fire') patternSymbol = '🔥';
+        else if(selectedPattern === 'rainbow') patternSymbol = '🌈';
         while(scrollDist - lastTrailSpawnD >= TRAIL_SPACING){
           lastTrailSpawnD += TRAIL_SPACING;
           const tailDepth = lastTrailSpawnD - SEGMENTS * SEG_SPACING;
@@ -4189,8 +4399,9 @@ window.addEventListener('keydown', (e)=>{
             if(trail[idx].d <= tailDepth){ tailX = trail[idx].x; break; }
             tailX = trail[idx].x;
           }
+          const lateralOffset = TRAIL_LATERAL_OFFSETS[Math.floor(Math.random() * TRAIL_LATERAL_OFFSETS.length)] + (Math.random() - 0.5) * 2;
           patternTrailParticles.push({
-            x: tailX + (Math.random() - 0.5) * 6,
+            x: clamp(tailX + lateralOffset, 10, W - 10),
             d: lastTrailSpawnD,
             symbol: patternSymbol,
             size: 16 + Math.random() * 2
@@ -4343,6 +4554,9 @@ window.addEventListener('keydown', (e)=>{
 
   function completeGameOver(finalDist, runBonus, restored, credit = true){
     gameOverShown = true;
+    recordDailyRun(finalDist);
+    validateStreakForToday();
+    renderMenuRecords();
     if(credit) submitRun(finalDist, runBonus);
     saveLocalPoints(totalPoints);
     syncPointsToFirebase();
@@ -4423,7 +4637,7 @@ window.addEventListener('keydown', (e)=>{
   document.getElementById('restartBtn').addEventListener('click', ()=>{
     clearReviveCountdown();
     document.getElementById('endOverlay').classList.remove('show');
-    resetGame();
+    launchGame();
     playSFX('click');
   });
 

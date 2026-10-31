@@ -2998,7 +2998,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
     try{
       const user = await fetchDiscordUser(token);
       const res = await apiFetch('/auth/discord', { token });
-      if(!res || !res.token){ apiNotice('Connexion Discord refusée'); return false; }
+      if(!res || !res.token){ apiNotice('Connexion Discord refusée : ' + (res && res.error ? res.error : 'serveur injoignable (CORS ?)')); return false; }
       setSession(res.token);
       discordUser = user;
       saveDiscordSession(user, null, 0);

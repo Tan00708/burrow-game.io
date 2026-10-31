@@ -2024,7 +2024,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
     html += `
       <div class="rank-player-marker-container" id="playerMarker" style="left:0; transition:none;">
         <div class="rank-player-pin"></div>
-        <div class="rank-player-score-box">${totalPoints.toLocaleString()} pts</div>
+        <div class="rank-player-score-box">${fmtNum(totalPoints)} pts</div>
       </div>
     `;
 
@@ -2127,6 +2127,10 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
   let wormPattern = [playerState.wormColor];
   let wormPatternBackup = null;
   let selectedSlotIndex = 0;
+
+  function fmtNum(n){
+    return String(Math.floor(Number(n) || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, '\u00A0');
+  }
 
   function escapeHtml(str){
     return String(str).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -2378,7 +2382,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
         const rows = globalTopScores.map((s,i)=>`
           <div class="mini-row">
             <span><span class="mini-rank">${i+1}.</span>${escapeHtml(s.nickname || 'Joueur')}</span>
-            <span class="mini-dist">${Math.floor(s.dist)}m</span>
+            <span class="mini-dist">${fmtNum(s.dist)} m</span>
           </div>`);
         for(let i = globalTopScores.length; i < 10; i++){
           rows.push(`<div class="mini-row mini-row-empty"><span><span class="mini-rank">${i+1}.</span>Place libre</span><span class="mini-dist">—</span></div>`);
@@ -2389,9 +2393,9 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
       }
     }
     const pbEl = document.getElementById('personalBestVal');
-    if(pbEl) pbEl.textContent = currentBestDist + ' m';
+    if(pbEl) pbEl.textContent = fmtNum(currentBestDist) + ' m';
     const ptsEl = document.getElementById('personalPointsVal');
-    if(ptsEl) ptsEl.textContent = totalPoints.toLocaleString();
+    if(ptsEl) ptsEl.textContent = fmtNum(totalPoints);
     const acornsEl = document.getElementById('acornsVal');
     if(acornsEl) acornsEl.textContent = totalAcorns;
     updateRankUI();
@@ -3455,7 +3459,7 @@ function renderNewMenu(){
     const done = Math.max(0, totalPoints - info.current.minScore);
     const pct = Math.min(100, done / span * 100);
     if(fillEl) fillEl.style.width = Math.max(pct, 3) + '%';
-    if(h) h.textContent = totalPoints.toLocaleString() + ' / ' + info.next.minScore.toLocaleString() + ' pts · ' + (info.next.minScore - totalPoints).toLocaleString() + ' avant ' + info.next.name;
+    if(h) h.textContent = fmtNum(totalPoints) + ' / ' + fmtNum(info.next.minScore) + ' pts · ' + fmtNum(info.next.minScore - totalPoints) + ' avant ' + info.next.name;
   } else {
     if(fillEl) fillEl.style.width = '100%';
     if(h) h.textContent = 'Rang maximum';
@@ -3483,13 +3487,13 @@ function renderNewMenu(){
   const streakHint = document.getElementById('streakHint');
   if(streakHint) streakHint.textContent = st.validated ? 'Série validée aujourd’hui' : 'Termine une partie pour valider aujourd’hui';
   const pbVal = document.getElementById('pbCardVal');
-  if(pbVal) pbVal.textContent = currentBestDist.toLocaleString() + ' m';
+  if(pbVal) pbVal.textContent = fmtNum(currentBestDist) + ' m';
   const pbSub = document.getElementById('pbCardSub');
   if(pbSub){
     const last = globalTopScores.length >= 10 ? Math.floor(globalTopScores[globalTopScores.length - 1].dist) : 0;
-    if(globalTopScores.length >= 10 && currentBestDist < last) pbSub.textContent = (last - currentBestDist).toLocaleString() + ' m pour entrer dans le top 10';
+    if(globalTopScores.length >= 10 && currentBestDist < last) pbSub.textContent = fmtNum(last - currentBestDist) + ' m pour entrer dans le top 10';
     else if(globalTopScores.length >= 10) pbSub.textContent = 'Tu es dans le top 10 🎉';
-    else pbSub.textContent = totalPoints.toLocaleString() + ' pts cumulés';
+    else pbSub.textContent = fmtNum(totalPoints) + ' pts cumulés';
   }
 }
 
@@ -4177,7 +4181,7 @@ window.addEventListener('keydown', (e)=>{
     document.getElementById('lbList').innerHTML = all.map((p,i)=>`
       <div class="lb-row ${p.me?'me':''}">
         <span class="lb-name"><span class="dot" style="background:${p.hex}"></span>${p.me ? myRankInfo.current.emoji+' ' : ''}${i+1}. ${escapeHtml(p.name)}</span>
-        <span>${Math.floor(p.dist)}m</span>
+        <span>${fmtNum(p.dist)} m</span>
       </div>`).join('');
     return all;
   }
@@ -4462,7 +4466,7 @@ window.addEventListener('keydown', (e)=>{
 
       updateDemoBots(dt);
       mpUpdateMe(ts);
-      document.getElementById('distVal').textContent = currentDisplayMeters + ' m';
+      document.getElementById('distVal').textContent = fmtNum(currentDisplayMeters) + ' m';
       renderLeaderboard();
       renderEffectsHud();
       updateAmbienceSound(speed, true);
@@ -4565,11 +4569,11 @@ window.addEventListener('keydown', (e)=>{
     document.getElementById('endResults').innerHTML = ranked.map((p,i)=>`
       <div class="result-row ${p.me?'me':''}">
         <span>${i+1}. ${escapeHtml(p.name)}</span>
-        <span>${Math.floor(p.dist)}m</span>
+        <span>${fmtNum(p.dist)} m</span>
       </div>`).join('');
     const place = ranked.findIndex(p=>p.me)+1;
     document.getElementById('endSubtitle').textContent =
-      `${finalDist}m — ${place===1?'1er !':(place+'e')}`;
+      `${fmtNum(finalDist)} m — ${place===1?'1er !':(place+'e')}`;
     if(restored) reviveUsedThisRun = true;
     updateReviveButtonVisibility();
     document.getElementById('endOverlay').classList.add('show');

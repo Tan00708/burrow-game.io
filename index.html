@@ -2300,15 +2300,21 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
     }
   }
 
+  function runExtra(){
+    let collection = false;
+    try{ collection = !!getDaily().collectionBonus; }catch(e){}
+    return { pickups: runPickups, collection };
+  }
+
   function checkpointRun(){
     if(!sessionToken) return;
-    apiFetch('/run/end', { dist: Math.floor(scrollDist / 8), bonus: Math.floor(bonusScore) });
+    apiFetch('/run/end', { dist: Math.floor(scrollDist / 8), bonus: Math.floor(bonusScore), ...runExtra() });
   }
 
   async function submitRun(dist, bonus){
     if(!sessionToken) return;
-    let res = await apiFetch('/run/end', { dist, bonus });
-    if(res && res.error === 'retry') res = await apiFetch('/run/end', { dist, bonus });
+    let res = await apiFetch('/run/end', { dist, bonus, ...runExtra() });
+    if(res && res.error === 'retry') res = await apiFetch('/run/end', { dist, bonus, ...runExtra() });
     if(res && res.profile) applyProfile(res.profile);
     if(res && res.error === 'implausible') apiNotice('Score refusé par le serveur');
     else if(!res) apiNotice('Serveur indisponible : partie non enregistrée');
@@ -3388,6 +3394,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
   }
   function questValue(q, d){ return q.type === 'distance' ? d.bestRun : (q.type === 'pickups' ? d.pickups : d.maxStage); }
   function bumpPickups(){
+    runPickups++;
     const d = getDaily(); d.pickups++; saveDaily(d); checkDailyCompletion(d); renderMenuRecords();
   }
   function recordDailyRun(distance){
@@ -3410,15 +3417,14 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
     const quests = [dailyQuestFor('easy', 0), dailyQuestFor('medium', 1), dailyQuestFor('hard', 2)];
     quests.forEach((q, i) => {
       if(questValue(q, d) < q.goal || d.claimed.includes(i)) return;
-      d.claimed.push(i); totalAcorns += q.reward; saveLocalAcorns(totalAcorns);
+      d.claimed.push(i); // les glands sont crédités par le serveur (/run/end)
     });
     if(d.claimed.length === 3 && !d.trailClaimed){
       d.trailClaimed = true;
       const trail = unlockDailyTrail();
       if(trail) setTimeout(()=> alert(`🎉 Toutes les quêtes sont terminées ! Traînée ${DAILY_TRAIL_META[trail].emoji} ${DAILY_TRAIL_META[trail].name} débloquée.`), 100);
       else {
-        totalAcorns += 100;
-        saveLocalAcorns(totalAcorns);
+        d.collectionBonus = true; // le serveur crédite les +100 🌰
         setTimeout(()=> alert('🎉 Toutes les quêtes sont terminées ! Collection complète : +100 🌰'), 100);
       }
     }
@@ -4015,6 +4021,7 @@ window.addEventListener('keydown', (e)=>{
   }
 
   let scrollDist = 0, speed = 95, running = false, gameOverShown = false, paused = false, bonusScore = 0;
+  let runPickups = 0; // pouvoirs ramassés pendant la partie (envoyé au serveur pour les quêtes)
   let reviveUsedThisRun = false;
   let reviveInvulnTimer = 0;
   let reviveCountdownTimeoutId = null;
@@ -4068,7 +4075,7 @@ window.addEventListener('keydown', (e)=>{
     announcedStage = 1;
     effects = { boostTimer:0, shieldCharges:0, shrinkTimer:0, scoreX2Timer:0, wideTunnelTimer:0, wideTunnelBonus:0 };
     player.radius = BASE_RADIUS;
-    scrollDist = 0; speed = 95; running = false; gameOverShown = false; paused = false; trail = []; particles = []; patternTrailParticles = []; lastTrailSpawnD = 0; bonusScore = 0;
+    scrollDist = 0; speed = 95; running = false; gameOverShown = false; paused = false; trail = []; particles = []; patternTrailParticles = []; lastTrailSpawnD = 0; bonusScore = 0; runPickups = 0;
     ensureGenerated(H*2 + 300);
     player.x = centerAt(H);
     reviveUsedThisRun = false;
@@ -4170,7 +4177,11 @@ window.addEventListener('keydown', (e)=>{
 
   function renderLeaderboard(meDist){
     const others = mpReady
-      ? Object.values(otherPlayers).map(p=>({ name: p.nickname || 'Joueur', dist: p.dist || 0, hex: p.color || '#C9B9A8' }))
+      ? Object.values(otherPlayers).map(p=>({
+          name: String(p.nickname || 'Joueur').slice(0, 20),
+          dist: Math.max(0, Number(p.dist) || 0),
+          hex: /^#[0-9a-fA-F]{6}$/.test(String(p.color)) ? p.color : '#C9B9A8'
+        }))
       : demoBots.map(b=>({ name: b.name, dist: b.dist, hex:'#C9B9A8' }));
     const all = [
       {name: playerState.nickname, dist: (typeof meDist === 'number') ? meDist : (scrollDist/8) * (effects.scoreX2Timer > 0 ? 2 : 1), me:true, hex: playerState.wormColor},
@@ -4612,7 +4623,7 @@ window.addEventListener('keydown', (e)=>{
 
   let devModeEnabled = false;
   window.addEventListener('keydown', (e) => {
-    if(e.ctrlKey && (e.key === 'd' || e.key === 'D')) {
+    if(LOCAL_DEV && e.ctrlKey && (e.key === 'd' || e.key === 'D')) {
       e.preventDefault();
       devModeEnabled = !devModeEnabled;
       if(devModeEnabled) {

@@ -4,15 +4,15 @@
 <meta name="google-site-verification" content="scbJQaAjdQ5Ljt9i72GenibAQBYgwR_mXR5QogzjMmM" />
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>burrow-game.fun — Jeu de tunnel multijoueur gratuit</title>
+<title>burrow-game — Jeu de tunnel multijoueur gratuit</title>
 
-<meta name="description" content="burrow-game.fun : jeu de tunnel multijoueur gratuit, jouable directement dans le navigateur sans installation. Creuse, évite les obstacles, récupère des bonus et grimpe dans un classement en temps réel contre de vrais joueurs.">
+<meta name="description" content="burrow-game : jeu de tunnel multijoueur gratuit, jouable directement dans le navigateur sans installation. Creuse, évite les obstacles, récupère des bonus et grimpe dans un classement en temps réel contre de vrais joueurs.">
 <meta name="robots" content="noindex, nofollow">
 <link rel="canonical" href="https://tan00708.github.io/burrow-game.io/">
 <meta name="theme-color" content="#FF6B35">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.85em%22 font-size=%2290%22>🐛</text></svg>">
 
-<meta property="og:title" content="burrow-game.fun">
+<meta property="og:title" content="burrow-game">
 <meta property="og:description" content="Plonge dans les profondeurs, évite les obstacles et bats les autres joueurs !">
 <meta property="og:image" content="https://tan00708.github.io/burrow-game.io/prewiew.png">
 <meta property="og:image:type" content="image/png">
@@ -23,7 +23,7 @@
 <meta property="og:locale" content="fr_FR">
 
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="burrow-game.fun">
+<meta name="twitter:title" content="burrow-game">
 <meta name="twitter:description" content="Jeu de tunnel multijoueur gratuit, jouable directement dans le navigateur.">
 <meta name="twitter:image" content="https://tan00708.github.io/burrow-game.io/prewiew.png">
 
@@ -31,7 +31,7 @@
 {
   "@context": "https://schema.org",
   "@type": "VideoGame",
-  "name": "burrow-game.fun",
+  "name": "burrow-game",
   "description": "Jeu de tunnel multijoueur gratuit, jouable directement dans le navigateur : creuse, évite les obstacles, récupère des bonus et affronte de vrais joueurs en temps réel.",
   "url": "https://tan00708.github.io/burrow-game.io/",
   "image": "https://tan00708.github.io/burrow-game.io/prewiew.png",
@@ -1278,6 +1278,28 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
   text-shadow:0 0 8px rgba(94,227,139,.9);
 }
 .pattern-option.locked[data-pattern="rainbow"]:hover{ box-shadow:0 0 18px rgba(94,227,139,.7); }
+
+#tutoOverlay{ z-index:25; }
+.tuto-card{ width:min(360px,92vw); padding:34px 20px 18px; }
+.tuto-skip{
+  position:absolute; top:10px; right:12px; border:none; background:none;
+  color:var(--ink-dim); font:600 12px 'Fredoka',sans-serif; cursor:pointer; padding:6px;
+}
+.tuto-skip:hover{ color:var(--ink); }
+.tuto-emoji{ font-size:34px; line-height:1; margin-bottom:4px; }
+.tuto-card h2{ font-size:21px; margin:0 0 12px; }
+.tuto-list{ list-style:none; margin:0 0 10px; padding:0; text-align:left; }
+.tuto-list li{
+  font-size:14px; line-height:1.4; color:var(--ink);
+  padding:8px 11px; margin-bottom:6px;
+  background:rgba(255,255,255,.06); border-radius:10px;
+}
+.tuto-dots{ display:flex; justify-content:center; gap:6px; margin:10px 0 4px; }
+.tuto-dots i{ width:7px; height:7px; border-radius:50%; background:rgba(255,255,255,.2); }
+.tuto-dots i.on{ background:var(--accent-primary); }
+.tuto-card .worm-custom-actions .btn{ padding:11px 0; font-size:14px; outline:none; }
+.tuto-card #tutoPrevBtn{ flex:0 0 25%; }
+
 </style>
 </head>
 <script src="analytics.js"></script>
@@ -1287,7 +1309,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
   <div class="menu-bg"><canvas id="bgCanvas"></canvas></div>
 
   <div class="top-bar-left">
-    <h1 class="nm-logo" id="gameTitle">burrow-game<span>.fun</span></h1>
+    <h1 class="nm-logo" id="gameTitle">burrow-game</h1>
   </div>
   <div class="auth-widget" id="authWidget" title="Compte"></div>
 
@@ -1464,6 +1486,20 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
     </label>
     <button class="btn" id="unlockRainbowBtn" type="button" disabled>Débloquer la traînée 🌈</button>
     <button class="btn btn-secondary" id="closeRainbowShareBtn" type="button" style="margin-top:10px;">Annuler</button>
+  </div>
+</div>
+
+<div class="overlay" id="tutoOverlay" role="dialog" aria-modal="true">
+  <div class="card tuto-card">
+    <button class="tuto-skip" id="tutoSkipBtn" type="button">Passer ✕</button>
+    <div class="tuto-emoji" id="tutoEmoji"></div>
+    <h2 id="tutoTitle"></h2>
+    <ul class="tuto-list" id="tutoText"></ul>
+    <div class="tuto-dots" id="tutoDots"></div>
+    <div class="worm-custom-actions">
+      <button class="btn btn-secondary" id="tutoPrevBtn" type="button">←</button>
+      <button class="btn" id="tutoNextBtn" type="button">Suivant</button>
+    </div>
   </div>
 </div>
 
@@ -1864,7 +1900,18 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
     }
   };
 
-  let currentLang = localStorage.getItem('burrowio_lang') || 'fr';
+  const SUPPORTED = ['fr','en','es','de'];
+  function detectLang(){
+    const saved = localStorage.getItem('burrowio_lang');
+    if (SUPPORTED.includes(saved)) return saved;
+    const nav = (navigator.languages || [navigator.language || 'en']);
+    for (const l of nav){
+      const code = l.slice(0,2).toLowerCase();
+      if (SUPPORTED.includes(code)) return code;
+    }
+    return 'en'; // repli international
+  }
+  let currentLang = detectLang();
   let selectedPattern = localStorage.getItem('burrowio_pattern') || 'star';
 
   function t(key) {
@@ -2839,14 +2886,97 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
     myPlayerRef.remove();
   }
 
-  let demoBots = mpReady ? [] : ['Mika','Rooty','Glim'].map(name=>({name, dist:0, speed:rand(70,120), crashTimer:rand(4,14)}));
-  function updateDemoBots(dt){
-    for(const b of demoBots){
-      b.dist += b.speed*dt*0.12;
-      b.crashTimer -= dt;
-      if(b.crashTimer <= 0){ b.dist = Math.max(0, b.dist - rand(4,14)); b.crashTimer = rand(5,16); }
+  // ===== BOTS DU LEADERBOARD LIVE =====
+const BOT_MAX_DIST = 1200;
+const BOT_NAMES = [
+  'Mika','Rooty','Glim','Léa_75','Tom','Kévin','xX_Dark_Xx','Noah','Camille','Lucas',
+  'Nina','Hugo','Sarah','Yanis','Maëlle','Enzo','Chloé','Axel','Jade','Maxime',
+  'Inès','Ryan','Manon','Théo','Lilou','Nathan','Zoé','Gabin','Emma','Rayan',
+  'Lola','Adam','Clara','Louis','Eva','Sam','Alex_','Bastien','Anaïs','Mehdi',
+  'Pixel','Worm42','Doudou','Rafa','Kiki','Léo','Sofia','Marius','Tiago','Ilyes'
+];
+let bots = [];
+let botSpawnQueue = [];   // délais (s) avant l'arrivée d'un nouveau "joueur"
+let botTargetTotal = 7;   // nombre d'adversaires visés (bots + vrais joueurs)
+let botRetargetTimer = 20;
+
+const randInt = (a,b)=> Math.floor(rand(a, b+1));
+const realOthersCount = ()=> mpReady ? Object.keys(otherPlayers).length : 0;
+
+function botSpeedMps(m){
+  // même courbe de vitesse que le vrai jeu (px/s -> m/s)
+  return Math.min(480, 95 + 220*(1 - Math.exp(-m/500)) + m*0.02) / 8;
+}
+
+function pickBotName(){
+  const used = new Set([
+    String(playerState.nickname).toLowerCase(),
+    ...bots.map(b => b.name.toLowerCase()),
+    ...Object.values(otherPlayers).map(p => String(p.nickname || '').toLowerCase())
+  ]);
+  const free = BOT_NAMES.filter(n => !used.has(n.toLowerCase()));
+  const pool = free.length ? free : BOT_NAMES;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function makeBot(seeded){
+  // Distance de mort : majorité de morts tôt, quelques bons scores jusqu'à 6000
+  const deathDist = clamp(Math.pow(Math.random(), 1.2) * BOT_MAX_DIST, 25, BOT_MAX_DIST);
+  return {
+    name: pickBotName(),
+    hex: WORM_PALETTE[Math.floor(Math.random() * WORM_PALETTE.length)],
+    dist: seeded ? rand(0, deathDist * 0.9) : 0,
+    deathDist,
+    skill: rand(0.8, 1.0),   // niveau du "joueur"
+    jitter: 1, jitterT: rand(1, 3)
+  };
+}
+
+function botsSeed(){
+  bots = []; botSpawnQueue = [];
+  botTargetTotal = randInt(5, 9);
+  const n = Math.max(0, botTargetTotal - realOthersCount());
+  for(let i = 0; i < n; i++) bots.push(makeBot(true));
+}
+
+function updateDemoBots(dt){
+  // 1) avancer / faire mourir les bots
+  for(let i = bots.length - 1; i >= 0; i--){
+    const b = bots[i];
+    b.jitterT -= dt;
+    if(b.jitterT <= 0){ b.jitter = rand(0.9, 1.12); b.jitterT = rand(1, 3); }
+    b.dist = Math.min(BOT_MAX_DIST, b.dist + botSpeedMps(b.dist) * b.skill * b.jitter * dt);
+    if(b.dist >= b.deathDist){
+      bots.splice(i, 1);                   // il "crashe" et disparaît, comme un vrai joueur
+      botSpawnQueue.push(rand(1.5, 7));    // un autre arrive plus tard
     }
   }
+
+  // 2) varier le nombre de joueurs de temps en temps
+  botRetargetTimer -= dt;
+  if(botRetargetTimer <= 0){
+    botTargetTotal = randInt(5, 9);
+    botRetargetTimer = rand(25, 60);
+  }
+
+  // 3) ajuster au nombre de vrais joueurs
+  const desired = Math.max(0, botTargetTotal - realOthersCount());
+  if(bots.length + botSpawnQueue.length < desired) botSpawnQueue.push(rand(1, 5));
+  if(bots.length > desired){
+    const b = bots[Math.floor(Math.random() * bots.length)];
+    if(b.deathDist > b.dist + 60) b.deathDist = b.dist + rand(10, 60); // sortira naturellement
+  }
+
+  // 4) arrivées
+  for(let i = botSpawnQueue.length - 1; i >= 0; i--){
+    botSpawnQueue[i] -= dt;
+    if(botSpawnQueue[i] <= 0){
+      botSpawnQueue.splice(i, 1);
+      if(bots.length < desired) bots.push(makeBot(false));
+    }
+  }
+}
+botsSeed();
 
   const DISCORD_CLIENT_ID = '1548208651288969276';
   const DISCORD_TOKEN_KEY = 'burrowio_discord_token';
@@ -4094,7 +4224,7 @@ window.addEventListener('keydown', (e)=>{
     showStageToast(1, THEMES[0], false);
     showControlsHintIfFirstTime();
     running = true;
-    for(const b of demoBots){ b.dist = 0; b.speed = rand(70,120); b.crashTimer = rand(4,14); }
+    botsSeed();
     markRunStart();
     mpForceUpdate();
   }
@@ -4174,26 +4304,136 @@ window.addEventListener('keydown', (e)=>{
     launchGame();
   }
   initialLaunch();
+  
+  // ===== TUTO NOUVEAUX JOUEURS =====
+const TUTO_AFTER_GAMES = 3;
+const TUTO_GAMES_KEY = 'burrowio_games_played';
+const TUTO_DONE_KEY = 'burrowio_tuto_done';
+const TUTO_UI = {
+  fr: { skip:'Passer ✕', next:'Suivant', done:"C'est parti !" },
+  en: { skip:'Skip ✕',   next:'Next',    done:"Let's go!" }
+};
+const TUTO_STEPS = {
+  fr: [
+    { e:'🎯', t:'Défis du jour', d:[
+      "3 défis par jour = des glands 🌰",
+      "Les 3 finis = une nouvelle traînée",
+      "Joue chaque jour pour garder ta série 🔥" ] },
+    { e:'📈', t:'Rank Road', d:[
+      "Chaque partie te rapporte des points",
+      "Plus de points = un rang plus haut (Bronze → Grand Maître)",
+      "Clique sur « Rang » à droite pour voir la route" ] },
+    { e:'🛒', t:'La boutique', d:[
+      "🛒 en haut à droite : paie avec tes glands 🌰",
+      "✖️ Score x2 (touche 1) · 🧪 Grand tunnel (touche 2) · 🛡️ Bouclier (auto)",
+      "⚡ Boost permanent dès le rang Or (touche 3)" ] },
+    { e:'🎨', t:'Ton ver', d:[
+      "Couleur à gauche, « + » pour en mixer plusieurs",
+      "Traînée à droite : à gagner avec les défis" ] }
+  ],
+  en: [
+    { e:'🎯', t:'Daily challenges', d:[
+      "3 challenges a day = acorns 🌰",
+      "Finish all 3 = a new trail",
+      "Play daily to keep your streak 🔥" ] },
+    { e:'📈', t:'Rank Road', d:[
+      "Every run earns you points",
+      "More points = higher rank (Bronze → Grandmaster)",
+      "Click the Rank card on the right to see the road" ] },
+    { e:'🛒', t:'The shop', d:[
+      "🛒 top right: pay with your acorns 🌰",
+      "✖️ Score x2 (key 1) · 🧪 Wide tunnel (key 2) · 🛡️ Shield (auto)",
+      "⚡ Permanent Boost from Gold rank (key 3)" ] },
+    { e:'🎨', t:'Your worm', d:[
+      "Color on the left, \"+\" to mix several",
+      "Trail on the right: earned through challenges" ] }
+  ]
+};
+let tutoIdx = 0;
+
+function tutoLang(){ return TUTO_STEPS[currentLang] ? currentLang : 'fr'; }
+function tutoIsDone(){ try{ return localStorage.getItem(TUTO_DONE_KEY) === '1'; }catch(e){ return false; } }
+function countGame(){
+  if(tutoIsDone()) return;
+  try{
+    const n = parseInt(localStorage.getItem(TUTO_GAMES_KEY) || '0', 10) || 0;
+    localStorage.setItem(TUTO_GAMES_KEY, String(n + 1));
+  }catch(e){}
+}
+function maybeShowTutorial(){
+  if(tutoIsDone()) return;
+  let n = 0;
+  try{ n = parseInt(localStorage.getItem(TUTO_GAMES_KEY) || '0', 10) || 0; }catch(e){}
+  if(n < TUTO_AFTER_GAMES) return;
+  setTimeout(()=>{
+    if(mainMenu.classList.contains('hidden')) return;
+    if(document.querySelector('.overlay.show')) return; // on réessaiera au prochain retour au menu
+    openTutorial();
+  }, 500);
+}
+function renderTutoStep(){
+  const lang = tutoLang(), steps = TUTO_STEPS[lang], ui = TUTO_UI[lang], s = steps[tutoIdx];
+  document.getElementById('tutoEmoji').textContent = s.e;
+  document.getElementById('tutoTitle').textContent = s.t;
+  document.getElementById('tutoText').innerHTML = s.d.map(l => `<li>${escapeHtml(l)}</li>`).join('');
+  document.getElementById('tutoDots').innerHTML = steps.map((_, i)=> `<i class="${i === tutoIdx ? 'on' : ''}"></i>`).join('');
+  document.getElementById('tutoSkipBtn').textContent = ui.skip;
+  document.getElementById('tutoNextBtn').textContent = tutoIdx === steps.length - 1 ? ui.done : ui.next;
+  document.getElementById('tutoPrevBtn').style.visibility = tutoIdx === 0 ? 'hidden' : 'visible';
+}
+function openTutorial(){
+  try{ localStorage.setItem(TUTO_DONE_KEY, '1'); }catch(e){} // marqué comme vu dès l'ouverture
+  tutoIdx = 0;
+  renderTutoStep();
+  document.getElementById('tutoOverlay').classList.add('show');
+}
+function closeTutorial(){
+  document.getElementById('tutoOverlay').classList.remove('show');
+  playSFX('click');
+}
+document.getElementById('tutoNextBtn').addEventListener('click', ()=>{
+  if(tutoIdx >= TUTO_STEPS[tutoLang()].length - 1){ closeTutorial(); return; }
+  tutoIdx++; renderTutoStep(); playSFX('click');
+});
+document.getElementById('tutoPrevBtn').addEventListener('click', ()=>{
+  if(tutoIdx > 0){ tutoIdx--; renderTutoStep(); playSFX('click'); }
+});
+document.getElementById('tutoSkipBtn').addEventListener('click', closeTutorial);
+window.addEventListener('keydown', (e)=>{
+  if(e.key === 'Escape' && document.getElementById('tutoOverlay').classList.contains('show')) closeTutorial();
+});
 
   function renderLeaderboard(meDist){
-    const others = mpReady
-      ? Object.values(otherPlayers).map(p=>({
-          name: String(p.nickname || 'Joueur').slice(0, 20),
-          dist: Math.max(0, Number(p.dist) || 0),
-          hex: /^#[0-9a-fA-F]{6}$/.test(String(p.color)) ? p.color : '#C9B9A8'
-        }))
-      : demoBots.map(b=>({ name: b.name, dist: b.dist, hex:'#C9B9A8' }));
+    // Vrais joueurs (Firebase)
+    const real = mpReady ? Object.values(otherPlayers).map(p=>({
+      name: String(p.nickname || 'Joueur').slice(0, 20),
+      dist: Math.max(0, Number(p.dist) || 0),
+      hex: /^#[0-9a-fA-F]{6}$/.test(String(p.color)) ? p.color : '#C9B9A8'
+    })) : [];
+
+    // Faux joueurs (bots)
+    const fake = bots.map(b => ({ name: b.name, dist: b.dist, hex: b.hex }));
+
+    const others = real.concat(fake);
+
+    // Toi + les autres, triés par distance
     const all = [
       {name: playerState.nickname, dist: (typeof meDist === 'number') ? meDist : (scrollDist/8) * (effects.scoreX2Timer > 0 ? 2 : 1), me:true, hex: playerState.wormColor},
       ...others
     ];
     all.sort((a,b)=>b.dist-a.dist);
+
+    // On n'affiche que 8 lignes, mais on garde toujours TA ligne visible
+    const meIdx = all.findIndex(p => p.me);
+    const shown = meIdx < 8 ? all.slice(0, 8) : all.slice(0, 7).concat(all[meIdx]);
+
     const myRankInfo = getRankForScore(totalPoints);
-    document.getElementById('lbList').innerHTML = all.map((p,i)=>`
+    document.getElementById('lbList').innerHTML = shown.map(p=>`
       <div class="lb-row ${p.me?'me':''}">
-        <span class="lb-name"><span class="dot" style="background:${p.hex}"></span>${p.me ? myRankInfo.current.emoji+' ' : ''}${i+1}. ${escapeHtml(p.name)}</span>
-        <span>${fmtNum(p.dist)} m</span>
+        <span class="lb-name"><span class="dot" style="background:${p.hex}"></span>${p.me ? myRankInfo.current.emoji+' ' : ''}${all.indexOf(p)+1}. ${escapeHtml(p.name)}</span>
+        <span>${fmtNum(p.dist)} m</span>
       </div>`).join('');
+
     return all;
   }
 
@@ -4569,6 +4809,7 @@ window.addEventListener('keydown', (e)=>{
 
   function completeGameOver(finalDist, runBonus, restored, credit = true){
     gameOverShown = true;
+    if(!reviveUsedThisRun) countGame(); // un revive ne compte pas comme une 2e partie
     recordDailyRun(finalDist);
     validateStreakForToday();
     renderMenuRecords();
@@ -4613,6 +4854,7 @@ window.addEventListener('keydown', (e)=>{
     mainMenu.classList.remove('hidden');
     renderMenuRecords();
     playSFX('click');
+    maybeShowTutorial();
   });
 
   function togglePause(){
@@ -4647,6 +4889,9 @@ window.addEventListener('keydown', (e)=>{
     mainMenu.classList.remove('hidden');
     renderMenuRecords();
     playSFX('click');
+    renderMenuRecords();
+    playSFX('click');
+    maybeShowTutorial();
   });
 
   document.getElementById('restartBtn').addEventListener('click', ()=>{

@@ -1332,7 +1332,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
     <!-- GAUCHE -->
     <div class="nm-col">
       <div class="nm-card nm-grow">
-        <h3>Défis du jour</h3>
+        <h3 data-i18n="dailyChallenges">Défis du jour</h3>
         <div class="nm-chal"><div class="nm-chal-t" id="ch1Title"></div><div class="nm-bar"><i id="ch1Bar"></i></div><div class="nm-chal-s" id="ch1Txt"></div></div>
         <div class="nm-chal"><div class="nm-chal-t" id="ch2Title"></div><div class="nm-bar"><i id="ch2Bar"></i></div><div class="nm-chal-s" id="ch2Txt"></div></div>
         <div class="nm-chal"><div class="nm-chal-t" id="ch3Title"></div><div class="nm-bar"><i id="ch3Bar"></i></div><div class="nm-chal-s" id="ch3Txt"></div></div>
@@ -1343,7 +1343,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
 
     <!-- CENTRE -->
     <div class="nm-stage">
-      <div class="nm-stage-label">Ton ver · Rang <span id="wormRankEmojiDisplay">🥉</span> <span id="wormRankName"></span></div>
+      <div class="nm-stage-label"><span data-i18n="yourWormRank">Ton ver · Rang</span> <span id="wormRankEmojiDisplay">🥉</span> <span id="wormRankName"></span></div>
       <div class="nm-stage-mid">
         <!-- PALETTE COULEUR À GAUCHE -->
         <div class="customize-section nm-colors">
@@ -1360,7 +1360,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
 
         <!-- SÉLECTEUR DE MOTIFS À DROITE (À LA PLACE DE LA PALETTE) -->
         <div class="customize-section nm-colors pattern-colors">
-          <h3 title="Traînées">Traînées</h3>
+          <h3 data-i18n="trails">Traînées</h3>
           <div class="color-grid">
             <div class="pattern-option selected" data-pattern="star" title="Étoiles">⭐</div>
             <div class="pattern-option" data-pattern="tp" title="Papier Toilette">🧻</div>
@@ -1374,7 +1374,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
         <div class="worm-container"><canvas id="wormCanvas3D"></canvas></div>
       </div>
       <button class="menu-btn btn-play nm-play" id="menuStartBtn" data-i18n="play">▶ Jouer</button>
-      <div class="nm-record">Record : <b id="personalBestVal">0 m</b> · Touche Entrée pour lancer</div>
+      <div class="nm-record"><span data-i18n="recordLabel">Record :</span> <b id="personalBestVal">0 m</b> · <span data-i18n="pressEnter">Touche Entrée pour lancer</span></div>
       <a class="privacy-link-inline" href="confidentialite.html" target="_blank" rel="noopener" data-i18n="privacy">Confidentialité</a>
     </div>
 
@@ -1394,7 +1394,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
         <div id="globalScoresList"><div class="mini-empty" data-i18n="loading">Chargement...</div></div>
       </div>
         <div class="nm-card nm-pb">
-        <div class="nm-pb-label">⭐ Ton meilleur score</div>
+        <div class="nm-pb-label" data-i18n="yourBestScore">⭐ Ton meilleur score</div>
         <div class="nm-pb-val" id="pbCardVal">0 m</div>
         <div class="nm-pb-sub" id="pbCardSub"></div>
       </div>
@@ -1468,7 +1468,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
 
 <div class="overlay dismissable-overlay" id="shopOverlay">
   <div class="card shop-card">
-    <h2 class="shop-title">🌰 Boutique des glands</h2>
+    <h2 class="shop-title" data-i18n="shopHeading">🌰 Boutique des glands</h2>
     <p class="shop-balance" id="shopBalance">0 glands disponibles</p>
     <div class="shop-items" id="shopItems"></div>
     <button class="btn btn-shop-close" id="shopCloseBtn" type="button" data-i18n="close">Fermer</button>
@@ -1477,15 +1477,15 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
 
 <div class="overlay dismissable-overlay" id="rainbowShareOverlay">
   <div class="card" style="max-width:460px;">
-    <h2>🌈 Traînée Arc-en-ciel gratuite</h2>
-    <p>Partage ce lien avec un ami pour débloquer cette traînée. C’est une récompense sur l’honneur.</p>
+    <h2 data-i18n="rainbowTitle">🌈 Traînée Arc-en-ciel gratuite</h2>
+    <p data-i18n="rainbowDesc">Partage ce lien avec un ami pour débloquer cette traînée. C’est une récompense sur l’honneur.</p>
     <input class="nickname-input" id="rainbowShareUrl" value="https://tan00708.github.io/burrow-game.io/" readonly aria-label="Lien du jeu" style="font-size:13px; margin:14px 0 10px;">
-    <button class="btn btn-secondary" id="copyRainbowLinkBtn" type="button">📋 Copier le lien</button>
+    <button class="btn btn-secondary" id="copyRainbowLinkBtn" type="button" data-i18n="copyLink">📋 Copier le lien</button>
     <label style="display:flex; gap:9px; align-items:center; margin:16px 0; text-align:left; font-size:13px; cursor:pointer;">
-      <input id="rainbowShareConfirm" type="checkbox"> J’ai partagé le lien avec un ami
+      <input id="rainbowShareConfirm" type="checkbox"> <span data-i18n="iShared">J’ai partagé le lien avec un ami</span>
     </label>
-    <button class="btn" id="unlockRainbowBtn" type="button" disabled>Débloquer la traînée 🌈</button>
-    <button class="btn btn-secondary" id="closeRainbowShareBtn" type="button" style="margin-top:10px;">Annuler</button>
+    <button class="btn" id="unlockRainbowBtn" type="button" disabled data-i18n="unlockRainbow">Débloquer la traînée 🌈</button>
+    <button class="btn btn-secondary" id="closeRainbowShareBtn" type="button" style="margin-top:10px;" data-i18n="cancel">Annuler</button>
   </div>
 </div>
 
@@ -1553,9 +1553,8 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
 
   function updateAudioButtonUI(){
     const btn = document.getElementById('audioToggleBtn');
-    if(btn) btn.textContent = isMuted ? '🔇 Mute' : '🔊 Son';
+    if(btn) btn.textContent = t(isMuted ? 'soundOff' : 'soundOn');
   }
-  updateAudioButtonUI();
 
   function initAudio(){
     if(audioCtx) return;
@@ -1817,7 +1816,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
       comingSoon: "¡Próximamente!",
       welcome: "👋 Bienvenido",
       welcomeDesc: "Inicia sesión para guardar tu mejor puntuación o juega como invitado.",
-      recommended: "(recommended)",
+      recommended: "(recomendado)",
       or: "o",
       pseudo: "Apodo",
       playGuest: "Jugar como invitado",
@@ -1826,7 +1825,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
       resume: "Reanudar",
       mainMenu: "Menú principal",
       crashed: "💥 ¡Estrellado!",
-      replay: "🔁 Rezar",
+      replay: "🔁 Jugar de nuevo",
       revive: "📺 Revivir",
       beFirst: "¡Sé el primero!",
       noLeaderboard: "Clasificación no disponible",
@@ -1880,7 +1879,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
       mainMenu: "Hauptmenü",
       crashed: "💥 Gecrasht!",
       replay: "🔁 Nochmal spielen",
-      revive: "Wiederbeleben",
+      revive: "📺 Wiederbeleben",
       beFirst: "Sei der Erste!",
       noLeaderboard: "Bestenliste nicht verfügbar",
       chooseBonus: "🎁 Wähle einen Bonus!",
@@ -1900,6 +1899,210 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
     }
   };
 
+  Object.assign(TRANSLATIONS.fr, {
+    dailyChallenges:"Défis du jour", yourWormRank:"Ton ver · Rang", trails:"Traînées",
+    recordLabel:"Record :", pressEnter:"Touche Entrée pour lancer", yourBestScore:"⭐ Ton meilleur score",
+    shopHeading:"🌰 Boutique des glands",
+    acornsAvailOne:"{n} gland disponible", acornsAvailMany:"{n} glands disponibles",
+    rainbowTitle:"🌈 Traînée Arc-en-ciel gratuite",
+    rainbowDesc:"Partage ce lien avec un ami pour débloquer cette traînée. C’est une récompense sur l’honneur.",
+    copyLink:"📋 Copier le lien", linkCopied:"✓ Lien copié", iShared:"J’ai partagé le lien avec un ami",
+    unlockRainbow:"Débloquer la traînée 🌈",
+    soundOn:"🔊 Son", soundOff:"🔇 Mute",
+    trailLockRainbow:"🎁 Gratuit : partage le lien pour la débloquer",
+    trailLockQuests:"🔒 Termine les 3 quêtes quotidiennes pour obtenir une traînée",
+    noticeSession:"Session expirée, reconnecte-toi", noticeScoreRefused:"Score refusé par le serveur",
+    noticeRunNotSaved:"Serveur indisponible : partie non enregistrée", noticePurchaseRefused:"Achat refusé",
+    noticeServerDown:"Serveur indisponible", noticeDiscordRefused:"Connexion Discord refusée",
+    noticeNickShort:"Pseudo trop court (3 caractères minimum)", noticeNickInvalid:"Pseudo invalide",
+    player:"Joueur", freeSlot:"Place libre",
+    shopConsumables:"Consommables", shopPermanent:"Permanent",
+    soon:"Bientôt", soonTitle:"Bientôt", soonDesc:"Un nouvel avantage permanent arrive.",
+    owned:"Possédé", locked:"Verrouillé", buy:"Acheter — {n} 🌰",
+    videoPreview:"Aperçu vidéo", fileNotFound:"Fichier introuvable",
+    boostName:"Boost", boostDesc:"Un boost de vitesse de {n} secondes à chaque partie.",
+    keyOncePerRun:"Touche 3 · Une fois par partie",
+    unlockedAtRank:"🔒 Débloqué au rang {name} ({pts})",
+    automatic:"Automatique", keyWord:"Touche {k}", inStock:"En stock : {n}",
+    pwScoreX2:"Score x2", pwWide:"Potion grand tunnel", pwShield:"Bouclier",
+    descX2:"Double les mètres parcourus et le score pendant {d} secondes, cumulable jusqu'à {m}s.",
+    upgPlatinum:" Amélioré au rang Platine.",
+    descWide:"Élargit le tunnel pendant {d} secondes par potion, cumulable jusqu'à {m}s.",
+    upgDiamond:" Largeur améliorée au rang Diamant.",
+    descShield1:"Absorbe 1 choc contre la paroi, cumulable jusqu'à {m} boucliers.",
+    descShieldN:"Absorbe {n} chocs contre la paroi, cumulable jusqu'à {m} boucliers.",
+    upgMaster:" Renforcé au rang Maître.",
+    qDistance:"Atteindre {n} m", qPickup1:"Ramasser {n} pouvoir", qPickupN:"Ramasser {n} pouvoirs", qStage:"Passer le stage {n}",
+    levelEasy:"Facile", levelMedium:"Moyenne", levelHard:"Difficile", done:"Terminé",
+    trail_tp:"Papier toilette", trail_gem:"Cristaux", trail_flower:"Fleurs", trail_fire:"Flammes", trail_rainbow:"Arc-en-ciel",
+    rewardTrail:"🎁 Récompense des 3 quêtes : traînée {e} {name}",
+    rewardCollection:"🎁 Collection complète : +100 🌰 pour les 3 quêtes",
+    alertTrail:"🎉 Toutes les quêtes sont terminées ! Traînée {e} {name} débloquée.",
+    alertCollection:"🎉 Toutes les quêtes sont terminées ! Collection complète : +100 🌰",
+    streakOne:"Série : {n} jour", streakMany:"Série : {n} jours",
+    streakValidated:"Série validée aujourd’hui", streakHint:"Termine une partie pour valider aujourd’hui",
+    rankPrefix:"Rang {name}", rankToNext:"{cur} / {next} pts · {left} avant {name}", maxRank:"Rang maximum",
+    ptsCumul:"{n} pts cumulés", enterTop10:"{n} m pour entrer dans le top 10", inTop10:"Tu es dans le top 10 🎉",
+    confirmLogout:"Déconnecter ce pseudo ? Sa progression sera perdue pour toujours. Connecte-toi avec Discord pour la garder.",
+    pu_boost:"BOOST", pu_shield:"BOUCLIER", pu_shrink:"PETIT",
+    effWide:"Tunnel large", activated:"{name} activé !",
+    placeFirst:"1er !", placeN:"{n}e",
+    theme0:"Grotte", theme1:"Plaine", theme2:"Volcan", theme3:"Glacier", theme4:"Lune", theme5:"Cristal", theme6:"Nébuleuse", theme7:"Enfer"
+  });
+
+  Object.assign(TRANSLATIONS.en, {
+    dailyChallenges:"Daily challenges", yourWormRank:"Your worm · Rank", trails:"Trails",
+    recordLabel:"Record:", pressEnter:"Press Enter to start", yourBestScore:"⭐ Your best score",
+    shopHeading:"🌰 Acorn shop",
+    acornsAvailOne:"{n} acorn available", acornsAvailMany:"{n} acorns available",
+    rainbowTitle:"🌈 Free Rainbow trail",
+    rainbowDesc:"Share this link with a friend to unlock this trail. It's an honor-system reward.",
+    copyLink:"📋 Copy link", linkCopied:"✓ Link copied", iShared:"I shared the link with a friend",
+    unlockRainbow:"Unlock the trail 🌈",
+    soundOn:"🔊 Sound", soundOff:"🔇 Muted",
+    trailLockRainbow:"🎁 Free: share the link to unlock it",
+    trailLockQuests:"🔒 Finish the 3 daily challenges to get a trail",
+    noticeSession:"Session expired, please log in again", noticeScoreRefused:"Score rejected by the server",
+    noticeRunNotSaved:"Server unavailable: run not saved", noticePurchaseRefused:"Purchase refused",
+    noticeServerDown:"Server unavailable", noticeDiscordRefused:"Discord login refused",
+    noticeNickShort:"Nickname too short (3 characters minimum)", noticeNickInvalid:"Invalid nickname",
+    player:"Player", freeSlot:"Free spot",
+    shopConsumables:"Consumables", shopPermanent:"Permanent",
+    soon:"Soon", soonTitle:"Coming soon", soonDesc:"A new permanent perk is on its way.",
+    owned:"Owned", locked:"Locked", buy:"Buy — {n} 🌰",
+    videoPreview:"Video preview", fileNotFound:"File not found",
+    boostName:"Boost", boostDesc:"A {n}-second speed boost every run.",
+    keyOncePerRun:"Key 3 · Once per run",
+    unlockedAtRank:"🔒 Unlocked at rank {name} ({pts})",
+    automatic:"Automatic", keyWord:"Key {k}", inStock:"In stock: {n}",
+    pwScoreX2:"Score x2", pwWide:"Wide tunnel potion", pwShield:"Shield",
+    descX2:"Doubles distance and score for {d} seconds, stackable up to {m}s.",
+    upgPlatinum:" Upgraded at Platinum rank.",
+    descWide:"Widens the tunnel for {d} seconds per potion, stackable up to {m}s.",
+    upgDiamond:" Wider at Diamond rank.",
+    descShield1:"Absorbs 1 wall hit, stackable up to {m} shields.",
+    descShieldN:"Absorbs {n} wall hits, stackable up to {m} shields.",
+    upgMaster:" Reinforced at Master rank.",
+    qDistance:"Reach {n} m", qPickup1:"Collect {n} power-up", qPickupN:"Collect {n} power-ups", qStage:"Pass stage {n}",
+    levelEasy:"Easy", levelMedium:"Medium", levelHard:"Hard", done:"Done",
+    trail_tp:"Toilet paper", trail_gem:"Crystals", trail_flower:"Flowers", trail_fire:"Flames", trail_rainbow:"Rainbow",
+    rewardTrail:"🎁 Reward for all 3 challenges: {e} {name} trail",
+    rewardCollection:"🎁 Collection complete: +100 🌰 for all 3 challenges",
+    alertTrail:"🎉 All challenges completed! {e} {name} trail unlocked.",
+    alertCollection:"🎉 All challenges completed! Collection complete: +100 🌰",
+    streakOne:"Streak: {n} day", streakMany:"Streak: {n} days",
+    streakValidated:"Streak validated today", streakHint:"Finish a run to validate today",
+    rankPrefix:"Rank {name}", rankToNext:"{cur} / {next} pts · {left} to {name}", maxRank:"Max rank",
+    ptsCumul:"{n} pts total", enterTop10:"{n} m to enter the top 10", inTop10:"You're in the top 10 🎉",
+    confirmLogout:"Log out of this nickname? Its progress will be lost forever. Log in with Discord to keep it.",
+    pu_boost:"BOOST", pu_shield:"SHIELD", pu_shrink:"TINY",
+    effWide:"Wide tunnel", activated:"{name} activated!",
+    placeFirst:"1st!", placeN:"#{n}",
+    theme0:"Cave", theme1:"Plains", theme2:"Volcano", theme3:"Glacier", theme4:"Moon", theme5:"Crystal", theme6:"Nebula", theme7:"Hell"
+  });
+
+  Object.assign(TRANSLATIONS.es, {
+    dailyChallenges:"Desafíos diarios", yourWormRank:"Tu gusano · Rango", trails:"Estelas",
+    recordLabel:"Récord:", pressEnter:"Pulsa Enter para empezar", yourBestScore:"⭐ Tu mejor puntuación",
+    shopHeading:"🌰 Tienda de bellotas",
+    acornsAvailOne:"{n} bellota disponible", acornsAvailMany:"{n} bellotas disponibles",
+    rainbowTitle:"🌈 Estela Arcoíris gratis",
+    rainbowDesc:"Comparte este enlace con un amigo para desbloquear esta estela. Es una recompensa por honor.",
+    copyLink:"📋 Copiar enlace", linkCopied:"✓ Enlace copiado", iShared:"He compartido el enlace con un amigo",
+    unlockRainbow:"Desbloquear la estela 🌈",
+    soundOn:"🔊 Sonido", soundOff:"🔇 Silencio",
+    trailLockRainbow:"🎁 Gratis: comparte el enlace para desbloquearla",
+    trailLockQuests:"🔒 Completa los 3 desafíos diarios para obtener una estela",
+    noticeSession:"Sesión caducada, vuelve a iniciar sesión", noticeScoreRefused:"Puntuación rechazada por el servidor",
+    noticeRunNotSaved:"Servidor no disponible: partida no guardada", noticePurchaseRefused:"Compra rechazada",
+    noticeServerDown:"Servidor no disponible", noticeDiscordRefused:"Conexión con Discord rechazada",
+    noticeNickShort:"Apodo demasiado corto (mínimo 3 caracteres)", noticeNickInvalid:"Apodo no válido",
+    player:"Jugador", freeSlot:"Plaza libre",
+    shopConsumables:"Consumibles", shopPermanent:"Permanente",
+    soon:"Pronto", soonTitle:"Próximamente", soonDesc:"Llega una nueva ventaja permanente.",
+    owned:"Adquirido", locked:"Bloqueado", buy:"Comprar — {n} 🌰",
+    videoPreview:"Vista previa", fileNotFound:"Archivo no encontrado",
+    boostName:"Impulso", boostDesc:"Un impulso de velocidad de {n} segundos en cada partida.",
+    keyOncePerRun:"Tecla 3 · Una vez por partida",
+    unlockedAtRank:"🔒 Se desbloquea en el rango {name} ({pts})",
+    automatic:"Automático", keyWord:"Tecla {k}", inStock:"En stock: {n}",
+    pwScoreX2:"Puntos x2", pwWide:"Poción de túnel grande", pwShield:"Escudo",
+    descX2:"Duplica los metros y la puntuación durante {d} segundos, acumulable hasta {m}s.",
+    upgPlatinum:" Mejorado en el rango Platino.",
+    descWide:"Ensancha el túnel durante {d} segundos por poción, acumulable hasta {m}s.",
+    upgDiamond:" Anchura mejorada en el rango Diamante.",
+    descShield1:"Absorbe 1 choque contra la pared, acumulable hasta {m} escudos.",
+    descShieldN:"Absorbe {n} choques contra la pared, acumulable hasta {m} escudos.",
+    upgMaster:" Reforzado en el rango Maestro.",
+    qDistance:"Alcanzar {n} m", qPickup1:"Recoger {n} poder", qPickupN:"Recoger {n} poderes", qStage:"Pasar el nivel {n}",
+    levelEasy:"Fácil", levelMedium:"Media", levelHard:"Difícil", done:"Completado",
+    trail_tp:"Papel higiénico", trail_gem:"Cristales", trail_flower:"Flores", trail_fire:"Llamas", trail_rainbow:"Arcoíris",
+    rewardTrail:"🎁 Recompensa de los 3 desafíos: estela {e} {name}",
+    rewardCollection:"🎁 Colección completa: +100 🌰 por los 3 desafíos",
+    alertTrail:"🎉 ¡Todos los desafíos completados! Estela {e} {name} desbloqueada.",
+    alertCollection:"🎉 ¡Todos los desafíos completados! Colección completa: +100 🌰",
+    streakOne:"Racha: {n} día", streakMany:"Racha: {n} días",
+    streakValidated:"Racha validada hoy", streakHint:"Termina una partida para validar hoy",
+    rankPrefix:"Rango {name}", rankToNext:"{cur} / {next} pts · {left} para {name}", maxRank:"Rango máximo",
+    ptsCumul:"{n} pts acumulados", enterTop10:"{n} m para entrar en el top 10", inTop10:"Estás en el top 10 🎉",
+    confirmLogout:"¿Cerrar sesión con este apodo? Su progreso se perderá para siempre. Inicia sesión con Discord para conservarlo.",
+    pu_boost:"IMPULSO", pu_shield:"ESCUDO", pu_shrink:"PEQUEÑO",
+    effWide:"Túnel grande", activated:"¡{name} activado!",
+    placeFirst:"¡1º!", placeN:"{n}º",
+    theme0:"Cueva", theme1:"Llanura", theme2:"Volcán", theme3:"Glaciar", theme4:"Luna", theme5:"Cristal", theme6:"Nebulosa", theme7:"Infierno"
+  });
+
+  Object.assign(TRANSLATIONS.de, {
+    dailyChallenges:"Tägliche Aufgaben", yourWormRank:"Dein Wurm · Rang", trails:"Spuren",
+    recordLabel:"Rekord:", pressEnter:"Enter zum Starten", yourBestScore:"⭐ Dein bester Wert",
+    shopHeading:"🌰 Eichel-Shop",
+    acornsAvailOne:"{n} Eichel verfügbar", acornsAvailMany:"{n} Eicheln verfügbar",
+    rainbowTitle:"🌈 Kostenlose Regenbogen-Spur",
+    rainbowDesc:"Teile diesen Link mit einem Freund, um diese Spur freizuschalten. Es ist eine Belohnung auf Ehrenwort.",
+    copyLink:"📋 Link kopieren", linkCopied:"✓ Link kopiert", iShared:"Ich habe den Link mit einem Freund geteilt",
+    unlockRainbow:"Spur freischalten 🌈",
+    soundOn:"🔊 Ton", soundOff:"🔇 Stumm",
+    trailLockRainbow:"🎁 Gratis: teile den Link zum Freischalten",
+    trailLockQuests:"🔒 Schließe die 3 täglichen Aufgaben ab, um eine Spur zu erhalten",
+    noticeSession:"Sitzung abgelaufen, bitte neu anmelden", noticeScoreRefused:"Punktzahl vom Server abgelehnt",
+    noticeRunNotSaved:"Server nicht erreichbar: Runde nicht gespeichert", noticePurchaseRefused:"Kauf abgelehnt",
+    noticeServerDown:"Server nicht erreichbar", noticeDiscordRefused:"Discord-Anmeldung abgelehnt",
+    noticeNickShort:"Spitzname zu kurz (mindestens 3 Zeichen)", noticeNickInvalid:"Ungültiger Spitzname",
+    player:"Spieler", freeSlot:"Freier Platz",
+    shopConsumables:"Verbrauchsgüter", shopPermanent:"Dauerhaft",
+    soon:"Bald", soonTitle:"Demnächst", soonDesc:"Ein neuer dauerhafter Vorteil kommt.",
+    owned:"Im Besitz", locked:"Gesperrt", buy:"Kaufen — {n} 🌰",
+    videoPreview:"Videovorschau", fileNotFound:"Datei nicht gefunden",
+    boostName:"Boost", boostDesc:"Ein {n}-Sekunden-Tempoboost in jeder Runde.",
+    keyOncePerRun:"Taste 3 · Einmal pro Runde",
+    unlockedAtRank:"🔒 Freigeschaltet ab Rang {name} ({pts})",
+    automatic:"Automatisch", keyWord:"Taste {k}", inStock:"Vorrat: {n}",
+    pwScoreX2:"Punkte x2", pwWide:"Großer-Tunnel-Trank", pwShield:"Schild",
+    descX2:"Verdoppelt Meter und Punkte für {d} Sekunden, stapelbar bis {m}s.",
+    upgPlatinum:" Verbessert ab Rang Platin.",
+    descWide:"Verbreitert den Tunnel für {d} Sekunden pro Trank, stapelbar bis {m}s.",
+    upgDiamond:" Breiter ab Rang Diamant.",
+    descShield1:"Absorbiert 1 Wandtreffer, stapelbar bis {m} Schilde.",
+    descShieldN:"Absorbiert {n} Wandtreffer, stapelbar bis {m} Schilde.",
+    upgMaster:" Verstärkt ab Rang Meister.",
+    qDistance:"{n} m erreichen", qPickup1:"{n} Power-up sammeln", qPickupN:"{n} Power-ups sammeln", qStage:"Level {n} erreichen",
+    levelEasy:"Leicht", levelMedium:"Mittel", levelHard:"Schwer", done:"Erledigt",
+    trail_tp:"Toilettenpapier", trail_gem:"Kristalle", trail_flower:"Blumen", trail_fire:"Flammen", trail_rainbow:"Regenbogen",
+    rewardTrail:"🎁 Belohnung für alle 3 Aufgaben: Spur {e} {name}",
+    rewardCollection:"🎁 Sammlung komplett: +100 🌰 für alle 3 Aufgaben",
+    alertTrail:"🎉 Alle Aufgaben erledigt! Spur {e} {name} freigeschaltet.",
+    alertCollection:"🎉 Alle Aufgaben erledigt! Sammlung komplett: +100 🌰",
+    streakOne:"Serie: {n} Tag", streakMany:"Serie: {n} Tage",
+    streakValidated:"Serie heute bestätigt", streakHint:"Beende eine Runde, um heute zu bestätigen",
+    rankPrefix:"Rang {name}", rankToNext:"{cur} / {next} Pkt · noch {left} bis {name}", maxRank:"Höchster Rang",
+    ptsCumul:"{n} Pkt gesamt", enterTop10:"{n} m bis zur Top 10", inTop10:"Du bist in den Top 10 🎉",
+    confirmLogout:"Diesen Spitznamen abmelden? Der Fortschritt geht für immer verloren. Melde dich mit Discord an, um ihn zu behalten.",
+    pu_boost:"BOOST", pu_shield:"SCHILD", pu_shrink:"WINZIG",
+    effWide:"Großer Tunnel", activated:"{name} aktiviert!",
+    placeFirst:"Platz 1!", placeN:"Platz {n}",
+    theme0:"Höhle", theme1:"Ebene", theme2:"Vulkan", theme3:"Gletscher", theme4:"Mond", theme5:"Kristall", theme6:"Nebel", theme7:"Hölle"
+  });
+
   const SUPPORTED = ['fr','en','es','de'];
   function detectLang(){
     const saved = localStorage.getItem('burrowio_lang');
@@ -1917,6 +2120,11 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
   function t(key) {
     return (TRANSLATIONS[currentLang] && TRANSLATIONS[currentLang][key]) || TRANSLATIONS['fr'][key] || key;
   }
+  function tf(key, vars){
+    let s = t(key);
+    for(const k in (vars || {})) s = s.split('{' + k + '}').join(vars[k]);
+    return s;
+  }
 
   function applyTranslations() {
     document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -1925,6 +2133,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
     });
     const input = document.getElementById('guestNicknameInput');
     if (input) input.placeholder = t('pseudo') + '...';
+    updateAudioButtonUI();
   }
 
   document.getElementById('langSelect').value = currentLang;
@@ -1933,6 +2142,9 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
     localStorage.setItem('burrowio_lang', currentLang);
     applyTranslations();
     renderMenuRecords();
+    renderTrailLocks();
+    renderAbilityHud();
+    if(document.getElementById('shopOverlay').classList.contains('show')) renderShop(true);
     playSFX('click');
   });
 
@@ -1965,8 +2177,8 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
       opt.classList.toggle('locked', !unlocked);
       opt.setAttribute('aria-disabled', String(!unlocked));
       if(!unlocked) opt.title = opt.dataset.pattern === 'rainbow'
-        ? '🎁 Gratuit : partage le lien pour la débloquer'
-        : '🔒 Termine les 3 quêtes quotidiennes pour obtenir une traînée';
+        ? t('trailLockRainbow')
+        : t('trailLockQuests');
     });
     if(!isTrailUnlocked(selectedPattern)){
       selectedPattern = 'star';
@@ -1996,7 +2208,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
     const input = document.getElementById('rainbowShareUrl');
     input.select();
     try { await navigator.clipboard.writeText(input.value); } catch(e) { document.execCommand('copy'); }
-    document.getElementById('copyRainbowLinkBtn').textContent = '✓ Lien copié';
+    document.getElementById('copyRainbowLinkBtn').textContent = t('linkCopied');
   });
   document.getElementById('closeRainbowShareBtn').addEventListener('click', ()=>{
     document.getElementById('rainbowShareOverlay').classList.remove('show');
@@ -2207,6 +2419,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
     shield: { key:'', emoji:'🛡️', name:'Bouclier', price:150, unlockRank:2, videoSrc:'prewiew_power_up/preview_power_up_shield.mp4' },
   };
 
+  const POWER_NAME_KEY = { scoreX2:'pwScoreX2', wideTunnel:'pwWide', shield:'pwShield' };
   let discordUser = null;
   let currentBestDist = 0;
   let totalPoints = 0;
@@ -2309,7 +2522,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
       const r = await fetch(API + path, opts);
       const data = await r.json().catch(()=>null);
       if(data && data.error === 'auth' && sessionToken){
-        apiNotice('Session expirée, reconnecte-toi');
+        apiNotice(t('noticeSession'));
         resetIdentity();
       }
       return data;
@@ -2363,8 +2576,8 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
     let res = await apiFetch('/run/end', { dist, bonus, ...runExtra() });
     if(res && res.error === 'retry') res = await apiFetch('/run/end', { dist, bonus, ...runExtra() });
     if(res && res.profile) applyProfile(res.profile);
-    if(res && res.error === 'implausible') apiNotice('Score refusé par le serveur');
-    else if(!res) apiNotice('Serveur indisponible : partie non enregistrée');
+    if(res && res.error === 'implausible') apiNotice(t('noticeScoreRefused'));
+    else if(!res) apiNotice(t('noticeRunNotSaved'));
     refreshLeaderboard();
   }
 
@@ -2377,8 +2590,8 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
     buyBusy = false;
     if(res && res.profile){
       applyProfile(res.profile);
-      if(res.ok) playSFX('powerup'); else apiNotice('Achat refusé');
-    }else apiNotice('Serveur indisponible');
+      if(res.ok) playSFX('powerup'); else apiNotice(t('noticePurchaseRefused'));
+    }else apiNotice(t('noticeServerDown'));
   }
 
   async function buyBoost(){
@@ -2388,8 +2601,8 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
     buyBusy = false;
     if(res && res.profile){
       applyProfile(res.profile);
-      if(res.ok) playSFX('powerup'); else apiNotice('Achat refusé');
-    }else apiNotice('Serveur indisponible');
+      if(res.ok) playSFX('powerup'); else apiNotice(t('noticePurchaseRefused'));
+    }else apiNotice(t('noticeServerDown'));
   }
   // ===== FIN BLOC SERVEUR =====
 
@@ -2434,11 +2647,11 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
       if(globalTopScores.length){
         const rows = globalTopScores.map((s,i)=>`
           <div class="mini-row">
-            <span><span class="mini-rank">${i+1}.</span>${escapeHtml(s.nickname || 'Joueur')}</span>
-            <span class="mini-dist">${fmtNum(s.dist)} m</span>
+            <span><span class="mini-rank">${i+1}.</span>${escapeHtml(s.nickname || t('player'))}</span>
+            <span class="mini-dist">${fmtNum(s.dist)} m</span>
           </div>`);
         for(let i = globalTopScores.length; i < 10; i++){
-          rows.push(`<div class="mini-row mini-row-empty"><span><span class="mini-rank">${i+1}.</span>Place libre</span><span class="mini-dist">—</span></div>`);
+          rows.push(`<div class="mini-row mini-row-empty"><span><span class="mini-rank">${i+1}.</span>${t('freeSlot')}</span><span class="mini-dist">—</span></div>`);
         }
         listEl.innerHTML = rows.join('');
       } else {
@@ -2446,7 +2659,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
       }
     }
     const pbEl = document.getElementById('personalBestVal');
-    if(pbEl) pbEl.textContent = fmtNum(currentBestDist) + ' m';
+    if(pbEl) pbEl.textContent = fmtNum(currentBestDist) + ' m';
     const ptsEl = document.getElementById('personalPointsVal');
     if(ptsEl) ptsEl.textContent = fmtNum(totalPoints);
     const acornsEl = document.getElementById('acornsVal');
@@ -2455,30 +2668,30 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
     renderNewMenu();
   }
 
-  function soonShopHtml(){    return `      <div class="shop-item-row">        <div class="shop-preview-box"><div class="shop-preview-placeholder"><span class="preview-placeholder-emoji">?</span><span class="preview-placeholder-text">Bientôt</span></div></div>        <div class="shop-item-info">          <div class="shop-item-text"><h3>Coming soon</h3><p>Un nouvel avantage permanent arrive.</p></div>          <button class="btn shop-buy is-locked" type="button" disabled>Bientôt</button>        </div>      </div>`;  }  
+  function soonShopHtml(){    return `      <div class="shop-item-row">        <div class="shop-preview-box"><div class="shop-preview-placeholder"><span class="preview-placeholder-emoji">?</span><span class="preview-placeholder-text">${t('soon')}</span></div></div>        <div class="shop-item-info">          <div class="shop-item-text"><h3>${t('soonTitle')}</h3><p>${t('soonDesc')}</p></div>          <button class="btn shop-buy is-locked" type="button" disabled>${t('soon')}</button>        </div>      </div>`;  }  
   
   function permanentShopHtml(){
     const unlocked = getRankForScore(totalPoints).index >= BOOST_UNLOCK_RANK;
     const unlockRank = getRankNames()[BOOST_UNLOCK_RANK];
     const disabled = boostUnlocked || !unlocked || totalAcorns < BOOST_PRICE;
-    const label = boostUnlocked ? 'Possédé' : (!unlocked ? 'Verrouillé' : `Acheter — ${BOOST_PRICE} 🌰`);
-    const info = boostUnlocked ? 'Touche 3 · Une fois par partie'
-      : (unlocked ? 'Touche 3 · Une fois par partie' : `🔒 Débloqué au rang ${unlockRank.name} (${formatRankScore(unlockRank.minScore)})`);
+    const label = boostUnlocked ? t('owned') : (!unlocked ? t('locked') : tf('buy', {n:BOOST_PRICE}));
+    const info = (boostUnlocked || unlocked) ? t('keyOncePerRun')
+      : tf('unlockedAtRank', {name:unlockRank.name, pts:formatRankScore(unlockRank.minScore)});
     
     return `
-      <div class="shop-section-title">Permanent</div>
+      <div class="shop-section-title">${t('shopPermanent')}</div>
       <div class="shop-item-row" data-power-row="boost">
         <div class="shop-preview-box">
           <div class="shop-preview-placeholder">
             <span class="preview-placeholder-emoji">⚡</span>
-            <span class="preview-placeholder-text">Aperçu vidéo</span>
+            <span class="preview-placeholder-text">${t('videoPreview')}</span>
           </div>
           <video class="shop-preview-video" data-power-id="boost" autoplay loop muted playsinline preload="auto"></video>
         </div>
         <div class="shop-item-info">
           <div class="shop-item-text">
-            <h3>⚡ Boost</h3>
-            <p>Un boost de vitesse de ${BOOST_DURATION} secondes à chaque partie.<br><strong class="shop-key-stock">${info}</strong></p>
+            <h3>⚡ ${t('boostName')}</h3>
+            <p>${tf('boostDesc', {n:BOOST_DURATION})}<br><strong class="shop-key-stock">${info}</strong></p>
           </div>
           <button class="btn shop-buy ${(!unlocked && !boostUnlocked) ? 'is-locked' : ''}" type="button" data-boost-buy ${disabled ? 'disabled' : ''}>${label}</button>
         </div>
@@ -2498,10 +2711,14 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
     playSFX('powerup');
   }
 
+  function shopKeyLabel(power, id){
+    return (power.key === '' ? t('automatic') : tf('keyWord', {k:power.key})) + ' · ' + tf('inStock', {n:powerInventory[id]});
+  }
+
   function renderShop(forceRebuild = true){
     const balance = document.getElementById('shopBalance');
     const items = document.getElementById('shopItems');
-    if(balance) balance.textContent = `${totalAcorns} gland${totalAcorns === 1 ? '' : 's'} disponible${totalAcorns === 1 ? '' : 's'}`;
+    if(balance) balance.textContent = tf(totalAcorns === 1 ? 'acornsAvailOne' : 'acornsAvailMany', {n:totalAcorns});
     if(!items) return;
     const rankInfo = getRankForScore(totalPoints);
 
@@ -2517,19 +2734,19 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
         const row = items.querySelector(`[data-power-row="${id}"]`);
         if(row){
           const stockEl = row.querySelector('.shop-key-stock');
-          if(stockEl) stockEl.textContent = unlocked ? `${power.key === '' ? 'Automatique' : 'Touche ' + power.key} · En stock : ${powerInventory[id]}` : stockEl.textContent;
+          if(stockEl) stockEl.textContent = unlocked ? shopKeyLabel(power, id) : stockEl.textContent;
           const btn = row.querySelector('[data-power-buy]');
           if(btn){
             btn.disabled = !canBuy;
             btn.className = `btn shop-buy ${!unlocked ? 'is-locked' : ''}`;
-            btn.textContent = !unlocked ? 'Verrouillé' : `Acheter — ${power.price} 🌰`;
+            btn.textContent = !unlocked ? t('locked') : tf('buy', {n:power.price});
           }
         }
       });
       return;
     }
 
-    items.innerHTML = '<div class="shop-section-title">Consommables</div>' + Object.keys(SHOP_POWERS).map(id => {
+    items.innerHTML = '<div class="shop-section-title">' + t('shopConsumables') + '</div>' + Object.keys(SHOP_POWERS).map(id => {
       const basePower = SHOP_POWERS[id];
       const power = getShopPowerConfig(id);
       const unlocked = rankInfo.index >= basePower.unlockRank;
@@ -2542,17 +2759,17 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
         <div class="shop-preview-box">
           <div class="shop-preview-placeholder">
             <span class="preview-placeholder-emoji">${power.emoji}</span>
-            <span class="preview-placeholder-text">Aperçu vidéo</span>
+            <span class="preview-placeholder-text">${t('videoPreview')}</span>
           </div>
           <video class="shop-preview-video" data-power-id="${id}" autoplay loop muted playsinline preload="auto"></video>
         </div>
         <div class="shop-item-info">
           <div class="shop-item-text">
             <h3>${power.emoji} ${power.name}</h3>
-            <p>${power.description}<br><strong class="shop-key-stock">${unlocked ? `${power.key === '' ? 'Automatique' : 'Touche ' + power.key} · En stock : ${powerInventory[id]}` : `🔒 Débloqué au rang ${unlockRank.name} (${formatRankScore(unlockRank.minScore)})`}</strong></p>
+            <p>${power.description}<br><strong class="shop-key-stock">${unlocked ? shopKeyLabel(power, id) : tf('unlockedAtRank', {name:unlockRank.name, pts:formatRankScore(unlockRank.minScore)})}</strong></p>
           </div>
           <button class="btn shop-buy ${!unlocked ? 'is-locked' : ''}" type="button" data-power-buy="${id}" ${!canBuy ? 'disabled' : ''}>
-            ${!unlocked ? 'Verrouillé' : `Acheter — ${power.price} 🌰`}
+            ${!unlocked ? t('locked') : tf('buy', {n:power.price})}
           </button>
         </div>
       </div>`;
@@ -2739,7 +2956,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
         if(urlIndex >= list.length){
           if(placeholder){
             const txt = placeholder.querySelector('.preview-placeholder-text');
-            if(txt) txt.innerHTML = `<span style="font-size:10px; color:#ff9999;">Fichier introuvable</span>`;
+            if(txt) txt.innerHTML = `<span style="font-size:10px; color:#ff9999;">${t('fileNotFound')}</span>`;
           }
           return;
         }
@@ -2781,20 +2998,21 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
   }
 
   function getShopPowerConfig(id){
-    const power = SHOP_POWERS[id];
-    if(!power) return null;
+    const base = SHOP_POWERS[id];
+    if(!base) return null;
+    const power = { ...base, name: t(POWER_NAME_KEY[id]) };
     const rank = getRankForScore(totalPoints).index;
     if(id === 'scoreX2'){
       const duration = rank >= 3 ? 30 : 20;
-      return { ...power, duration, description:`Double les mètres parcourus et le score pendant ${duration} secondes, cumulable jusqu'à ${MAX_SCOREX2_TIME}s.${rank >= 3 ? ' Amélioré au rang Platine.' : ''}` };
+      return { ...power, duration, description: tf('descX2', {d:duration, m:MAX_SCOREX2_TIME}) + (rank >= 3 ? t('upgPlatinum') : '') };
     }
     if(id === 'wideTunnel'){
       const duration = WIDETUNNEL_PER_USE;
       const width = rank >= 4 ? 46 : 34;
-      return { ...power, duration, width, description:`Élargit le tunnel pendant ${duration} secondes par potion, cumulable jusqu'à ${MAX_WIDETUNNEL_TIME}s.${rank >= 4 ? ' Largeur améliorée au rang Diamant.' : ''}` };
+      return { ...power, duration, width, description: tf('descWide', {d:duration, m:MAX_WIDETUNNEL_TIME}) + (rank >= 4 ? t('upgDiamond') : '') };
     }
     const charges = rank >= 5 ? 2 : 1;
-    return { ...power, charges, description:`Absorbe ${charges} choc${charges > 1 ? 's' : ''} contre la paroi, cumulable jusqu'à ${MAX_SHIELD_CHARGES} boucliers.${rank >= 5 ? ' Renforcé au rang Maître.' : ''}` };
+    return { ...power, charges, description: tf(charges > 1 ? 'descShieldN' : 'descShield1', {n:charges, m:MAX_SHIELD_CHARGES}) + (rank >= 5 ? t('upgMaster') : '') };
   }
 
   const firebaseConfig = {
@@ -3094,7 +3312,7 @@ botsSeed();
       el.innerHTML = '';
     }
     const logoutBtn = document.getElementById('identityLogoutBtn');
-    if(logoutBtn) logoutBtn.addEventListener('click', (e)=>{ if(guestPseudo && !discordUser && !confirm('Déconnecter ce pseudo ? Sa progression sera perdue pour toujours. Connecte-toi avec Discord pour la garder.')){ e.stopPropagation(); return; }
+    if(logoutBtn) logoutBtn.addEventListener('click', (e)=>{ if(guestPseudo && !discordUser && !confirm(t('confirmLogout'))){ e.stopPropagation(); return; }
       e.stopPropagation();
       resetIdentity();
       playSFX('click');
@@ -3138,7 +3356,7 @@ botsSeed();
     try{
       const user = await fetchDiscordUser(token);
       const res = await apiFetch('/auth/discord', { token });
-      if(!res || !res.token){ apiNotice('Connexion Discord refusée : ' + (res && res.error ? res.error : 'serveur injoignable (CORS ?)')); return false; }
+      if(!res || !res.token){ apiNotice(t('noticeDiscordRefused') + ' : ' + (res && res.error ? res.error : 'CORS ?')); return false; }
       setSession(res.token);
       discordUser = user;
       saveDiscordSession(user, null, 0);
@@ -3177,9 +3395,9 @@ botsSeed();
     const guestInput = document.getElementById('guestNicknameInput');
     async function submitGuest(){
       const val = (guestInput.value || '').trim();
-      if(val.length < 3){ apiNotice('Pseudo trop court (3 caractères minimum)'); return; }
+      if(val.length < 3){ apiNotice(t('noticeNickShort')); return; }
       const res = await apiFetch('/auth/guest', { nickname: val });
-      if(!res || !res.token){ apiNotice(res && res.error === 'bad_nickname' ? 'Pseudo invalide' : 'Serveur indisponible'); return; }
+      if(!res || !res.token){ apiNotice(res && res.error === 'bad_nickname' ? t('noticeNickInvalid') : t('noticeServerDown')); return; }
       setSession(res.token);
       guestPseudo = res.profile.nickname;
       saveGuestPseudo(guestPseudo);
@@ -3451,13 +3669,12 @@ botsSeed();
     playSFX('click');
   });
   document.getElementById('wormResetBtn').addEventListener('click', ()=>{
-    const base = playerState.wormColor || WORM_PALETTE[0];
+    const base = wormPattern[selectedSlotIndex] || wormPattern[0] || WORM_PALETTE[0];
     wormPattern = Array(WORM_SLOT_COUNT).fill(base);
     renderWormPreview();
     renderWormPalette();
     playSFX('click');
   });
-
   const mainMenu = document.getElementById('mainMenu');
   const menuStartBtn = document.getElementById('menuStartBtn');
 
@@ -3518,9 +3735,9 @@ botsSeed();
   }
   function saveDaily(d){ try{ localStorage.setItem(DAILY_KEY, JSON.stringify(d)); }catch(e){} }
   function questLabel(q){
-    if(q.type === 'distance') return `Atteindre ${q.goal} m`;
-    if(q.type === 'pickups') return `Ramasser ${q.goal} pouvoir${q.goal > 1 ? 's' : ''}`;
-    return `Passer le stage ${q.goal}`;
+    if(q.type === 'distance') return tf('qDistance', {n:q.goal});
+    if(q.type === 'pickups') return tf(q.goal > 1 ? 'qPickupN' : 'qPickup1', {n:q.goal});
+    return tf('qStage', {n:q.goal});
   }
   function questValue(q, d){ return q.type === 'distance' ? d.bestRun : (q.type === 'pickups' ? d.pickups : d.maxStage); }
   function bumpPickups(){
@@ -3552,10 +3769,10 @@ botsSeed();
     if(d.claimed.length === 3 && !d.trailClaimed){
       d.trailClaimed = true;
       const trail = unlockDailyTrail();
-      if(trail) setTimeout(()=> alert(`🎉 Toutes les quêtes sont terminées ! Traînée ${DAILY_TRAIL_META[trail].emoji} ${DAILY_TRAIL_META[trail].name} débloquée.`), 100);
+      if(trail) setTimeout(()=> alert(tf('alertTrail', {e:DAILY_TRAIL_META[trail].emoji, name:t('trail_' + trail)})), 100);
       else {
         d.collectionBonus = true; // le serveur crédite les +100 🌰
-        setTimeout(()=> alert('🎉 Toutes les quêtes sont terminées ! Collection complète : +100 🌰'), 100);
+        setTimeout(()=> alert(t('alertCollection')), 100);
       }
     }
     saveDaily(d);
@@ -3579,12 +3796,12 @@ function setChal(id, val, goal, reward){
   const p = Math.min(1, val / goal);
   const bar = document.getElementById(id + 'Bar'), txt = document.getElementById(id + 'Txt');
   if(bar) bar.style.width = (p * 100) + '%';
-  if(txt) txt.textContent = p >= 1 ? `Terminé · +${reward} 🌰` : `${Math.floor(val)} / ${goal} · +${reward} 🌰`;
+  if(txt) txt.textContent = p >= 1 ? `${t('done')} · +${reward} 🌰` : `${Math.floor(val)} / ${goal} · +${reward} 🌰`;
 }
 function renderNewMenu(){
   const info = getRankForScore(totalPoints);
   const n = document.getElementById('menuRankName');
-  if(n) n.textContent = 'Rang ' + info.current.name;
+  if(n) n.textContent = tf('rankPrefix', {name: info.current.name});
   const nm = document.getElementById('wormRankName');
   if(nm) nm.textContent = info.current.name;
 
@@ -3595,41 +3812,45 @@ function renderNewMenu(){
     const done = Math.max(0, totalPoints - info.current.minScore);
     const pct = Math.min(100, done / span * 100);
     if(fillEl) fillEl.style.width = Math.max(pct, 3) + '%';
-    if(h) h.textContent = fmtNum(totalPoints) + ' / ' + fmtNum(info.next.minScore) + ' pts · ' + fmtNum(info.next.minScore - totalPoints) + ' avant ' + info.next.name;
+    if(h) h.textContent = tf('rankToNext', {
+      cur: fmtNum(totalPoints), next: fmtNum(info.next.minScore),
+      left: fmtNum(info.next.minScore - totalPoints), name: info.next.name
+    });
   } else {
     if(fillEl) fillEl.style.width = '100%';
-    if(h) h.textContent = 'Rang maximum';
+    if(h) h.textContent = t('maxRank');
   }
 
   const d = getDaily();
   const quests = [dailyQuestFor('easy', 0), dailyQuestFor('medium', 1), dailyQuestFor('hard', 2)];
+  const levelKeys = ['levelEasy', 'levelMedium', 'levelHard'];
   quests.forEach((q, i) => {
     const id = 'ch' + (i + 1), title = document.getElementById(id + 'Title');
-    if(title) title.textContent = `${i === 0 ? 'Facile' : i === 1 ? 'Moyenne' : 'Difficile'} · ${questLabel(q)}`;
+    if(title) title.textContent = `${t(levelKeys[i])} · ${questLabel(q)}`;
     setChal(id, questValue(q, d), q.goal, q.reward);
   });
   const rewardInfo = document.getElementById('dailyRewardInfo');
   if(rewardInfo){
     const nextTrail = nextDailyTrail();
     rewardInfo.textContent = nextTrail
-      ? `🎁 Récompense des 3 quêtes : traînée ${DAILY_TRAIL_META[nextTrail].emoji} ${DAILY_TRAIL_META[nextTrail].name}`
-      : '🎁 Collection complète : +100 🌰 pour les 3 quêtes';
+      ? tf('rewardTrail', {e:DAILY_TRAIL_META[nextTrail].emoji, name:t('trail_' + nextTrail)})
+      : t('rewardCollection');
   }
   const st = getStreak();
   const streakEl = document.getElementById('streakTitle');
-  if(streakEl) streakEl.textContent = 'Série : ' + st.n + ' jour' + (st.n > 1 ? 's' : '');
+  if(streakEl) streakEl.textContent = tf(st.n > 1 ? 'streakMany' : 'streakOne', {n:st.n});
   const flame = document.getElementById('streakFlame');
   if(flame) flame.classList.toggle('is-lit', st.validated);
   const streakHint = document.getElementById('streakHint');
-  if(streakHint) streakHint.textContent = st.validated ? 'Série validée aujourd’hui' : 'Termine une partie pour valider aujourd’hui';
+  if(streakHint) streakHint.textContent = st.validated ? t('streakValidated') : t('streakHint');
   const pbVal = document.getElementById('pbCardVal');
-  if(pbVal) pbVal.textContent = fmtNum(currentBestDist) + ' m';
+  if(pbVal) pbVal.textContent = fmtNum(currentBestDist) + ' m';
   const pbSub = document.getElementById('pbCardSub');
   if(pbSub){
     const last = globalTopScores.length >= 10 ? Math.floor(globalTopScores[globalTopScores.length - 1].dist) : 0;
-    if(globalTopScores.length >= 10 && currentBestDist < last) pbSub.textContent = fmtNum(last - currentBestDist) + ' m pour entrer dans le top 10';
-    else if(globalTopScores.length >= 10) pbSub.textContent = 'Tu es dans le top 10 🎉';
-    else pbSub.textContent = fmtNum(totalPoints) + ' pts cumulés';
+    if(globalTopScores.length >= 10 && currentBestDist < last) pbSub.textContent = tf('enterTop10', {n:fmtNum(last - currentBestDist)});
+    else if(globalTopScores.length >= 10) pbSub.textContent = t('inTop10');
+    else pbSub.textContent = tf('ptsCumul', {n:fmtNum(totalPoints)});
   }
 }
 
@@ -4047,7 +4268,7 @@ window.addEventListener('keydown', (e)=>{
   function showStageToast(stage, theme, hasGate){
     const el = document.getElementById('stageToast');
     const effHud = document.getElementById('effectsHud');
-    el.textContent = `${t('stage')} ${stage} — ${theme.name}`;
+    el.textContent = `${t('stage')} ${stage} — ${t('theme' + THEMES.indexOf(theme))}`;
     el.classList.add('show');
     if(effHud) effHud.classList.add('has-toast');
     
@@ -4088,8 +4309,8 @@ window.addEventListener('keydown', (e)=>{
 
   function renderEffectsHud(){
     const chips = [];
-    if(effects.scoreX2Timer > 0) chips.push(`<div class="effect-chip">✖️ Score x2 · ${effects.scoreX2Timer.toFixed(1)}s</div>`);
-    if(effects.wideTunnelTimer > 0) chips.push(`<div class="effect-chip">🧪 Tunnel large · ${effects.wideTunnelTimer.toFixed(1)}s</div>`);
+    if(effects.scoreX2Timer > 0) chips.push(`<div class="effect-chip">✖️ ${t('pwScoreX2')} · ${effects.scoreX2Timer.toFixed(1)}s</div>`);
+    if(effects.wideTunnelTimer > 0) chips.push(`<div class="effect-chip">🧪 ${t('effWide')} · ${effects.wideTunnelTimer.toFixed(1)}s</div>`);
     if(effects.boostTimer > 0) chips.push(`<div class="effect-chip">⚡ ${effects.boostTimer.toFixed(1)}s</div>`);
     if(effects.shieldCharges > 0) chips.push(`<div class="effect-chip">🛡️ ×${effects.shieldCharges}</div>`);
     if(effects.shrinkTimer > 0) chips.push(`<div class="effect-chip">🤏 ${effects.shrinkTimer.toFixed(1)}s</div>`);
@@ -4101,9 +4322,9 @@ window.addEventListener('keydown', (e)=>{
     if(!el) return;
     const rank = getRankForScore(totalPoints).index;
     let html = Object.entries(SHOP_POWERS).filter(([, power]) => rank >= power.unlockRank).map(([id, power]) =>
-      `<div class="ability-slot"><kbd>${power.key === 'auto' ? '' : power.key}</kbd>${power.emoji} ${power.name} ×${powerInventory[id]}</div>`
+      `<div class="ability-slot"><kbd>${power.key === 'auto' ? '' : power.key}</kbd>${power.emoji} ${t(POWER_NAME_KEY[id])} ×${powerInventory[id]}</div>`
     ).join('');
-    if(boostUnlocked) html += `<div class="ability-slot" style="${boostUsedThisRun ? 'opacity:.4' : ''}"><kbd>3</kbd>⚡ Boost</div>`;
+    if(boostUnlocked) html += `<div class="ability-slot" style="${boostUsedThisRun ? 'opacity:.4' : ''}"><kbd>3</kbd>⚡ ${t('boostName')}</div>`;
     el.innerHTML = html;
   }
 
@@ -4136,7 +4357,7 @@ window.addEventListener('keydown', (e)=>{
     savePowerInventory();
     const toast = document.getElementById('stageToast');
     const effHud = document.getElementById('effectsHud');
-    toast.textContent = `${power.emoji} ${power.name} activé !`;
+    toast.textContent = tf('activated', {name: power.emoji + ' ' + power.name});
     toast.classList.add('show');
     if(effHud) effHud.classList.add('has-toast');
     
@@ -4306,47 +4527,115 @@ window.addEventListener('keydown', (e)=>{
   initialLaunch();
   
   // ===== TUTO NOUVEAUX JOUEURS =====
-const TUTO_AFTER_GAMES = 3;
+const TUTO_AFTER_GAMES = 2;
 const TUTO_GAMES_KEY = 'burrowio_games_played';
 const TUTO_DONE_KEY = 'burrowio_tuto_done';
 const TUTO_UI = {
   fr: { skip:'Passer ✕', next:'Suivant', done:"C'est parti !" },
-  en: { skip:'Skip ✕',   next:'Next',    done:"Let's go!" }
+  en: { skip:'Skip ✕',   next:'Next',    done:"Let's go!" },
+  es: { skip:'Saltar ✕', next:'Siguiente', done:'¡Vamos!' },
+  de: { skip:'Überspringen ✕', next:'Weiter', done:"Los geht's!" }
 };
 const TUTO_STEPS = {
   fr: [
-    { e:'🎯', t:'Défis du jour', d:[
-      "3 défis par jour = des glands 🌰",
-      "Les 3 finis = une nouvelle traînée",
+    { e:'🐛', t:'Le but du jeu', d:[
+      "Creuse le plus loin possible sans toucher les murs",
+      "Dirige ton ver : ⬅️ ➡️ ou A / D (au doigt sur mobile)",
+      "Ramasse les bonus : ⚡ vitesse · 🛡️ bouclier · 🤏 petit" ] },
+    { e:'🎯', t:'Les défis du jour', d:[
+      "À gauche du menu : 3 défis par jour (facile, moyen, difficile)",
+      "Chaque défi terminé te donne des glands 🌰",
+      "Les 3 terminés = une nouvelle traînée gratuite",
       "Joue chaque jour pour garder ta série 🔥" ] },
-    { e:'📈', t:'Rank Road', d:[
+    { e:'📈', t:'Les rangs', d:[
       "Chaque partie te rapporte des points",
-      "Plus de points = un rang plus haut (Bronze → Grand Maître)",
+      "Plus tu as de points, plus ton rang monte (Bronze → Grand Maître)",
+      "Un rang élevé débloque de nouveaux objets en boutique",
       "Clique sur « Rang » à droite pour voir la route" ] },
     { e:'🛒', t:'La boutique', d:[
-      "🛒 en haut à droite : paie avec tes glands 🌰",
-      "✖️ Score x2 (touche 1) · 🧪 Grand tunnel (touche 2) · 🛡️ Bouclier (auto)",
-      "⚡ Boost permanent dès le rang Or (touche 3)" ] },
+      "Bouton 🛒 en haut à droite : dépense tes glands 🌰",
+      "✖️ Score x2 (touche 1) · 🧪 Grand tunnel (touche 2) · 🛡️ Bouclier (automatique)",
+      "⚡ Boost permanent à vie dès le rang Or (touche 3)",
+      "Les objets 🔒 se débloquent en montant de rang" ] },
     { e:'🎨', t:'Ton ver', d:[
-      "Couleur à gauche, « + » pour en mixer plusieurs",
-      "Traînée à droite : à gagner avec les défis" ] }
+      "Couleur : choisis à gauche, ou « + » pour mélanger",
+      "Traînée : choisis à droite (🔒 = à gagner avec les défis)",
+      "🌈 Arc-en-ciel : gratuit en partageant le lien à un ami" ] }
   ],
   en: [
+    { e:'🐛', t:'How to play', d:[
+      "Dig as far as you can without touching the walls",
+      "Steer your worm: ⬅️ ➡️ or A / D (drag your finger on mobile)",
+      "Grab power-ups: ⚡ speed · 🛡️ shield · 🤏 tiny" ] },
     { e:'🎯', t:'Daily challenges', d:[
-      "3 challenges a day = acorns 🌰",
-      "Finish all 3 = a new trail",
-      "Play daily to keep your streak 🔥" ] },
-    { e:'📈', t:'Rank Road', d:[
+      "On the left of the menu: 3 challenges a day (easy, medium, hard)",
+      "Each finished challenge gives you acorns 🌰",
+      "All 3 done = a new free trail",
+      "Play every day to keep your streak 🔥" ] },
+    { e:'📈', t:'Ranks', d:[
       "Every run earns you points",
       "More points = higher rank (Bronze → Grandmaster)",
+      "A higher rank unlocks new items in the shop",
       "Click the Rank card on the right to see the road" ] },
     { e:'🛒', t:'The shop', d:[
-      "🛒 top right: pay with your acorns 🌰",
-      "✖️ Score x2 (key 1) · 🧪 Wide tunnel (key 2) · 🛡️ Shield (auto)",
-      "⚡ Permanent Boost from Gold rank (key 3)" ] },
+      "🛒 button at the top right: spend your acorns 🌰",
+      "✖️ Score x2 (key 1) · 🧪 Wide tunnel (key 2) · 🛡️ Shield (automatic)",
+      "⚡ Permanent Boost for life from Gold rank (key 3)",
+      "🔒 items unlock as your rank goes up" ] },
     { e:'🎨', t:'Your worm', d:[
-      "Color on the left, \"+\" to mix several",
-      "Trail on the right: earned through challenges" ] }
+      "Color: pick on the left, or \"+\" to mix colors",
+      "Trail: pick on the right (🔒 = earn it with challenges)",
+      "🌈 Rainbow: free if you share the link with a friend" ] }
+  ],
+  es: [
+    { e:'🐛', t:'Cómo jugar', d:[
+      "Cava lo más lejos posible sin tocar las paredes",
+      "Dirige tu gusano: ⬅️ ➡️ o A / D (con el dedo en móvil)",
+      "Recoge bonus: ⚡ velocidad · 🛡️ escudo · 🤏 pequeño" ] },
+    { e:'🎯', t:'Desafíos diarios', d:[
+      "A la izquierda del menú: 3 desafíos al día (fácil, medio, difícil)",
+      "Cada desafío completado te da bellotas 🌰",
+      "Los 3 completados = una nueva estela gratis",
+      "Juega cada día para mantener tu racha 🔥" ] },
+    { e:'📈', t:'Los rangos', d:[
+      "Cada partida te da puntos",
+      "Más puntos = rango más alto (Bronce → Gran Maestro)",
+      "Un rango alto desbloquea nuevos objetos en la tienda",
+      "Haz clic en « Rango » a la derecha para ver el camino" ] },
+    { e:'🛒', t:'La tienda', d:[
+      "Botón 🛒 arriba a la derecha: gasta tus bellotas 🌰",
+      "✖️ Puntos x2 (tecla 1) · 🧪 Túnel grande (tecla 2) · 🛡️ Escudo (automático)",
+      "⚡ Impulso permanente desde el rango Oro (tecla 3)",
+      "Los objetos 🔒 se desbloquean al subir de rango" ] },
+    { e:'🎨', t:'Tu gusano', d:[
+      "Color: elige a la izquierda, o « + » para mezclar",
+      "Estela: elige a la derecha (🔒 = se gana con los desafíos)",
+      "🌈 Arcoíris: gratis si compartes el enlace con un amigo" ] }
+  ],
+  de: [
+    { e:'🐛', t:'So spielst du', d:[
+      "Grabe so weit wie möglich, ohne die Wände zu berühren",
+      "Steuere deinen Wurm: ⬅️ ➡️ oder A / D (mit dem Finger am Handy)",
+      "Sammle Boni: ⚡ Tempo · 🛡️ Schild · 🤏 Winzig" ] },
+    { e:'🎯', t:'Tägliche Aufgaben', d:[
+      "Links im Menü: 3 Aufgaben pro Tag (leicht, mittel, schwer)",
+      "Jede erledigte Aufgabe gibt dir Eicheln 🌰",
+      "Alle 3 geschafft = eine neue kostenlose Spur",
+      "Spiele täglich, um deine Serie zu behalten 🔥" ] },
+    { e:'📈', t:'Ränge', d:[
+      "Jede Runde bringt dir Punkte",
+      "Mehr Punkte = höherer Rang (Bronze → Großmeister)",
+      "Ein höherer Rang schaltet neue Items im Shop frei",
+      "Klicke rechts auf « Rang », um den Weg zu sehen" ] },
+    { e:'🛒', t:'Der Shop', d:[
+      "🛒-Button oben rechts: gib deine Eicheln 🌰 aus",
+      "✖️ Punkte x2 (Taste 1) · 🧪 Großer Tunnel (Taste 2) · 🛡️ Schild (automatisch)",
+      "⚡ Dauerhafter Boost ab Rang Gold (Taste 3)",
+      "🔒 Items werden mit höherem Rang freigeschaltet" ] },
+    { e:'🎨', t:'Dein Wurm', d:[
+      "Farbe: links wählen, oder « + » zum Mischen",
+      "Spur: rechts wählen (🔒 = durch Aufgaben verdienen)",
+      "🌈 Regenbogen: gratis, wenn du den Link mit einem Freund teilst" ] }
   ]
 };
 let tutoIdx = 0;
@@ -4612,7 +4901,7 @@ window.addEventListener('keydown', (e)=>{
       ctx.fillText(info.emoji, pu.x, sy - 1);
       ctx.font = '700 9px Fredoka, sans-serif';
       ctx.fillStyle = 'rgba(255,255,255,0.95)';
-      ctx.fillText(info.label, pu.x, sy + pu.r + 9);
+      ctx.fillText(t('pu_' + pu.kind), pu.x, sy + pu.r + 9);
     }
     ctx.textAlign = 'start'; ctx.textBaseline = 'alphabetic';
 
@@ -4717,7 +5006,7 @@ window.addEventListener('keydown', (e)=>{
 
       updateDemoBots(dt);
       mpUpdateMe(ts);
-      document.getElementById('distVal').textContent = fmtNum(currentDisplayMeters) + ' m';
+      document.getElementById('distVal').textContent = fmtNum(currentDisplayMeters) + ' m';
       renderLeaderboard();
       renderEffectsHud();
       updateAmbienceSound(speed, true);
@@ -4821,16 +5110,25 @@ window.addEventListener('keydown', (e)=>{
     document.getElementById('endResults').innerHTML = ranked.map((p,i)=>`
       <div class="result-row ${p.me?'me':''}">
         <span>${i+1}. ${escapeHtml(p.name)}</span>
-        <span>${fmtNum(p.dist)} m</span>
+        <span>${fmtNum(p.dist)} m</span>
       </div>`).join('');
     const place = ranked.findIndex(p=>p.me)+1;
     document.getElementById('endSubtitle').textContent =
-      `${fmtNum(finalDist)} m — ${place===1?'1er !':(place+'e')}`;
+      `${fmtNum(finalDist)} m — ${place===1 ? t('placeFirst') : tf('placeN', {n:place})}`;
     if(restored) reviveUsedThisRun = true;
     updateReviveButtonVisibility();
     document.getElementById('endOverlay').classList.add('show');
 
     if(!reviveUsedThisRun) startReviveCountdown();
+
+    // Affiche le tuto après la 2ème partie, même sans retourner au menu
+    try{
+      const n = parseInt(localStorage.getItem(TUTO_GAMES_KEY) || '0', 10) || 0;
+      if(!tutoIsDone() && n >= TUTO_AFTER_GAMES){
+        clearReviveCountdown();
+        setTimeout(openTutorial, 600);
+      }
+    }catch(e){}
   }
 
   function doRevive(){
@@ -4887,8 +5185,6 @@ window.addEventListener('keydown', (e)=>{
     mpLeave();
     document.getElementById('pauseOverlay').classList.remove('show');
     mainMenu.classList.remove('hidden');
-    renderMenuRecords();
-    playSFX('click');
     renderMenuRecords();
     playSFX('click');
     maybeShowTutorial();

@@ -5121,14 +5121,6 @@ window.addEventListener('keydown', (e)=>{
 
     if(!reviveUsedThisRun) startReviveCountdown();
 
-    // Affiche le tuto après la 2ème partie, même sans retourner au menu
-    try{
-      const n = parseInt(localStorage.getItem(TUTO_GAMES_KEY) || '0', 10) || 0;
-      if(!tutoIsDone() && n >= TUTO_AFTER_GAMES){
-        clearReviveCountdown();
-        setTimeout(openTutorial, 600);
-      }
-    }catch(e){}
   }
 
   function doRevive(){

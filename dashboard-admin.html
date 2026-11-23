@@ -103,16 +103,15 @@
         <div class="xl:col-span-2 bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg space-y-4">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h3 class="text-lg font-bold">Plus gros joueurs</h3>
-              <p class="text-xs text-slate-400">Données issues de `/leaderboard` (Cloudflare) + présence en direct</p>
+              <h3 class="text-lg font-bold">Joueurs (Leaderboard & Présence)</h3>
+              <p class="text-xs text-slate-400">Records via `/leaderboard` et présence temps réel via Firebase</p>
             </div>
             <div class="flex flex-wrap gap-2">
               <input id="playerSearch" type="text" placeholder="Rechercher un joueur..." oninput="renderPlayersSection()" class="px-3 py-1.5 text-sm rounded-lg bg-slate-900 border border-slate-700 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500">
               <select id="playerSort" onchange="renderPlayersSection()" class="px-3 py-1.5 text-sm rounded-lg bg-slate-900 border border-slate-700 text-slate-100 focus:outline-none focus:border-indigo-500">
                 <option value="best">Tri : Meilleur score</option>
                 <option value="online">Tri : En ligne d'abord</option>
-                <option value="recent">Tri : Activité récente</option>
-                <option value="acorns">Tri : Glands 🌰</option>
+                <option value="recent">Tri : Dernière connexion</option>
               </select>
             </div>
           </div>
@@ -125,12 +124,11 @@
                   <th class="py-3 px-3">Joueur</th>
                   <th class="py-3 px-3">Statut</th>
                   <th class="py-3 px-3">Record</th>
-                  <th class="py-3 px-3">Dernière activité</th>
-                  <th class="py-3 px-3">Glands</th>
+                  <th class="py-3 px-3">Dernière connexion</th>
                 </tr>
               </thead>
               <tbody id="playersTableBody" class="divide-y divide-slate-700/60">
-                <tr><td colspan="6" class="py-6 text-center text-slate-400">Chargement des joueurs...</td></tr>
+                <tr><td colspan="5" class="py-6 text-center text-slate-400">Chargement des joueurs...</td></tr>
               </tbody>
             </table>
           </div>
@@ -145,17 +143,6 @@
             <p class="text-slate-400">Aucune sélection pour le moment.</p>
           </div>
         </div>
-      </div>
-
-      <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg space-y-3">
-        <div class="flex items-center justify-between gap-2">
-          <div>
-            <h3 class="text-base font-bold">Journal des heures de parties (`runs`)</h3>
-            <p class="text-xs text-slate-400">Horodatages globaux renvoyés par `/admin/stats` sur Cloudflare</p>
-          </div>
-          <span id="runsTotalBadge" class="px-2.5 py-1 rounded-full bg-slate-900 border border-slate-700 text-xs text-indigo-300 font-semibold">0 horodatages</span>
-        </div>
-        <div id="globalRunsList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 max-h-60 overflow-y-auto pr-1"></div>
       </div>
     </div>
   </main>
@@ -206,13 +193,6 @@ function formatDateTime(ts){
     + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 }
 
-function formatHourOnly(ts){
-  if (!ts) return '—';
-  const d = new Date(ts);
-  if (!isFinite(d.getTime())) return '—';
-  return d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-}
-
 function getOnlinePlayers(){
   const now = Date.now();
   const list = [];
@@ -260,7 +240,7 @@ window.switchSubTab = function(tab){
 
   $('view-general').style.display = isPlayers ? 'none' : '';
   $('view-players').style.display = isPlayers ? '' : 'none';
-  $('pageTitle').textContent = isPlayers ? 'Joueurs & Historique des parties' : 'Analytics & Statistiques';
+  $('pageTitle').textContent = isPlayers ? 'Joueurs & Présence' : 'Analytics & Statistiques';
 
   $('nav-general').className = !isPlayers
     ? 'w-full text-left px-4 py-2 rounded-lg text-sm font-medium bg-slate-700/80 text-white transition'
@@ -291,8 +271,7 @@ function buildPlayersList(){
       name: incoming.name || key,
       best: 0,
       liveDist: null,
-      lastPlayed: 0,
-      acorns: 0,
+      lastSeen: 0,
       online: false
     };
 
@@ -304,41 +283,31 @@ function buildPlayersList(){
       prev.liveDist = incoming.liveDist;
       prev.best = Math.max(prev.best, incoming.liveDist);
     }
-    if (typeof incoming.acorns === 'number' && isFinite(incoming.acorns)){
-      prev.acorns = Math.max(prev.acorns, incoming.acorns);
-    }
     if (incoming.online) prev.online = true;
 
-    const ts = toTs(incoming.lastPlayed);
-    if (ts > prev.lastPlayed) prev.lastPlayed = ts;
+    const ts = toTs(incoming.lastSeen);
+    if (ts > prev.lastSeen) prev.lastSeen = ts;
 
     map.set(cleanKey, prev);
   };
 
   const src = cache || {};
-  const collections = [src.top, src.leaderboard, src.players, src.users];
-  for (const col of collections){
-    if (!col) continue;
-    const entries = Array.isArray(col)
-      ? col.map((v, i) => [v?.nickname || v?.name || v?.id || i, v])
-      : Object.entries(col);
-    for (const [k, p] of entries){
-      if (!p || typeof p !== 'object') continue;
-      const nick = String(p.nickname || p.name || p.username || (typeof k === 'string' ? k : 'Joueur'));
-      upsert(nick, {
-        name: nick,
-        best: Number(p.best ?? p.highScore ?? p.maxDist ?? p.dist ?? 0) || 0,
-        lastPlayed: toTs(p.lastPlayed ?? p.lastSeen ?? p.updatedAt ?? p.ts),
-        acorns: Number(p.acorns ?? p.coins ?? 0) || 0
-      });
-    }
+  const topList = Array.isArray(src.top) ? src.top : [];
+  for (const p of topList){
+    if (!p || typeof p !== 'object') continue;
+    const nick = String(p.nickname || p.name || 'Joueur');
+    upsert(nick, {
+      name: nick,
+      best: Number(p.best ?? p.dist ?? 0) || 0,
+      lastSeen: toTs(p.lastSeen ?? p.updatedAt ?? p.ts)
+    });
   }
 
   for (const p of getOnlinePlayers()){
     upsert(p.name, {
       name: p.name,
       liveDist: p.dist,
-      lastPlayed: p.ts,
+      lastSeen: p.ts,
       online: true
     });
   }
@@ -367,53 +336,24 @@ function renderPlayerDetail(player){
         <div class="text-xs text-slate-400">Meilleur score</div>
         <div class="text-xl font-bold text-emerald-400 mt-1">${player.best.toLocaleString()} m</div>
       </div>
-      <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-700">
-        <div class="text-xs text-slate-400">Distance actuelle</div>
-        <div class="text-xl font-bold text-indigo-400 mt-1">${player.online && player.liveDist !== null ? player.liveDist.toLocaleString() + ' m' : '—'}</div>
+      <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-700 col-span-2">
+        <div class="text-xs text-slate-400">Dernière connexion</div>
+        <div class="text-sm font-semibold text-slate-200 mt-1">${esc(formatDateTime(player.lastSeen))}</div>
       </div>
-      <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-700">
-        <div class="text-xs text-slate-400">Glands 🌰</div>
-        <div class="text-xl font-bold text-purple-400 mt-1">${player.acorns.toLocaleString()}</div>
-      </div>
+      ${player.online && player.liveDist !== null ? `
+      <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-700 col-span-2">
+        <div class="text-xs text-slate-400">Distance actuelle (en direct)</div>
+        <div class="text-xl font-bold text-indigo-400 mt-1">${player.liveDist.toLocaleString()} m</div>
+      </div>` : ''}
     </div>
-    <p class="text-xs text-slate-400">Dernière activité : ${esc(formatDateTime(player.lastPlayed))}</p>
+    <p class="text-xs text-slate-400">Les stats détaillées par joueur (nombre de parties, glands par compte) ne sont pas exposées par \`/leaderboard\` ni \`/admin/stats\`.</p>
   `;
-}
-
-function renderGlobalRuns(){
-  const rawRuns = Array.isArray(cache?.runs) ? cache.runs : [];
-  const timestamps = rawRuns
-    .map(r => ({
-      ts: toTs(typeof r === 'object' && r !== null ? (r.ts ?? r.time ?? r.playedAt ?? r.createdAt ?? r.date) : r),
-      name: typeof r === 'object' && r !== null ? (r.nickname || r.name || r.player || '') : ''
-    }))
-    .filter(x => x.ts > 0)
-    .sort((a, b) => b.ts - a.ts);
-
-  $('runsTotalBadge').textContent = `${timestamps.length} horodatages`;
-  const container = $('globalRunsList');
-  if (!timestamps.length){
-    container.innerHTML = '<div class="text-xs text-slate-400 col-span-full">Aucune partie enregistrée dans `runs`.</div>';
-    return;
-  }
-
-  container.innerHTML = timestamps.slice(0, 80).map((item, idx) => `
-    <div class="px-3 py-2 rounded-lg bg-slate-900/75 border border-slate-700/60 text-xs flex items-center justify-between gap-2">
-      <div>
-        <div class="font-medium text-slate-100">${esc(formatDateTime(item.ts))}</div>
-        <div class="text-slate-400">${item.name ? esc(item.name) : 'Partie #' + (timestamps.length - idx)}</div>
-      </div>
-      <span class="font-semibold text-indigo-300">${esc(formatHourOnly(item.ts))}</span>
-    </div>
-  `).join('');
 }
 
 function renderPlayersSection(){
   const tbody = $('playersTableBody');
   const notice = $('playersNotice');
   if (!tbody) return;
-
-  renderGlobalRuns();
 
   const hasLeaderboardPlayers = !!(cache && Array.isArray(cache.top) && cache.top.length);
   const hasOnlinePlayers = getOnlinePlayers().length > 0;
@@ -434,13 +374,12 @@ function renderPlayersSection(){
 
   list.sort((a, b) => {
     if (sortBy === 'online') return (Number(b.online) - Number(a.online)) || (b.best - a.best);
-    if (sortBy === 'recent') return (b.lastPlayed - a.lastPlayed) || (b.best - a.best);
-    if (sortBy === 'acorns') return (b.acorns - a.acorns) || (b.best - a.best);
+    if (sortBy === 'recent') return (b.lastSeen - a.lastSeen) || (b.best - a.best);
     return b.best - a.best;
   });
 
   if (!list.length){
-    tbody.innerHTML = '<tr><td colspan="6" class="py-6 text-center text-slate-400">Aucun joueur trouvé.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" class="py-6 text-center text-slate-400">Aucun joueur trouvé.</td></tr>';
     renderPlayerDetail(null);
     return;
   }
@@ -461,8 +400,7 @@ function renderPlayersSection(){
             : '<span class="text-slate-500">Hors ligne</span>'}
         </td>
         <td class="py-3 px-3 font-semibold text-emerald-400">${p.best.toLocaleString()} m</td>
-        <td class="py-3 px-3 text-slate-300 text-xs whitespace-nowrap">${esc(formatDateTime(p.lastPlayed))}</td>
-        <td class="py-3 px-3 text-purple-300">${p.acorns.toLocaleString()}</td>
+        <td class="py-3 px-3 text-slate-300 text-xs whitespace-nowrap">${esc(formatDateTime(p.lastSeen))}</td>
       </tr>
     `;
   }).join('');

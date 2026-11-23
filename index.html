@@ -1300,9 +1300,40 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
 .tuto-card .worm-custom-actions .btn{ padding:11px 0; font-size:14px; outline:none; }
 .tuto-card #tutoPrevBtn{ flex:0 0 25%; }
 
+/* PERF : plus de flou temps réel */
+*, *::before, *::after{
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+}
+.hud-block,.leaderboard,.stage-toast,.controls-hint,.effect-chip,.ability-slot,.pause-btn,.key-badge{
+  background:rgba(27,36,73,0.93);
+}
+
+/* Notifications de morts */
+.death-feed{
+  position:fixed; left:18px; top:440px; width:200px;
+  display:flex; flex-direction:column; gap:6px;
+  z-index:5; pointer-events:none;
+  font-family:'Fredoka',sans-serif; font-size:12px; font-weight:600;
+  color:#fff; overflow:hidden;
+}
+.death-line{
+  background:none; line-height:1.3; word-wrap:break-word;
+  text-shadow:0 1px 3px rgba(0,0,0,.95), 0 0 6px rgba(0,0,0,.7);
+  opacity:0; transform:translateX(-8px);
+  transition:opacity .3s ease, transform .3s ease;
+}
+.death-line.show{ opacity:1; transform:none; }
+.death-line b{ color:#ff3b3b; font-weight:800; }
+@media (pointer: coarse){
+  .death-feed{ left:10px; width:104px; top:calc(260px + env(safe-area-inset-top)); font-size:10px; }
+}
+
+.death-line.good b{ color:#4ade80; }
+
 </style>
 </head>
-<script src="analytics.js"></script>
+<script src="analytics.js" defer></script>
 <body>
 
 <div class="main-menu" id="mainMenu">
@@ -1423,6 +1454,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
 <div class="key-badge" id="keyBadge">K</div>
 <button class="pause-btn" id="pauseBtn" title="Pause">⏸</button>
 
+<div class="death-feed" id="deathFeed"></div>
 <div class="leaderboard">
   <h3 data-i18n="top">🏆 Top</h3>
   <div id="lbList"></div>
@@ -1531,6 +1563,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
     <p id="endSubtitle">Classement final</p>
     <div id="endResults"></div>
     <button class="btn" id="restartBtn" data-i18n="replay">🔁 Rejouer</button>
+    <button class="btn btn-secondary" id="shareBtn" type="button">📤 Partager mon score</button>
     <button class="btn btn-secondary" id="reviveBtn" type="button" data-i18n="revive">📺 Revivre</button>
     <div class="revive-timer-track" id="reviveTimerTrack">
       <div class="revive-timer-fill" id="reviveTimerFill"></div>
@@ -2144,7 +2177,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
     renderMenuRecords();
     renderTrailLocks();
     renderAbilityHud();
-    if(document.getElementById('shopOverlay').classList.contains('show')) renderShop(true);
+    syncShopBuild();
     playSFX('click');
   });
 
@@ -2542,6 +2575,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
     renderAbilityHud();
     const so = document.getElementById('shopOverlay');
     if(so && so.classList.contains('show')) renderShop(false);
+    else if(shopReady) syncShopBuild();
   }
 
   async function refreshProfile(){
@@ -2715,6 +2749,43 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
     return (power.key === '' ? t('automatic') : tf('keyWord', {k:power.key})) + ' · ' + tf('inStock', {n:powerInventory[id]});
   }
 
+  const VIDEO_CACHE = {};
+  const PRELOAD_URLS = {
+    scoreX2:    'prewiew_power_up/prewiew_power_up_x2.mp4',
+    wideTunnel: 'prewiew_power_up/prewiew_power_up_large_tunnel.mp4',
+    shield:     'prewiew_power_up/preview_power_up_shield.mp4',
+    boost:      'prewiew_power_up/preview_power_up_boost.mp4'
+  };
+  async function preloadShopVideos(){
+    for(const id in PRELOAD_URLS){
+      try{
+        const res = await fetch(PRELOAD_URLS[id]);
+        if(res.ok) VIDEO_CACHE[id] = URL.createObjectURL(await res.blob());
+      }catch(e){}
+    }
+  }
+  let shopSig = null, shopReady = false;
+  function shopSigNow(){ return currentLang + ':' + getRankForScore(totalPoints).index + ':' + boostUnlocked; }
+  function syncShopBuild(){
+    const sig = shopSigNow();
+    if(sig === shopSig) return;
+    shopSig = sig;
+    renderShop(true);
+  }
+  window.addEventListener('load', ()=> setTimeout(async ()=>{
+    await preloadShopVideos();
+    shopReady = true;
+    syncShopBuild();
+  }, 500));
+
+  // Les vidéos ne tournent que quand la boutique est ouverte (économise le CPU)
+  new MutationObserver(()=>{
+    const on = document.getElementById('shopOverlay').classList.contains('show');
+    document.querySelectorAll('#shopItems video').forEach(v=>{
+      if(on) v.play().catch(()=>{}); else v.pause();
+    });
+  }).observe(document.getElementById('shopOverlay'), { attributes:true, attributeFilter:['class'] });
+
   function renderShop(forceRebuild = true){
     const balance = document.getElementById('shopBalance');
     const items = document.getElementById('shopItems');
@@ -2840,10 +2911,12 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
       const list = POWER_VIDEOS[id] || [];
       const placeholder = vid.parentElement.querySelector('.shop-preview-placeholder');
       let idx = 0;
+      if(VIDEO_CACHE[id] && placeholder) placeholder.style.display = 'none';
       vid.muted = true;
       vid.defaultMuted = true;
       vid.loop = true;
       vid.playsInline = true;
+      vid.style.opacity = '0';
 
       const box = vid.parentElement;
       const fixedContent = getFixedCrop(id);
@@ -2930,12 +3003,17 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
         vid.style.height = Vh + 'px';
         vid.style.left = left + 'px';
         vid.style.top = top + 'px';
+        vid.style.opacity = '1';
       }
 
       function onReady(){
         if(placeholder) placeholder.style.display = 'none';
-        const p = vid.play();
-        if(p && typeof p.catch === 'function') p.catch(()=>{});
+        if(document.getElementById('shopOverlay').classList.contains('show')){
+          const p = vid.play();
+          if(p && typeof p.catch === 'function') p.catch(()=>{});
+        } else {
+          vid.pause();
+        }
         layoutVideo();
       }
 
@@ -2953,6 +3031,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
       });
         
       async function tryLoad(urlIndex){
+        if(urlIndex === 0 && VIDEO_CACHE[id]){ vid.src = VIDEO_CACHE[id]; vid.play().catch(()=>{}); return; }
         if(urlIndex >= list.length){
           if(placeholder){
             const txt = placeholder.querySelector('.preview-placeholder-text');
@@ -3025,6 +3104,50 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
     appId: "1:290540859884:web:75b91e48b2ae5e6ace10c9"
   };
 
+  const DEATH_MSGS = {
+    fr: ["{n} s'est crashé à {d} m", "{n} a cassé sa pipe à {d} m", "{n} a cessé de creuser à {d} m", "{n} a mordu la poussière à {d} m"],
+    en: ["{n} crashed at {d} m", "{n} kicked the bucket at {d} m", "{n} stopped digging at {d} m", "{n} bit the dust at {d} m"],
+    es: ["{n} se estrelló a {d} m", "{n} estiró la pata a {d} m", "{n} dejó de cavar a {d} m", "{n} mordió el polvo a {d} m"],
+    de: ["{n} ist bei {d} m gecrasht", "{n} hat bei {d} m das Zeitliche gesegnet", "{n} hat bei {d} m aufgehört zu graben", "{n} hat bei {d} m ins Gras gebissen"]
+  };
+  const PASS_MSGS = {
+    fr: "Tu as dépassé {n} !", en: "You passed {n}!",
+    es: "¡Has superado a {n}!", de: "Du hast {n} überholt!"
+  };
+  function passFeed(name){
+    const feed = document.getElementById('deathFeed');
+    if(!feed) return;
+    const msg = PASS_MSGS[currentLang] || PASS_MSGS.fr;
+    const line = document.createElement('div');
+    line.className = 'death-line good';
+    line.innerHTML = escapeHtml(msg).replace('{n}', '<b>' + escapeHtml(String(name).slice(0, 14)) + '</b>');
+    feed.appendChild(line);
+    requestAnimationFrame(()=> line.classList.add('show'));
+    while(feed.children.length > 5) feed.removeChild(feed.firstChild);
+    setTimeout(()=>{ line.classList.remove('show'); setTimeout(()=> line.remove(), 300); }, 4000);
+  }
+  let aheadSet = null;
+
+  function deathFeed(name, dist){
+    const feed = document.getElementById('deathFeed');
+    if(!feed) return;
+    const list = DEATH_MSGS[currentLang] || DEATH_MSGS.fr;
+    const msg = list[Math.floor(Math.random() * list.length)];
+    const html = escapeHtml(msg)
+      .replace('{n}', '<b>' + escapeHtml(String(name || t('player')).slice(0, 14)) + '</b>')
+      .replace('{d}', fmtNum(dist));
+    const line = document.createElement('div');
+    line.className = 'death-line';
+    line.innerHTML = html;
+    feed.appendChild(line);
+    requestAnimationFrame(()=> line.classList.add('show'));
+    while(feed.children.length > 5) feed.removeChild(feed.firstChild);
+    setTimeout(()=>{
+      line.classList.remove('show');
+      setTimeout(()=> line.remove(), 300);
+    }, 5000);
+  }
+
   let otherPlayers = {};
   let mpReady = false;
   let myPlayerId = null;
@@ -3070,6 +3193,9 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
           if(id === myPlayerId) continue;
           if(val[id].ts && now - val[id].ts > 10000) continue;
           next[id] = val[id];
+        }
+        for(const id in otherPlayers){
+          if(!(id in next)) deathFeed(otherPlayers[id].nickname, Math.floor(Number(otherPlayers[id].dist) || 0));
         }
         otherPlayers = next;
       });
@@ -3120,6 +3246,11 @@ let botRetargetTimer = 20;
 
 const randInt = (a,b)=> Math.floor(rand(a, b+1));
 const realOthersCount = ()=> mpReady ? Object.keys(otherPlayers).length : 0;
+// Sans vrai joueur : 5 à 9 bots. Avec de vrais joueurs : 3 bots max, et ils disparaissent à mesure que d'autres arrivent.
+const desiredBots = ()=> {
+  const real = realOthersCount();
+  return real === 0 ? botTargetTotal : Math.max(0, 3 - real);
+};
 
 function botSpeedMps(m){
   // même courbe de vitesse que le vrai jeu (px/s -> m/s)
@@ -3153,7 +3284,7 @@ function makeBot(seeded){
 function botsSeed(){
   bots = []; botSpawnQueue = [];
   botTargetTotal = randInt(5, 9);
-  const n = Math.max(0, botTargetTotal - realOthersCount());
+  const n = desiredBots();
   for(let i = 0; i < n; i++) bots.push(makeBot(true));
 }
 
@@ -3165,6 +3296,7 @@ function updateDemoBots(dt){
     if(b.jitterT <= 0){ b.jitter = rand(0.9, 1.12); b.jitterT = rand(1, 3); }
     b.dist = Math.min(BOT_MAX_DIST, b.dist + botSpeedMps(b.dist) * b.skill * b.jitter * dt);
     if(b.dist >= b.deathDist){
+      deathFeed(b.name, Math.floor(b.dist));
       bots.splice(i, 1);                   // il "crashe" et disparaît, comme un vrai joueur
       botSpawnQueue.push(rand(1.5, 7));    // un autre arrive plus tard
     }
@@ -3178,7 +3310,7 @@ function updateDemoBots(dt){
   }
 
   // 3) ajuster au nombre de vrais joueurs
-  const desired = Math.max(0, botTargetTotal - realOthersCount());
+  const desired = desiredBots();
   if(bots.length + botSpawnQueue.length < desired) botSpawnQueue.push(rand(1, 5));
   if(bots.length > desired){
     const b = bots[Math.floor(Math.random() * bots.length)];
@@ -3417,6 +3549,7 @@ botsSeed();
   }
   initIdentityAndAuth();
 
+  const menuEl = document.getElementById('mainMenu');
   const bgCanvas = document.getElementById('bgCanvas');
   const bgCtx = bgCanvas.getContext('2d');
   let bgTime = 0;
@@ -3429,6 +3562,7 @@ botsSeed();
   window.addEventListener('resize', resizeBgCanvas);
 
   function animateBg(){
+    if(menuEl.classList.contains('hidden')){ requestAnimationFrame(animateBg); return; }
     const dpr = window.devicePixelRatio || 1;
     const w = bgCanvas.width / dpr;
     const h = bgCanvas.height / dpr;
@@ -3468,6 +3602,7 @@ botsSeed();
   window.addEventListener('resize', resizeWormCanvas);
 
   function draw3DWorm(){
+    if(menuEl.classList.contains('hidden')){ requestAnimationFrame(draw3DWorm); return; }
     const w = wormCanvas.width / ((window.devicePixelRatio || 1) * (window.__nmScale || 1));
     const h = wormCanvas.height / ((window.devicePixelRatio || 1) * (window.__nmScale || 1));
 
@@ -3685,7 +3820,7 @@ botsSeed();
   });
 
   document.getElementById('shopBtn').addEventListener('click', ()=>{
-    renderShop(true);
+    syncShopBuild();
     document.getElementById('shopOverlay').classList.add('show');
     playSFX('click');
   });
@@ -3878,9 +4013,10 @@ window.addEventListener('keydown', (e)=>{
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   let W, H, DPR, playerY;
+  let lowQuality = false;
 
   function resize(){
-    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    DPR = lowQuality ? 1 : Math.min(window.devicePixelRatio || 1, 1.5);
     W = document.documentElement.clientWidth;
     H = document.documentElement.clientHeight;
     canvas.width = W * DPR; canvas.height = H * DPR;
@@ -4029,7 +4165,7 @@ window.addEventListener('keydown', (e)=>{
                   stage: stageOf(d), scale: rand(0.8,1.1), rotation: rand(-0.25,0.25), v: Math.random()});
     }
 
-    const nGrain = Math.floor(rand(5,9));
+    const nGrain = Math.floor(rand(2,4));
     for(let g=0; g<nGrain; g++){
       const d = cp.depth - rand(4, CONTROL_SPACING-4);
       const pos = pickWallPos(d, 2, 2);
@@ -4051,7 +4187,7 @@ window.addEventListener('keydown', (e)=>{
       });
     }
 
-    const nBgSpecks = Math.floor(rand(2,4));
+    const nBgSpecks = Math.floor(rand(1,3));
     for(let s=0; s<nBgSpecks; s++){
       const d = cp.depth - rand(4, CONTROL_SPACING-4);
       const {cx: lcx, halfW: lhw} = segGeomAt(prev, cp, d);
@@ -4446,6 +4582,7 @@ window.addEventListener('keydown', (e)=>{
     showControlsHintIfFirstTime();
     running = true;
     botsSeed();
+    aheadSet = null;
     markRunStart();
     mpForceUpdate();
   }
@@ -4711,6 +4848,11 @@ window.addEventListener('keydown', (e)=>{
       ...others
     ];
     all.sort((a,b)=>b.dist-a.dist);
+    if(typeof meDist !== 'number' && running){
+      const meI = all.findIndex(p => p.me);
+      if(aheadSet) all.slice(meI + 1).forEach(p => { if(aheadSet.has(p.name)) passFeed(p.name); });
+      aheadSet = new Set(all.slice(0, meI).map(p => p.name));
+    }
 
     // On n'affiche que 8 lignes, mais on garde toujours TA ligne visible
     const meIdx = all.findIndex(p => p.me);
@@ -4805,19 +4947,42 @@ window.addEventListener('keydown', (e)=>{
     }
   }
 
+    let uiAcc = 0;
+  const distEl = document.getElementById('distVal');
+  let slowFrames = 0;
+  const emojiCache = {};
+  function emojiSprite(sym){
+    if(emojiCache[sym]) return emojiCache[sym];
+    const c = document.createElement('canvas');
+    c.width = c.height = 40;
+    const g = c.getContext('2d');
+    g.font = '32px sans-serif';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.fillText(sym, 20, 21);
+    return (emojiCache[sym] = c);
+  }
+
   let lastTick = 0;
   function tick(ts){
     if(!lastTick) lastTick = ts;
-    const dt = Math.min((ts-lastTick)/1000, 0.05);
+    const rawDt = (ts-lastTick)/1000;
+    const dt = Math.min(rawDt, 0.05);
     lastTick = ts;
+
+    // Menu affiché : inutile de dessiner le jeu derrière
+    if(!mainMenu.classList.contains('hidden')){ requestAnimationFrame(tick); return; }
+
+    // Qualité auto : si < 30 fps pendant un moment, on baisse la résolution
+    if(running && !paused && !lowQuality){
+      slowFrames = rawDt > 0.034 ? slowFrames + 1 : Math.max(0, slowFrames - 1);
+      if(slowFrames > 90){ lowQuality = true; resize(); }
+    }
 
     if(themeBlend.t < 1 && running && !paused){
       themeBlend.t = Math.min(1, themeBlend.t + dt/TRANSITION_TIME);
     }
     const colors = activeColors();
-
-    ctx.fillStyle = colors.bg;
-    ctx.fillRect(0,0,W,H);
 
     ctx.fillStyle = colors.path;
     ctx.fillRect(0,0,W,H);
@@ -4837,12 +5002,30 @@ window.addEventListener('keydown', (e)=>{
       ctx.globalAlpha = 1;
     }
 
-    const step = 4;
-    for(let y=0;y<H;y+=step){
-      const d = scrollDist + H + playerY - y;
-      if(d < 0) continue;
-      const c = centerAt(d), hw = halfWAt(d);
-      drawWallSlice(y, c-hw, c+hw, colors.wall);
+    {
+      const step = 8;
+      const base = scrollDist + H + playerY;
+      const rights = [];
+      ctx.fillStyle = colors.wall;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      for(let y = 0; y <= H + step; y += step){
+        const d = base - y;
+        const c = centerAt(d), hw = halfWAt(d);
+        ctx.lineTo(c - hw, y);
+        rights.push(c + hw);
+      }
+      const lastY = (rights.length - 1) * step;
+      ctx.lineTo(0, lastY);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.moveTo(W, 0);
+      for(let i = 0; i < rights.length; i++) ctx.lineTo(rights[i], i * step);
+      ctx.lineTo(W, lastY);
+      ctx.closePath();
+      ctx.fill();
     }
 
     ensureGenerated(scrollDist + H*2 + 200);
@@ -5006,9 +5189,13 @@ window.addEventListener('keydown', (e)=>{
 
       updateDemoBots(dt);
       mpUpdateMe(ts);
-      document.getElementById('distVal').textContent = fmtNum(currentDisplayMeters) + ' m';
-      renderLeaderboard();
-      renderEffectsHud();
+      uiAcc += dt;
+      if(uiAcc >= 0.15){
+        uiAcc = 0;
+        distEl.textContent = fmtNum(currentDisplayMeters) + ' m';
+        renderLeaderboard();
+        renderEffectsHud();
+      }
       updateAmbienceSound(speed, true);
     } else {
       updateAmbienceSound(speed, false);
@@ -5030,8 +5217,8 @@ window.addEventListener('keydown', (e)=>{
       if(y > bottomY - 40) alpha *= (bottomY - y) / 40; // jamais coupé net en bas
       if(alpha <= 0.01) continue;
       ctx.globalAlpha = alpha;
-      ctx.font = `${Math.floor(pt.size * (1 - k * 0.35))}px sans-serif`;
-      ctx.fillText(pt.symbol, pt.x, y);
+      const sz = pt.size * (1 - k * 0.35);
+      ctx.drawImage(emojiSprite(pt.symbol), pt.x - sz*0.625, y - sz*0.625, sz*1.25, sz*1.25);
     }
     ctx.restore();
 
@@ -5083,6 +5270,7 @@ window.addEventListener('keydown', (e)=>{
   function showGameOver(){
     if(gameOverShown) return;
     gameOverShown = true;
+    mpLeave(); // les autres voient ta mort
 
     const finalDist = Math.floor(scrollDist/8);
     const runBonus = Math.floor(bonusScore);
@@ -5096,8 +5284,19 @@ window.addEventListener('keydown', (e)=>{
     }
   }
 
+  let lastRunDist = 0;
+  const SHARE_TXT = {
+    fr: { btn:'📤 Partager mon score', ok:'✓ Copié !', msg:'J\u2019ai creusé {d} m sur burrow-game, bats-moi !' },
+    en: { btn:'📤 Share my score',     ok:'✓ Copied!', msg:'I dug {d} m on burrow-game, beat me!' },
+    es: { btn:'📤 Compartir mi puntuación', ok:'✓ ¡Copiado!', msg:'¡Cavé {d} m en burrow-game, supérame!' },
+    de: { btn:'📤 Punktzahl teilen',   ok:'✓ Kopiert!', msg:'Ich habe {d} m bei burrow-game gegraben, schlag mich!' }
+  };
+
   function completeGameOver(finalDist, runBonus, restored, credit = true){
     gameOverShown = true;
+    lastRunDist = finalDist;
+    const sb = document.getElementById('shareBtn');
+    if(sb) sb.textContent = (SHARE_TXT[currentLang] || SHARE_TXT.fr).btn;
     if(!reviveUsedThisRun) countGame(); // un revive ne compte pas comme une 2e partie
     recordDailyRun(finalDist);
     validateStreakForToday();
@@ -5123,11 +5322,23 @@ window.addEventListener('keydown', (e)=>{
 
   }
 
+  document.getElementById('shareBtn').addEventListener('click', async ()=>{
+    clearReviveCountdown();
+    document.getElementById('reviveTimerTrack').style.display = 'none';
+    const s = SHARE_TXT[currentLang] || SHARE_TXT.fr;
+    const text = s.msg.replace('{d}', fmtNum(lastRunDist)) + ' https://tan00708.github.io/burrow-game.io/';
+    try { await navigator.clipboard.writeText(text); } catch(e){}
+    const b = document.getElementById('shareBtn');
+    b.textContent = s.ok;
+    setTimeout(()=>{ b.textContent = s.btn; }, 2000);
+    playSFX('click');
+  });
+
   function doRevive(){
     if(reviveUsedThisRun || !gameOverShown) return;
     reviveUsedThisRun = true;
     clearReviveCountdown();
-    document.getElementById('endOverlay').classList.remove('show');
+    document.getElementById('endOverlay').classList.remove('show'); 
     gameOverShown = false;
     running = true;
     reviveInvulnTimer = 3;

@@ -190,6 +190,15 @@ export default {
         return out({ totalPlayers: agg.n, highScore: agg.b, totalAcorns: agg.a, runs });
       }
 
+            // ---------- Admin : liste détaillée des joueurs ----------
+      if(req.method === 'GET' && path === '/admin/players'){
+        if((await readToken(env, req)) !== 'admin') return out({ error: 'auth' }, 401);
+        const { results } = await env.DB.prepare(
+          'SELECT nickname, kind, best, points, acorns, boost, created_at, updated_at FROM players ORDER BY best DESC LIMIT 500'
+        ).all();
+        return out({ players: results });
+      }
+
       if(req.method !== 'POST' && path !== '/me') return out({ error: 'not_found' }, 404);
       const body = req.method === 'POST' ? await req.json().catch(() => ({})) : {};
 

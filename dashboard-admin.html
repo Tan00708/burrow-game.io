@@ -284,6 +284,7 @@ function buildPlayersList(){
       prev.best = Math.max(prev.best, incoming.liveDist);
     }
     if (incoming.online) prev.online = true;
+    if (incoming.extra) prev.extra = incoming.extra;
 
     const ts = toTs(incoming.lastSeen);
     if (ts > prev.lastSeen) prev.lastSeen = ts;
@@ -292,6 +293,15 @@ function buildPlayersList(){
   };
 
   const src = cache || {};
+  for (const p of (Array.isArray(src.players) ? src.players : [])){
+    const nick = String(p.nickname || 'Joueur');
+    upsert(nick, {
+      name: nick,
+      best: Number(p.best) || 0,
+      lastSeen: toTs(p.updated_at),
+      extra: p
+    });
+  }
   const topList = Array.isArray(src.top) ? src.top : [];
   for (const p of topList){
     if (!p || typeof p !== 'object') continue;
@@ -346,7 +356,14 @@ function renderPlayerDetail(player){
         <div class="text-xl font-bold text-indigo-400 mt-1">${player.liveDist.toLocaleString()} m</div>
       </div>` : ''}
     </div>
-    <p class="text-xs text-slate-400">Les stats détaillées par joueur (nombre de parties, glands par compte) ne sont pas exposées par \`/leaderboard\` ni \`/admin/stats\`.</p>
+    ${player.extra ? `
+    <div class="grid grid-cols-2 gap-3">
+      <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-700"><div class="text-xs text-slate-400">Glands 🌰</div><div class="text-lg font-bold text-purple-400">${Number(player.extra.acorns).toLocaleString()}</div></div>
+      <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-700"><div class="text-xs text-slate-400">Points (rang)</div><div class="text-lg font-bold">${Number(player.extra.points).toLocaleString()}</div></div>
+      <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-700"><div class="text-xs text-slate-400">Compte</div><div class="text-sm font-semibold">${player.extra.kind === 'discord' ? '🎮 Discord' : '👤 Invité'}</div></div>
+      <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-700"><div class="text-xs text-slate-400">Boost permanent</div><div class="text-sm font-semibold">${player.extra.boost ? '⚡ Oui' : 'Non'}</div></div>
+      <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-700 col-span-2"><div class="text-xs text-slate-400">Inscrit le</div><div class="text-sm font-semibold">${esc(formatDateTime(toTs(player.extra.created_at)))}</div></div>
+    </div>` : ''}
   `;
 }
 
@@ -496,10 +513,14 @@ async function loadStats(){
       lbData = await publicFetch('/leaderboard');
     } catch (_) {}
 
+    let playersData = [];
+    try { playersData = (await adminFetch('/admin/players')).players || []; } catch (_) {}
+
     const lbTop = Array.isArray(lbData?.top) ? lbData.top : [];
     cache = {
       ...statsData,
-      top: lbTop
+      top: lbTop,
+      players: playersData
     };
     $('stat-highscore').textContent = (cache.highScore || 0).toLocaleString() + ' m';
     $('stat-total-players').textContent = (cache.totalPlayers || 0).toLocaleString();

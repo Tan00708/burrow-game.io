@@ -87,7 +87,7 @@
         <div class="xl:col-span-2 bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg space-y-4">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h3 class="text-lg font-bold">Plus gros joueurs</h3>
+              <h3 class="text-lg font-bold">Plus gros joueurs (Cloudflare)</h3>
               <p class="text-xs text-slate-400">Clique sur un joueur pour voir son nombre de parties et les heures de jeu</p>
             </div>
             <div class="flex flex-wrap gap-2">
@@ -301,7 +301,9 @@ function buildPlayersList(){
   const collections = [src.players, src.users, src.accounts, src.top, src.leaderboard];
   for (const col of collections){
     if (!col) continue;
-    const entries = Array.isArray(col) ? col.map((v, i) => [v?.id || v?.uid || v?.nickname || v?.name || i, v]) : Object.entries(col);
+    const entries = Array.isArray(col)
+      ? col.map((v, i) => [v?.id || v?.uid || v?.nickname || v?.name || i, v])
+      : Object.entries(col);
     for (const [k, p] of entries){
       if (!p || typeof p !== 'object') continue;
       const nick = p.nickname || p.name || p.username || (typeof k === 'string' ? k : 'Joueur');
@@ -385,7 +387,7 @@ function renderPlayerDetail(player){
     .join(' ');
 
   const sessionsHtml = player.sessions.length
-    ? player.sessions.slice(0, 40).map(s => `
+    ? player.sessions.slice(0, 50).map(s => `
         <div class="flex items-center justify-between py-2 px-3 rounded-lg bg-slate-900/70 border border-slate-700/60 text-xs gap-2">
           <div>
             <div class="font-medium text-slate-100">${esc(formatDateTime(s.ts))}</div>
@@ -394,7 +396,7 @@ function renderPlayerDetail(player){
           <div class="font-bold text-emerald-400 whitespace-nowrap">${s.dist !== null ? esc(s.dist.toLocaleString()) + ' m' : 'Partie'}</div>
         </div>
       `).join('')
-    : `<p class="text-xs text-slate-400 bg-slate-900/50 border border-slate-700/60 rounded-lg p-3">Aucun horodatage détaillé reçu pour ce joueur par le serveur. Les compteurs globaux ci-dessus restent affichés.</p>`;
+    : `<p class="text-xs text-slate-400 bg-slate-900/50 border border-slate-700/60 rounded-lg p-3">Aucun horodatage détaillé reçu pour ce joueur depuis Cloudflare. Les compteurs globaux restent affichés.</p>`;
 
   body.innerHTML = `
     <div class="grid grid-cols-2 gap-3">
@@ -443,7 +445,7 @@ function renderPlayersSection(){
   });
 
   if (!list.length){
-    tbody.innerHTML = '<tr><td colspan="6" class="py-6 text-center text-slate-400">Aucun joueur trouvé.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" class="py-6 text-center text-slate-400">Aucun joueur trouvé dans la base Cloudflare.</td></tr>';
     renderPlayerDetail(null);
     return;
   }
@@ -550,7 +552,17 @@ window.changeTimeRange = function(range){
 
 async function loadStats(){
   try {
-    cache = await adminFetch('/admin/stats');
+    const statsData = await adminFetch('/admin/stats');
+    let extraPlayers = null;
+    if (!statsData.players && !statsData.users && !statsData.top){
+      try {
+        extraPlayers = await adminFetch('/admin/players');
+      } catch (_) {}
+    }
+    cache = {
+      ...statsData,
+      players: statsData.players ?? extraPlayers?.players ?? extraPlayers?.users ?? extraPlayers
+    };
     $('stat-highscore').textContent = (cache.highScore || 0).toLocaleString() + ' m';
     $('stat-total-players').textContent = (cache.totalPlayers || 0).toLocaleString();
     $('stat-total-coins').textContent = (cache.totalAcorns || 0).toLocaleString();

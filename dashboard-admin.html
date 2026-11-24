@@ -164,6 +164,7 @@ let currentSubTab = 'general';
 let selectedPlayerKey = null;
 let cache = null;
 let livePlayersMap = {};
+let presenceMap = {};
 
 function esc(str){
   return String(str ?? '').replace(/[&<>"']/g, c => ({
@@ -196,20 +197,21 @@ function formatDateTime(ts){
 function getOnlinePlayers(){
   const now = Date.now();
   const list = [];
-  for (const [id, p] of Object.entries(livePlayersMap || {})){
-    if (!p || typeof p !== 'object') continue;
-    const ts = toTs(p.ts);
-    if (ts && now - ts < 10000){
-      list.push({
-        id,
-        name: String(p.nickname || p.name || id),
-        dist: Math.max(0, Math.floor(Number(p.dist) || 0)),
-        color: /^#[0-9a-fA-F]{6}$/.test(String(p.color || '')) ? String(p.color) : '#34d399',
-        ts
-      });
-    }
+  for (const [id, p] of Object.entries(presenceMap || {})){
+    if (!p || !p.state || p.state === 'off') continue;
+    const lp = livePlayersMap[id];
+    const lts = lp ? toTs(lp.ts) : 0;
+    const live = lts && now - lts < 10000;
+    list.push({
+      id,
+      name: String(p.nick || id),
+      state: live ? 'game' : 'menu',
+      dist: live ? Math.max(0, Math.floor(Number(lp.dist) || 0)) : 0,
+      color: live && /^#[0-9a-fA-F]{6}$/.test(String(lp.color || '')) ? String(lp.color) : '#34d399',
+      ts: now
+    });
   }
-  list.sort((a, b) => b.dist - a.dist);
+  list.sort((a, b) => (b.state === 'game') - (a.state === 'game') || b.dist - a.dist);
   return list;
 }
 
@@ -225,7 +227,7 @@ function renderOnlineUI(){
         <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 font-medium">
           <span class="w-2 h-2 rounded-full" style="background:${esc(p.color)}"></span>
           <span>${esc(p.name)}</span>
-          <span class="text-emerald-400/80">${p.dist.toLocaleString()} m</span>
+          <span class="text-emerald-400/80">${p.state === 'game' ? p.dist.toLocaleString() + ' m' : 'menu'}</span>
         </span>
       `).join('')
     : '<span class="text-slate-500">Aucun joueur en ligne</span>';
@@ -313,15 +315,19 @@ function buildPlayersList(){
     });
   }
 
+  for (const p of Object.values(presenceMap || {})){
+    const k = String(p && p.nick || '').trim().toLowerCase();
+    if (k && map.has(k) && p.last) upsert(p.nick, { name: p.nick, lastSeen: toTs(p.last) });
+  }
+
   for (const p of getOnlinePlayers()){
     upsert(p.name, {
       name: p.name,
-      liveDist: p.dist,
+      liveDist: p.state === 'game' ? p.dist : undefined,
       lastSeen: p.ts,
       online: true
     });
   }
-
   return Array.from(map.values());
 }
 
@@ -543,6 +549,11 @@ function initOnline(){
       appId: "1:290540859884:web:75b91e48b2ae5e6ace10c9"
     });
     firebase.auth().signInAnonymously().then(() => {
+      firebase.database().ref('presence').orderByChild('last').limitToLast(300).on('value', snap => {
+        presenceMap = snap.val() || {};
+        renderOnlineUI();
+        if (currentSubTab === 'players') renderPlayersSection();
+      });
       firebase.database().ref('players').on('value', snap => {
         livePlayersMap = snap.val() || {};
         renderOnlineUI();

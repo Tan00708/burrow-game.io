@@ -1332,6 +1332,31 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
 .death-line.good b{ color:#4ade80; }
 
 </style>
+<script>
+(function(){
+  var DW = 1200, DH = 660;
+  function fit(){
+    var vw = window.innerWidth, vh = window.innerHeight;
+    var s = 1, t = 1;
+    if(vw > 820){
+      s = Math.max(0.5, Math.min((vw - 48) / DW, (vh - 112) / DH, 2.5));
+      t = Math.max(1, Math.min(s, 1.8));
+    }
+    s = Math.round(s * 100) / 100;
+    var old = window.__nmScale || 1;
+    var W = (vw > 820) ? Math.round(Math.min(1800, Math.max(DW, (vw - 48) / s))) : DW;
+    var st = document.documentElement.style;
+    st.setProperty('--nm-w', W + 'px');
+    st.setProperty('--nm-s', s);
+    st.setProperty('--nm-t', t);
+    window.__nmScale = s;
+    if(s !== old) window.dispatchEvent(new Event('resize'));
+  }
+  window.addEventListener('resize', fit);
+  window.addEventListener('orientationchange', function(){ setTimeout(fit, 250); });
+  fit();
+})();
+</script>
 </head>
 <script src="analytics.js" defer></script>
 <body>
@@ -2571,6 +2596,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
     boostUnlocked = !!p.boost;
     serverNick = p.nickname;
     playerState.nickname = p.nickname;
+    setPresence(presState);
     renderMenuRecords();
     renderAbilityHud();
     const so = document.getElementById('shopOverlay');
@@ -3157,6 +3183,15 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
   let authReady = Promise.resolve(null);
   let lastMpWrite = 0;
   const MP_WRITE_INTERVAL = 300;
+  let presState = 'menu';
+  function setPresence(state){
+    presState = state;
+    if(!db || !myPlayerId) return;
+    const ref = db.ref('presence/' + myPlayerId);
+    const TS = firebase.database.ServerValue.TIMESTAMP;
+    ref.onDisconnect().update({ state:'off', last: TS });
+    ref.update({ nick: playerState.nickname, state, last: TS });
+  }
 
   function initMultiplayer(){
     const configured = firebaseConfig.apiKey
@@ -3180,6 +3215,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
           myPlayerId = u.uid;
           myPlayerRef = db.ref('players/' + myPlayerId);
           myPlayerRef.onDisconnect().remove();
+          setPresence(presState);
           if(first){ first = false; resolve(u); }
         });
       });
@@ -3200,6 +3236,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
         otherPlayers = next;
       });
 
+      db.ref('.info/connected').on('value', s => { if(s.val()) setPresence(presState); });
       mpReady = true;
     }catch(e){
       mpReady = false;
@@ -3226,6 +3263,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
     mpForceUpdate();
   }
   function mpLeave(){
+    setPresence('menu');
     if(!mpReady || !myPlayerRef) return;
     myPlayerRef.remove();
   }
@@ -4585,6 +4623,7 @@ window.addEventListener('keydown', (e)=>{
     aheadSet = null;
     markRunStart();
     mpForceUpdate();
+    setPresence('game');
   }
 
   function startCountdownAndGame() {
@@ -5400,30 +5439,6 @@ window.addEventListener('keydown', (e)=>{
     playSFX('click');
   });
 
-})();
-</script>
-<script>
-(function(){
-  var DW = 1200, DH = 660;
-  function fit(){
-    var vw = document.documentElement.clientWidth, vh = document.documentElement.clientHeight;
-    var s = 1, t = 1;
-    if(vw > 820){
-      s = Math.max(0.5, Math.min((vw - 48) / DW, (vh - 112) / DH, 2.5));
-      t = Math.max(1, Math.min(s, 1.8));
-    }
-    s = Math.round(s * 100) / 100;
-    var old = window.__nmScale || 1;
-    var W = (vw > 820) ? Math.round(Math.min(1800, Math.max(DW, (vw - 48) / s))) : DW;
-    document.documentElement.style.setProperty('--nm-w', W + 'px');
-    document.documentElement.style.setProperty('--nm-s', s);
-    document.documentElement.style.setProperty('--nm-t', t);
-    window.__nmScale = s;
-    if(s !== old) window.dispatchEvent(new Event('resize'));
-  }
-  window.addEventListener('resize', fit);
-  window.addEventListener('orientationchange', function(){ setTimeout(fit, 250); });
-  fit();
 })();
 </script>
 </body>

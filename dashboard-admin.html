@@ -83,6 +83,17 @@
         </div>
         <div class="h-80 relative"><canvas id="playersChart"></canvas></div>
       </div>
+
+      <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-2">
+          <div>
+            <h3 class="text-lg font-bold">Joueurs connectés</h3>
+            <p class="text-xs text-slate-400 mt-1">Évolution relevée pendant l’ouverture de ce dashboard</p>
+          </div>
+          <span id="onlineChartCurrent" class="px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-bold">0 en ligne</span>
+        </div>
+        <div class="h-80 relative"><canvas id="onlineChart"></canvas></div>
+      </div>
     </div>
 
     <div id="view-players" class="p-6 space-y-6" style="display:none">
@@ -165,6 +176,9 @@ let selectedPlayerKey = null;
 let cache = null;
 let livePlayersMap = {};
 let presenceMap = {};
+const ONLINE_HISTORY_STORE = 'burrow_admin_online_history';
+let onlineHistory = [];
+let lastOnlineSampleAt = 0;
 
 function esc(str){
   return String(str ?? '').replace(/[&<>"']/g, c => ({
@@ -218,6 +232,7 @@ function getOnlinePlayers(){
 function renderOnlineUI(){
   const onlineList = getOnlinePlayers();
   $('stat-online').textContent = String(onlineList.length);
+  if ($('onlineChartCurrent')) $('onlineChartCurrent').textContent = onlineList.length + ' en ligne';
   if ($('playersTabOnlineCount')){
     $('playersTabOnlineCount').textContent = String(onlineList.length);
   }
@@ -234,6 +249,7 @@ function renderOnlineUI(){
 
   if ($('onlinePlayersChips')) $('onlinePlayersChips').innerHTML = chipsHtml;
   if ($('playersTabOnlineList')) $('playersTabOnlineList').innerHTML = chipsHtml;
+  recordOnlineSample(onlineList.length);
 }
 
 window.switchSubTab = function(tab){
@@ -463,6 +479,44 @@ const playersChart = new Chart($('playersChart').getContext('2d'), {
   }
 });
 
+const onlineChart = new Chart($('onlineChart').getContext('2d'), {
+  type: 'line',
+  data: { labels: [], datasets: [{ label: 'Joueurs connectés', data: [], borderColor: '#34d399', backgroundColor: 'rgba(52,211,153,0.12)', borderWidth: 2, fill: true, tension: 0.2, pointRadius: 2 }] },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: '#334155' }, ticks: { color: '#94a3b8', maxTicksLimit: 8 } },
+      y: { grid: { color: '#334155' }, ticks: { color: '#94a3b8', precision: 0 }, beginAtZero: true }
+    }
+  }
+});
+
+function loadOnlineHistory(){
+  try {
+    const saved = JSON.parse(localStorage.getItem(ONLINE_HISTORY_STORE) || '[]');
+    onlineHistory = Array.isArray(saved) ? saved.filter(p => p && isFinite(p.ts) && isFinite(p.count)) : [];
+  } catch (_) { onlineHistory = []; }
+  renderOnlineChart();
+}
+
+function renderOnlineChart(){
+  onlineChart.data.labels = onlineHistory.map(p => new Date(p.ts).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }));
+  onlineChart.data.datasets[0].data = onlineHistory.map(p => p.count);
+  onlineChart.update();
+}
+
+function recordOnlineSample(count){
+  const now = Date.now();
+  if (now - lastOnlineSampleAt < 60000) return;
+  lastOnlineSampleAt = now;
+  const cutoff = now - 24 * 3600e3;
+  onlineHistory = onlineHistory.filter(p => p.ts >= cutoff);
+  onlineHistory.push({ ts: now, count });
+  try { localStorage.setItem(ONLINE_HISTORY_STORE, JSON.stringify(onlineHistory)); } catch (_) {}
+  renderOnlineChart();
+}
+
 const sameDay = (a, b) => a.getDate() === b.getDate() && a.getMonth() === b.getMonth() && a.getFullYear() === b.getFullYear();
 const sameMonth = (a, b) => a.getMonth() === b.getMonth() && a.getFullYear() === b.getFullYear();
 
@@ -572,6 +626,7 @@ function showApp(){
   $('app').style.display = 'flex';
   if (!started){
     started = true;
+    loadOnlineHistory();
     initOnline();
     loadStats();
     refreshTimer = setInterval(loadStats, 60000);

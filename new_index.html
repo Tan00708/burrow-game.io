@@ -634,6 +634,12 @@
   .lb-row .dot{width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:8px; flex-shrink:0;}
   .lb-name{display:flex; align-items:center; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
   .lb-row.me{color:var(--accent-primary); font-weight:700;}
+  .lb-my-rank{
+    display:none; align-items:center; justify-content:space-between; gap:8px;
+    margin-top:7px; padding-top:6px; border-top:1px solid rgba(255,107,53,0.25);
+    font-size:10px; color:var(--accent-primary); font-weight:700;
+  }
+  .lb-my-rank.visible{display:flex;}
 
   .overlay{
     position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
@@ -1056,6 +1062,7 @@
     .leaderboard h3{ font-size:10px; margin-bottom:4px; }
     .lb-row{ font-size:9px; padding:2px 0; }
     .lb-row .dot{ width:6px; height:6px; margin-right:5px; }
+    .lb-my-rank{ margin-top:4px; padding-top:4px; font-size:8px; }
   }
 
   @media (pointer: coarse) and (max-width: 400px){
@@ -1306,7 +1313,12 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
   -webkit-backdrop-filter:none !important;
 }
 .hud-block,.leaderboard,.stage-toast,.controls-hint,.effect-chip,.ability-slot,.pause-btn,.key-badge{
-  background:rgba(27,36,73,0.93);
+  /* Même style que la carte « Défis du jour » du menu. */
+  background:linear-gradient(135deg, rgba(255,255,255,.12) 0%, rgba(255,255,255,.06) 55%, rgba(255,255,255,.09) 100%);
+  border-color:rgba(255,255,255,.09);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.10), 0 10px 28px rgba(0,0,0,.30);
+  backdrop-filter:blur(14px) saturate(140%) !important;
+  -webkit-backdrop-filter:blur(14px) saturate(140%) !important;
 }
 
 /* Notifications de morts */
@@ -1333,7 +1345,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
 
 
 /* ===================== MENU MAQUETTE (préfixe mp-) ===================== */
-#mainMenu{ background:#0D0F33 url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1172 652' preserveAspectRatio='xMidYMid slice'><rect width='1172' height='652' fill='%230E1031'/><polygon points='0,0 420,0 470,190 345,380 410,652 0,652' fill='%23151847'/><polygon points='300,210 440,150 470,420 330,500' fill='%231A1E55' opacity='.55'/><polygon points='1172,0 780,0 740,220 850,410 790,652 1172,652' fill='%23171B4C'/><polygon points='880,70 1070,190 1010,470 860,350' fill='%231A1E55' opacity='.5'/><polygon points='520,0 660,0 700,300 650,652 500,652 540,320' fill='%23060720'/></svg>") center/cover no-repeat !important; padding:0 !important; }
+#mainMenu{ background:#0D0F33 url("background.png") center/cover no-repeat !important; padding:0 !important; }
 #mainMenu.hidden{ visibility:hidden; transition:opacity .4s ease, visibility 0s linear .4s; }
 #mainMenu .menu-bg{ display:none; }
 .mp-hide{ display:none !important; }
@@ -1357,12 +1369,16 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
 #mainMenu #authWidget{
   height:36px !important; min-height:36px !important; max-height:36px !important; box-sizing:border-box !important; margin:0 !important;
   display:inline-flex !important; align-items:center; justify-content:center; gap:8px; padding:0 12px 0 10px;
+  width:min(116px, 100%);
   position:relative; left:auto; top:auto; transform:none; z-index:auto; cursor:default;
   background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.12); border-radius:10px; box-shadow:none;
   color:#fff; font:700 17px 'Fredoka',sans-serif;
 }
 #mainMenu #authWidget:empty{ display:none !important; }
-#authWidget .auth-name{ font-size:17px; max-width:120px; }
+#authWidget .auth-name{
+  display:block; flex:1 1 auto; min-width:0; max-width:none;
+  font-size:17px; overflow:hidden; white-space:nowrap; text-align:center;
+}
 #authWidget .auth-logout{ background:none; color:#FF3B3B; font-size:18px; width:auto; height:auto; border-radius:0; margin:0; }
 #mpLang{
   position:relative; display:inline-flex; align-items:center; justify-content:center; gap:8px; height:36px; padding:0 14px; box-sizing:border-box;
@@ -1371,8 +1387,14 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
 }
 #mpLang select{ position:absolute; inset:0; width:100%; height:100%; opacity:0; cursor:pointer; font-size:16px; }
 #mpLang select option{ color:#000; }
-.mp-audio{ border:none; border-radius:8px; background:rgba(255,255,255,.08); color:#fff; font:700 11px 'Fredoka',sans-serif; padding:5px 10px; cursor:pointer; opacity:.4; }
-.mp-audio:hover{ opacity:1; }
+#mpLang:focus-within{
+  background:linear-gradient(135deg, rgba(255,255,255,.20), rgba(255,255,255,.09) 55%, rgba(255,255,255,.14));
+  border-color:rgba(255,255,255,.32);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22), 0 6px 18px rgba(0,0,0,.28);
+  backdrop-filter:blur(14px) saturate(140%) !important;
+  -webkit-backdrop-filter:blur(14px) saturate(140%) !important;
+}
+.mp-audio{ height:36px; box-sizing:border-box; border:1px solid rgba(255,255,255,.12); border-radius:10px; background:rgba(255,255,255,.07); color:#fff; font:700 11px 'Fredoka',sans-serif; padding:0 10px; cursor:pointer; opacity:1; }
 
 /* Défis */
 #mpChal{ width:288px; height:232px; padding:19px 17px 0; }
@@ -1446,7 +1468,6 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
 .mp-row b{ min-width:30px; }
 .mp-row .n{ flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .mp-row .d{ margin-left:8px; }
-.mp-row:nth-child(4){ margin-top:12px; }
 .mp-row.empty{ opacity:.35; }
 .mp-shop{ width:227px; height:52px; border:none; border-radius:9px; background:#fff; color:#0A0E27; cursor:pointer;
   display:flex; align-items:center; justify-content:center; gap:10px; font:800 20px 'Fredoka',sans-serif; box-shadow:0 6px 18px rgba(0,0,0,.35); transition:transform .15s ease; }
@@ -1459,7 +1480,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
   .mp-layout{ position:absolute; left:50%; top:50%; width:1172px; height:652px; margin:-326px 0 0 -586px; transform:scale(var(--ms,1)); transform-origin:50% 50%; }
   .mp-top, .mp-left, .mp-center, .mp-mid, .mp-right{ display:contents; }
   #mpLogo{ position:absolute; left:28px; top:14px; }
-  #mainMenu #authWidget{ position:absolute; left:549px; top:24px; width:114px; }
+  #mainMenu #authWidget{ position:absolute; left:549px; top:24px; width:116px; }
   #mpLang{ position:absolute; left:1030px; top:24px; width:117px; }
   .mp-audio{ position:absolute; left:1062px; top:612px; }
   #mpChal{ position:absolute; left:28px; top:210px; }
@@ -1504,7 +1525,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
     transform:scale(var(--ms,1)); transform-origin:0 0;
   }
   #mpLang{ left:auto; right:25px; }
-  #mainMenu #authWidget{ left:calc(50% - 52px); }
+  #mainMenu #authWidget{ left:calc(50% - 58px); }
   #mpStreak, #heroName, #mpBest{ left:calc(50% - 200px); }
   #mpLblC{ left:calc(50% - 270px); }
   #mpLblT{ left:calc(50% + 150px); }
@@ -1683,6 +1704,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
 <div class="leaderboard">
   <h3 data-i18n="top">🏆 Top</h3>
   <div id="lbList"></div>
+  <div class="lb-my-rank" id="lbMyRank"></div>
 </div>
 
 <!-- POP-UP COMPTE A REBOURS -->
@@ -3681,6 +3703,7 @@ botsSeed();
       el.style.display = 'none';
       el.innerHTML = '';
     }
+    fitAuthName();
     const logoutBtn = document.getElementById('identityLogoutBtn');
     if(logoutBtn) logoutBtn.addEventListener('click', (e)=>{ if(guestPseudo && !discordUser && !confirm(t('confirmLogout'))){ e.stopPropagation(); return; }
       e.stopPropagation();
@@ -3688,6 +3711,18 @@ botsSeed();
       playSFX('click');
     });
   }
+
+  function fitAuthName(){
+    const nameEl = document.querySelector('#authWidget .auth-name');
+    if(!nameEl) return;
+    nameEl.style.fontSize = '';
+    let size = parseFloat(getComputedStyle(nameEl).fontSize);
+    while(nameEl.scrollWidth > nameEl.clientWidth && size > 11){
+      size -= 0.5;
+      nameEl.style.fontSize = size + 'px';
+    }
+  }
+  window.addEventListener('resize', fitAuthName);
 
   function hasIdentity(){ return !!(sessionToken && (discordUser || guestPseudo)); }
   function applyIdentityToPlayerState(){ if(serverNick){ playerState.nickname = serverNick; return; }
@@ -5163,9 +5198,10 @@ window.addEventListener('keydown', (e)=>{
       aheadSet = new Set(all.slice(0, meI).map(p => p.name));
     }
 
-    // On n'affiche que 8 lignes, mais on garde toujours TA ligne visible
+    // Le classement montre le top 10. Si le joueur n'y est pas, son rang reste
+    // visible juste en dessous, dans un format plus discret.
     const meIdx = all.findIndex(p => p.me);
-    const shown = meIdx < 8 ? all.slice(0, 8) : all.slice(0, 7).concat(all[meIdx]);
+    const shown = all.slice(0, 10);
 
     const myRankInfo = getRankForScore(totalPoints);
     document.getElementById('lbList').innerHTML = shown.map(p=>`
@@ -5173,6 +5209,16 @@ window.addEventListener('keydown', (e)=>{
         <span class="lb-name"><span class="dot" style="background:${p.hex}"></span>${p.me ? myRankInfo.current.emoji+' ' : ''}${all.indexOf(p)+1}. ${escapeHtml(p.name)}</span>
         <span>${fmtNum(p.dist)} m</span>
       </div>`).join('');
+
+    const myRankEl = document.getElementById('lbMyRank');
+    if(meIdx >= 10){
+      const me = all[meIdx];
+      myRankEl.classList.add('visible');
+      myRankEl.innerHTML = `<span>Toi · #${meIdx + 1}</span><span>${fmtNum(me.dist)} m</span>`;
+    } else {
+      myRankEl.classList.remove('visible');
+      myRankEl.textContent = '';
+    }
 
     return all;
   }

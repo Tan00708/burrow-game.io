@@ -1315,7 +1315,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
 .hud-block,.leaderboard,.stage-toast,.controls-hint,.effect-chip,.ability-slot,.pause-btn,.key-badge{
   /* Même style que la carte « Défis du jour » du menu. */
   background:linear-gradient(135deg, rgba(255,255,255,.12) 0%, rgba(255,255,255,.06) 55%, rgba(255,255,255,.09) 100%);
-  border-color:rgba(255,255,255,.09);
+  border-color:rgba(255,107,53,.45);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.10), 0 10px 28px rgba(0,0,0,.30);
   backdrop-filter:blur(14px) saturate(140%) !important;
   -webkit-backdrop-filter:blur(14px) saturate(140%) !important;
@@ -1364,7 +1364,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
   background:linear-gradient(100deg, transparent 30%, rgba(255,255,255,.07) 44%, rgba(255,255,255,.02) 60%, transparent 72%); }
 
 /* Haut */
-#mpLogo{ margin:0; font:800 22px/36px 'Fredoka',sans-serif; text-transform:uppercase; color:#fff; letter-spacing:-.2px; }
+#mpLogo{ margin:0; font:800 22px/36px 'Fredoka',sans-serif; text-transform:lowercase; color:#fff; letter-spacing:-.2px; }
 #mpLogo em{ font-style:normal; text-transform:lowercase; color:#FF6B35; }
 #mainMenu #authWidget{
   height:36px !important; min-height:36px !important; max-height:36px !important; box-sizing:border-box !important; margin:0 !important;
@@ -1494,7 +1494,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
   #mpWorm{ position:absolute; left:489px; top:232px; }
   #menuStartBtn{ position:absolute; left:493px; top:488px; }
   #mpBest{ position:absolute; left:401px; top:568px; width:400px; }
-  #mainMenu .privacy-link-inline{ position:absolute !important; left:0; right:0; top:636px; bottom:auto !important; transform:none !important; text-align:center; font-size:10px; }
+  #mainMenu .privacy-link-inline{ position:absolute !important; left:0; right:0; top:630px; bottom:auto !important; transform:none !important; text-align:center; font-size:10px; }
   #mpLb{ position:absolute; left:920px; top:82px; }
   #shopBtn{ position:absolute; left:920px; top:405px; }
 }
@@ -1546,6 +1546,104 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
 .mp-rk-lbl{ z-index:1; }
 .mp-rk-pts{ left:62px; right:46px; text-align:right; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .mp-rk-names b{ white-space:nowrap; }
+
+
+/* ===== POP-UPS ET BOXES : verre + contour orange ===== */
+.overlay{
+  background:rgba(10,14,39,.55);
+}
+.overlay.show{
+  backdrop-filter:blur(8px) !important;
+  -webkit-backdrop-filter:blur(8px) !important;
+}
+
+.card,
+.shop-item-info,
+.shop-section-title,
+.rank-node-oval,
+.rank-node-score-box,
+.tuto-list li,
+.result-row,
+.nickname-input,
+.worm-segment-slot,
+.palette-swatch{
+  background:linear-gradient(135deg, rgba(255,255,255,.12) 0%, rgba(255,255,255,.06) 55%, rgba(255,255,255,.09) 100%) !important;
+  border-color:rgba(255,107,53,.45) !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.10), 0 10px 28px rgba(0,0,0,.30) !important;
+}
+
+/* Le flou n'est appliqué qu'aux grandes boxes, pas aux petits éléments */
+.card,
+.shop-item-info,
+.shop-section-title{
+  backdrop-filter:blur(14px) saturate(140%) !important;
+  -webkit-backdrop-filter:blur(14px) saturate(140%) !important;
+}
+
+/* Le cadre vidéo de la boutique garde un fond sombre pour la lisibilité */
+.shop-preview-box{
+  border-color:rgba(255,107,53,.45) !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.10), 0 10px 28px rgba(0,0,0,.30) !important;
+}
+
+/* Pas de contour orange sur les petites pastilles de couleur */
+.worm-segment-slot,
+.palette-swatch{
+  background:none !important;
+  box-shadow:0 3px 8px rgba(0,0,0,.3) !important;
+}
+.worm-segment-slot.selected,
+.palette-swatch.selected{ border-color:#fff !important; }
+
+
+/* ===== BOUTIQUE : barre de défilement fine et propre ===== */
+.shop-card{
+  overflow-x:hidden;
+}
+
+/* Chrome, Edge, Safari */
+.shop-card::-webkit-scrollbar{
+  width:16px;
+}
+.shop-card::-webkit-scrollbar-track{
+  background:transparent;
+  margin:18px 0;              /* la barre ne touche plus les coins arrondis */
+}
+.shop-card::-webkit-scrollbar-thumb{
+  background:rgba(255,107,53,.55);
+  border-radius:10px;
+  border:3px solid transparent;
+  background-clip:padding-box;
+}
+.shop-card::-webkit-scrollbar-thumb:hover{
+  background:rgba(255,107,53,.85);
+  background-clip:padding-box;
+}
+.shop-card::-webkit-scrollbar-button{
+  display:none;               /* supprime les flèches haut/bas */
+  width:0; height:0;
+}
+.shop-card::-webkit-scrollbar-corner{
+  background:transparent;
+}
+
+/* Firefox */
+@supports not selector(::-webkit-scrollbar){
+  .shop-card{
+    scrollbar-width:thin;
+    scrollbar-color:rgba(255,107,53,.6) transparent;
+  }
+}
+
+
+/* ===== Leaderboard : ta ligne en orange + ta place hors top 10 ===== */
+.mp-row.me .n, .mp-row.me .d{ color:#FF6B35; }
+.mp-me-rank{
+  position:absolute; left:22px; right:26px; bottom:8px;
+  display:flex; justify-content:space-between; align-items:center;
+  font:700 13px/18px 'Fredoka',sans-serif; color:#A8B3D1;
+}
+.mp-me-rank b{ color:#FF6B35; font-weight:800; }
 
 </style>
 <script>
@@ -1673,7 +1771,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
     </div>
 
     <div class="mp-right">
-      <div class="mp-card" id="mpLb"><h3>Leaderboard</h3><div id="globalScoresList"></div></div>
+      <div class="mp-card" id="mpLb"><h3>Leaderboard</h3><div id="globalScoresList"></div><div class="mp-me-rank mp-hide" id="mpMeRank"></div></div>
       <button class="mp-shop" id="shopBtn" type="button" title="Boutique"><span class="mp-acorn">🌰</span><span id="shopLbl">Boutique</span><span id="acornsVal" class="mp-hide">0</span></button>
     </div>
 
@@ -2793,7 +2891,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
     if(LOCAL_DEV) return localApi(path, body);
     try{
       const opts = { headers: {} };
-      if(sessionToken && path !== '/leaderboard') opts.headers.Authorization = 'Bearer ' + sessionToken;
+      if(sessionToken) opts.headers.Authorization = 'Bearer ' + sessionToken;
       if(body !== undefined){
         opts.method = 'POST';
         opts.headers['Content-Type'] = 'application/json';
@@ -2835,6 +2933,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
     const res = await apiFetch('/leaderboard');
     if(res && Array.isArray(res.top)){
       globalTopScores = res.top.map(s => ({ nickname: s.nickname, dist: s.best }));
+      myRank = (res.rank | 0) || myRank;
       renderMenuRecords();
     }else{
       const listEl = document.getElementById('globalScoresList');
@@ -2922,6 +3021,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
   function syncPointsToFirebase(){ return; }
 
   let globalTopScores = [];
+  let myRank = 0;
 
   function renderMenuRecords(){
     const listEl = document.getElementById('globalScoresList');
@@ -4265,14 +4365,25 @@ function renderNewMenu(){
   const lb = document.getElementById('globalScoresList');
   if(lb){
     const cols = ['#F2C23C', '#C0C7D6', '#E0643C'];
-    let h = '';
+    const meName = String(playerState.nickname || '').toLowerCase();
+    let h = '', inTop = false;
     for(let i = 0; i < 10; i++){
       const s = globalTopScores[i], rc = i < 3 ? cols[i] : '#fff';
+      const me = !!s && String(s.nickname || '').toLowerCase() === meName;
+      if(me) inTop = true;
       h += s
-        ? '<div class="mp-row"><b style="color:' + rc + '">#' + (i + 1) + '</b><span class="n">' + escapeHtml(s.nickname || t('player')) + '</span><span class="d">' + fmtNum(s.dist) + 'm</span></div>'
+        ? '<div class="mp-row' + (me ? ' me' : '') + '"><b style="color:' + rc + '">#' + (i + 1) + '</b><span class="n">' + escapeHtml(s.nickname || t('player')) + '</span><span class="d">' + fmtNum(s.dist) + 'm</span></div>'
         : '<div class="mp-row empty"><b style="color:' + rc + '">#' + (i + 1) + '</b><span class="n">' + t('freeSlot') + '</span><span class="d">—</span></div>';
     }
     lb.innerHTML = h;
+
+    const PLACE = { fr:'Ta place :', en:'Your rank:', es:'Tu puesto:', de:'Dein Platz:' };
+    const meEl = document.getElementById('mpMeRank');
+    if(meEl){
+      const show = !inTop && myRank > 0 && hasIdentity();
+      meEl.classList.toggle('mp-hide', !show);
+      if(show) meEl.innerHTML = '<span>' + (PLACE[currentLang] || PLACE.fr) + '</span><b>#' + fmtNum(myRank) + '</b>';
+    }
   }
 }
 

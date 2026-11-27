@@ -87,13 +87,6 @@
     opacity:0; pointer-events:none;
   }
 
-  .menu-bg{
-    position:absolute; inset:0; z-index:0;
-  }
-  .menu-bg canvas{
-    width:100%; height:100%; display:block;
-  }
-
   .title{
     position:absolute; top:12px; left:50%; transform:translateX(-50%);
     font-family:'Fredoka',sans-serif; font-size:36px; font-weight:800;
@@ -295,73 +288,6 @@
     height:1px; background:rgba(255,107,53,0.2); margin:10px 0;
   }
 
-  .rank-widget-btn {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    background: rgba(15, 22, 48, 0.7);
-    border: 2px solid rgba(255, 107, 53, 0.35);
-    border-radius: 14px;
-    padding: 8px 12px;
-    width: 100%;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    margin-top: 8px;
-  }
-  .rank-widget-btn:hover {
-    background: rgba(27, 36, 73, 0.9);
-    border-color: var(--accent-primary);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.25);
-  }
-  .rank-preview-square {
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    background: rgba(255, 107, 53, 0.15);
-    border: 2px solid var(--accent-primary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    flex-shrink: 0;
-  }
-  .rank-track-line {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: relative;
-    gap: 6px;
-  }
-  .rank-oval {
-    width: 26px;
-    height: 26px;
-    border-radius: 50%;
-    background: rgba(27, 36, 73, 0.95);
-    border: 2px solid var(--accent-primary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 11px;
-    z-index: 2;
-    flex-shrink: 0;
-  }
-  .rank-progress-bar-bg {
-    flex: 1;
-    height: 6px;
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 3px;
-    z-index: 1;
-    overflow: hidden;
-    position: relative;
-  }
-  .rank-progress-bar-fill {
-    height: 100%;
-    width: 0%;
-    background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
-    border-radius: 3px;
-  }
 
   .rank-road-scroll-wrapper {
     width: 100%;
@@ -555,48 +481,6 @@
     width:100%; height:100%; display:block;
   }
 
-  .worm-info{
-    position:absolute; bottom:0; left:0; right:0;
-    background:rgba(27,36,73,0.8); padding:10px;
-    border-top:2px solid var(--accent-primary);
-    text-align:center; backdrop-filter:blur(10px);
-    display: flex;
-    align-items:center;
-    justify-content:center;
-    gap: 8px;
-  }
-  .worm-name{
-    font-family:'Fredoka',sans-serif; font-size:13px; font-weight:700;
-    color:var(--ink); margin:0;
-  }
-  .worm-rank-tag {
-    font-size: 13px;
-  }
-
-  .menu-bottom{
-    grid-column:1 / -1; grid-row:3;
-    display:flex; flex-direction:column; justify-content:center; align-items:center; gap:6px;
-  }
-
-  .menu-btn{
-    padding:14px 40px; border:none; border-radius:12px;
-    font-family:'Fredoka',sans-serif; font-weight:700; font-size:17px;
-    cursor:pointer; transition:all .2s ease;
-    text-transform:uppercase; letter-spacing:1px;
-    min-width:220px;
-  }
-
-  .btn-play{
-    background:linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
-    color:white; box-shadow:0 8px 24px rgba(255,107,53,0.4);
-  }
-  .btn-play:hover{
-    transform:translateY(-2px);
-    box-shadow:0 12px 32px rgba(255,107,53,0.6);
-  }
-  .btn-play:active{
-    transform:translateY(0);
-  }
   .privacy-link-inline{
     position:fixed;
     left:50%;
@@ -1347,7 +1231,6 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
 /* ===================== MENU MAQUETTE (préfixe mp-) ===================== */
 #mainMenu{ background:#0D0F33 url("background.png") center/cover no-repeat !important; padding:0 !important; }
 #mainMenu.hidden{ visibility:hidden; transition:opacity .4s ease, visibility 0s linear .4s; }
-#mainMenu .menu-bg{ display:none; }
 .mp-hide{ display:none !important; }
 .mp-layout{ font-family:'Fredoka',sans-serif; color:#fff; }
 
@@ -1498,7 +1381,6 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
   #mpLb{ position:absolute; left:920px; top:82px; }
   #shopBtn{ position:absolute; left:920px; top:405px; }
 }
-#mpHeroSpacer{ display:none; }
 
 /* ===== Mobile / fenêtre étroite : empilé ===== */
 @media (max-width:820px){
@@ -1564,9 +1446,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
 .rank-node-score-box,
 .tuto-list li,
 .result-row,
-.nickname-input,
-.worm-segment-slot,
-.palette-swatch{
+.nickname-input{
   background:linear-gradient(135deg, rgba(255,255,255,.12) 0%, rgba(255,255,255,.06) 55%, rgba(255,255,255,.09) 100%) !important;
   border-color:rgba(255,107,53,.45) !important;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.10), 0 10px 28px rgba(0,0,0,.30) !important;
@@ -1586,12 +1466,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
   box-shadow:inset 0 1px 0 rgba(255,255,255,.10), 0 10px 28px rgba(0,0,0,.30) !important;
 }
 
-/* Pas de contour orange sur les petites pastilles de couleur */
-.worm-segment-slot,
-.palette-swatch{
-  background:none !important;
-  box-shadow:0 3px 8px rgba(0,0,0,.3) !important;
-}
+/* Pastilles de couleur : leur couleur vient du style en ligne, on n'y touche pas */
 .worm-segment-slot.selected,
 .palette-swatch.selected{ border-color:#fff !important; }
 
@@ -1697,7 +1572,6 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
 </script>
 
 <div class="main-menu" id="mainMenu">
-  <div class="menu-bg"><canvas id="bgCanvas"></canvas></div>
 
   <p class="sr-only">burrow-game.fun est un jeu de tunnel (.io) multijoueur gratuit, jouable directement dans le navigateur sans téléchargement ni installation. Creuse à travers des cavernes générées aléatoirement à travers 8 décors différents (grotte, volcan, glacier, lune...), évite les obstacles, ramasse des bonus (boost de vitesse, bouclier, réduction de taille) et va le plus loin possible pour grimper dans le classement mondial des meilleurs scores.</p>
 
@@ -2773,18 +2647,13 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
     return String(str).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
 
-  const PERSONAL_BEST_KEY = 'burrowio_personal_best';
+  
   const POINTS_KEY = 'burrowio_points';
-  const ACORNS_KEY = 'burrowio_acorns';
-  const LEGACY_COINS_KEY = 'burrowio_coins';
   const INVENTORY_KEY = 'burrowio_power_inventory';
-  const ACORNS_PER_STAGE = 10;
-
   const MAX_SCOREX2_TIME = 40;
   const MAX_SHIELD_CHARGES = 5;
   const MAX_WIDETUNNEL_TIME = 20;
   const WIDETUNNEL_PER_USE = 10;
-  const BOOST_UNLOCK_KEY = 'burrowio_boost_unlocked';
   const BOOST_UNLOCK_RANK = 2;
   const BOOST_PRICE = 750;
   const BOOST_DURATION = 15;
@@ -2986,38 +2855,12 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
     }else apiNotice(t('noticeServerDown'));
   }
   // ===== FIN BLOC SERVEUR =====
-
-  function getScoreId(){
-    return (fbAuth && fbAuth.currentUser) ? fbAuth.currentUser.uid : null;
-  }
-  function loadLocalBest(){
-    return parseInt(localStorage.getItem(PERSONAL_BEST_KEY) || '0', 10);
-  }
-  function saveLocalBest(v){
-    try{ localStorage.setItem(PERSONAL_BEST_KEY, String(v)); }catch(e){}
-  }
-  function loadLocalPoints(){
-    return parseInt(localStorage.getItem(POINTS_KEY) || '0', 10);
-  }
   function saveLocalPoints(v){
     try{ localStorage.setItem(POINTS_KEY, String(v)); }catch(e){}
-  }
-  function loadLocalAcorns(){
-    return parseInt(localStorage.getItem(ACORNS_KEY) || localStorage.getItem(LEGACY_COINS_KEY) || '0', 10);
-  }
-  function saveLocalAcorns(v){
-    try{ localStorage.setItem(ACORNS_KEY, String(v)); }catch(e){}
-  }
-  function loadPowerInventory(){
-    try{
-      const saved = JSON.parse(localStorage.getItem(INVENTORY_KEY) || '{}');
-      return { scoreX2:Number(saved.scoreX2) || 0, wideTunnel:Number(saved.wideTunnel) || 0, shield:Number(saved.shield) || 0 };
-    }catch(e){ return { scoreX2:0, wideTunnel:0, shield:0 }; }
   }
   function savePowerInventory(){
     try{ localStorage.setItem(INVENTORY_KEY, JSON.stringify(powerInventory)); }catch(e){}
   }
-
   function syncPointsToFirebase(){ return; }
 
   let globalTopScores = [];
@@ -3079,18 +2922,6 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
         </div>
       </div>
       ${soonShopHtml()}${soonShopHtml()}`;
-  }
-
-  function buyBoostOld(){
-    if(boostUnlocked || getRankForScore(totalPoints).index < BOOST_UNLOCK_RANK || totalAcorns < BOOST_PRICE) return;
-    totalAcorns -= BOOST_PRICE;
-    boostUnlocked = true;
-    try{ localStorage.setItem(BOOST_UNLOCK_KEY, '1'); }catch(e){}
-    saveLocalAcorns(totalAcorns);
-    renderMenuRecords();
-    renderShop(true);
-    renderAbilityHud();
-    playSFX('powerup');
   }
 
   function shopKeyLabel(power, id){
@@ -3411,19 +3242,6 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
     });
   }
 
-  function buyShopPowerOld(id){
-    const power = getShopPowerConfig(id);
-    if(!power || getRankForScore(totalPoints).index < power.unlockRank || totalAcorns < power.price) return;
-    totalAcorns -= power.price;
-    powerInventory[id]++;
-    saveLocalAcorns(totalAcorns);
-    savePowerInventory();
-    renderMenuRecords();
-    renderShop(false);
-    renderAbilityHud();
-    playSFX('powerup');
-  }
-
   function getShopPowerConfig(id){
     const base = SHOP_POWERS[id];
     if(!base) return null;
@@ -3566,7 +3384,6 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
   }
   initMultiplayer();
 
-  function submitScoreIfHigher(distMeters){}
   function markRunStart(){ if(sessionToken) apiFetch('/run/start', {}); return; }
 
   function mpForceUpdate(){
@@ -3923,42 +3740,6 @@ botsSeed();
   initIdentityAndAuth();
 
   const menuEl = document.getElementById('mainMenu');
-  const bgCanvas = document.getElementById('bgCanvas');
-  const bgCtx = bgCanvas.getContext('2d');
-  let bgTime = 0;
-
-  function resizeBgCanvas(){
-    bgCanvas.width = bgCanvas.offsetWidth * (window.devicePixelRatio || 1);
-    bgCanvas.height = bgCanvas.offsetHeight * (window.devicePixelRatio || 1);
-  }
-  resizeBgCanvas();
-  window.addEventListener('resize', resizeBgCanvas);
-
-  function animateBg(){
-    if(menuEl.classList.contains('hidden')){ requestAnimationFrame(animateBg); return; }
-    const dpr = window.devicePixelRatio || 1;
-    const w = bgCanvas.width / dpr;
-    const h = bgCanvas.height / dpr;
-
-    bgCtx.clearRect(0, 0, w, h);
-
-    for(let i = 0; i < 30; i++){
-      const x = (w / 30 * i + bgTime * 20) % w;
-      const y = Math.sin((i + bgTime * 0.5) * 0.5) * h * 0.2 + h * 0.5;
-      const size = 2 + Math.sin(bgTime * 0.01 + i) * 1;
-      const opacity = 0.2 + Math.sin(bgTime * 0.01 + i) * 0.2;
-
-      bgCtx.fillStyle = `rgba(255, 107, 53, ${opacity})`;
-      bgCtx.beginPath();
-      bgCtx.arc(x, y, size, 0, Math.PI * 2);
-      bgCtx.fill();
-    }
-
-    bgTime += 0.5;
-    requestAnimationFrame(animateBg);
-  }
-  animateBg();
-
   const wormCanvas = document.getElementById('wormCanvas3D');
   const wormCtx = wormCanvas.getContext('2d');
   let wormRotation = 0;
@@ -5372,11 +5153,6 @@ window.addEventListener('keydown', (e)=>{
     playSFX('click');
   });
 
-  function drawWallSlice(y, leftEdge, rightEdge, wallColor){
-    ctx.fillStyle = wallColor;
-    ctx.fillRect(0, y, leftEdge, 4);
-    ctx.fillRect(rightEdge, y, W-rightEdge, 4);
-  }
 
   function drawWorm(){
     for(let k=SEGMENTS; k>=1; k--){

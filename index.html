@@ -1280,7 +1280,18 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
 .mp-audio{ height:36px; box-sizing:border-box; border:1px solid rgba(255,255,255,.12); border-radius:10px; background:rgba(255,255,255,.07); color:#fff; font:700 11px 'Fredoka',sans-serif; padding:0 10px; cursor:pointer; opacity:1; }
 
 /* Défis */
-#mpChal{ width:288px; height:232px; padding:19px 17px 0; }
+#mpChal{ width:288px; height:292px; padding:19px 17px 0; }
+#dailyRewardInfo{
+  margin-top:20px; padding:7px 10px; border-radius:8px; text-align:center;
+  font:700 11px/14px 'Fredoka',sans-serif; color:#FFD166;
+  background:rgba(255,209,102,.10); border:1px solid rgba(255,209,102,.28);
+}
+@media (min-width:821px){
+  #dailyRewardInfo{ position:absolute; left:17px; right:17px; bottom:14px; margin:0; }
+}
+@media (min-width:821px){
+  #dailyRewardInfo{ position:absolute; left:17px; right:17px; bottom:12px; margin:0; }
+}
 .mp-head{ display:flex; justify-content:space-between; align-items:center; height:24px; margin-bottom:25px; }
 .mp-head h3{ margin:0; font:800 20px/24px 'Fredoka',sans-serif; color:#fff; }
 .mp-head span{ font:800 20px/24px 'Fredoka',sans-serif; color:#8E96B5; }
@@ -1520,6 +1531,22 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
 }
 .mp-me-rank b{ color:#FF6B35; font-weight:800; }
 
+/* ===== POP-UPS : même bordure que les box statiques (leaderboard, défis...) ===== */
+.card,
+.shop-item-info,
+.shop-section-title,
+.shop-preview-box,
+.rank-node-oval,
+.rank-node-score-box,
+.nickname-input{
+  border:1px solid rgba(255,255,255,.09) !important;
+  border-radius:9px !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.10), 0 10px 28px rgba(0,0,0,.30) !important;
+}
+
+/* Les ovales du Rank Road gardent leur forme arrondie */
+.rank-node-oval{ border-radius:999px !important; }
+
 </style>
 <script>
 (function(){
@@ -1596,7 +1623,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
         <div class="mp-chal"><div class="mp-chal-t" id="ch1Title"></div><div class="mp-bar"><i id="ch1Bar"></i></div><div class="mp-chal-s mp-hide" id="ch1Txt"></div></div>
         <div class="mp-chal"><div class="mp-chal-t" id="ch2Title"></div><div class="mp-bar"><i id="ch2Bar"></i></div><div class="mp-chal-s mp-hide" id="ch2Txt"></div></div>
         <div class="mp-chal"><div class="mp-chal-t" id="ch3Title"></div><div class="mp-bar"><i id="ch3Bar"></i></div><div class="mp-chal-s mp-hide" id="ch3Txt"></div></div>
-        <div class="mp-hide" id="dailyRewardInfo"></div>
+        <div id="dailyRewardInfo"></div>
       </div>
 
       <button class="mp-card mp-rank" id="openRankModalBtn" type="button" title="Voir les rangs">
@@ -5229,47 +5256,42 @@ window.addEventListener('keydown', (e)=>{
     ctx.fillStyle = colors.path;
     ctx.fillRect(0,0,W,H);
 
-    if(colors.starAlpha > 0.01){
-      ctx.save();
-      ctx.globalAlpha = colors.starAlpha;
-      for(const s of stars){
-        const twinkle = 0.5 + 0.5*Math.sin(ts*0.002 + s.seed);
-        ctx.globalAlpha = colors.starAlpha * (0.35 + twinkle*0.65);
-        ctx.fillStyle = '#FFFFFF';
-        ctx.beginPath();
-        ctx.arc(s.x*W, s.y*H, s.r, 0, Math.PI*2);
-        ctx.fill();
-      }
-      ctx.restore();
-      ctx.globalAlpha = 1;
-    }
-
-    {
+            {
       const step = 8;
       const base = scrollDist + H + playerY;
-      const rights = [];
-      ctx.fillStyle = colors.wall;
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
+      const lefts = [], rights = [];
       for(let y = 0; y <= H + step; y += step){
         const d = base - y;
         const c = centerAt(d), hw = halfWAt(d);
-        ctx.lineTo(c - hw, y);
+        lefts.push(c - hw);
         rights.push(c + hw);
       }
-      const lastY = (rights.length - 1) * step;
-      ctx.lineTo(0, lastY);
-      ctx.closePath();
-      ctx.fill();
+      const lastY = (lefts.length - 1) * step;
 
-      ctx.beginPath();
-      ctx.moveTo(W, 0);
-      for(let i = 0; i < rights.length; i++) ctx.lineTo(rights[i], i * step);
-      ctx.lineTo(W, lastY);
-      ctx.closePath();
-      ctx.fill();
+      const fillWall = (off, style)=>{
+        ctx.fillStyle = style;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        for(let i = 0; i < lefts.length; i++) ctx.lineTo(lefts[i] + off, i * step);
+        ctx.lineTo(0, lastY);
+        ctx.closePath();
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(W, 0);
+        for(let i = 0; i < rights.length; i++) ctx.lineTo(rights[i] - off, i * step);
+        ctx.lineTo(W, lastY);
+        ctx.closePath();
+        ctx.fill();
+      };
+
+      // Ombre à l'intérieur du tunnel, le long des murs
+      fillWall(16, 'rgba(0,0,0,0.14)');
+      fillWall(10, 'rgba(0,0,0,0.16)');
+      fillWall(5,  'rgba(0,0,0,0.20)');
+
+      // Mur normal, comme avant
+      fillWall(0, colors.wall);
     }
-
     ensureGenerated(scrollDist + H*2 + 200);
     const pruneDepth = scrollDist + playerY - 100;
     pruneBehind(pruneDepth);

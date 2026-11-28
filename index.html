@@ -2753,7 +2753,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
     if(path === '/leaderboard'){
       const top = [];
       if(p && p.best > 0) top.push({ nickname:p.nickname, best:p.best });
-      return { top, rank: 134 };
+      return { top };
     }
     if(!p) return { error:'auth' };
     if(path === '/me') return { profile:p };
@@ -2830,7 +2830,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
     const res = await apiFetch('/leaderboard');
     if(res && Array.isArray(res.top)){
       globalTopScores = res.top.map(s => ({ nickname: s.nickname, dist: s.best }));
-      myRank = (res.rank | 0) || myRank;
+      myRank = res.rank | 0;
       renderMenuRecords();
     }else{
       const listEl = document.getElementById('globalScoresList');

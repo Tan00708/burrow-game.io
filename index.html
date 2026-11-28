@@ -2748,7 +2748,7 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
       if(!p || p.nickname !== nick){
         p = { nickname:nick, best:0, points:0, acorns:2000, boost:false, inv:{ scoreX2:0, wideTunnel:0, shield:0 } };
       }
-      return { top, rank: 134 };
+      return { token:'local-dev-token', profile: localSaveProfile(p) };
     }
     if(path === '/leaderboard'){
       const top = [];

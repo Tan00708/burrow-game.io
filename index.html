@@ -1525,9 +1525,10 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
 /* ===== Leaderboard : ta ligne en orange + ta place hors top 10 ===== */
 .mp-row.me .n, .mp-row.me .d{ color:#FF6B35; }
 .mp-me-rank{
-  position:absolute; left:22px; right:26px; bottom:8px;
-  display:flex; justify-content:space-between; align-items:center;
-  font:700 13px/18px 'Fredoka',sans-serif; color:#A8B3D1;
+  position:absolute; left:22px; right:26px; bottom:10px;
+  display:flex; justify-content:center; align-items:center; gap:6px;
+  font:700 14px/18px 'Fredoka',sans-serif; color:#A8B3D1;
+  border-top:1px solid rgba(255,255,255,.12); padding-top:6px;
 }
 .mp-me-rank b{ color:#FF6B35; font-weight:800; }
 
@@ -2747,12 +2748,12 @@ button.nm-rank:hover{ border-color:var(--accent-primary); transform:translateY(-
       if(!p || p.nickname !== nick){
         p = { nickname:nick, best:0, points:0, acorns:2000, boost:false, inv:{ scoreX2:0, wideTunnel:0, shield:0 } };
       }
-      return { token:'local-dev-token', profile: localSaveProfile(p) };
+      return { top, rank: 134 };
     }
     if(path === '/leaderboard'){
       const top = [];
       if(p && p.best > 0) top.push({ nickname:p.nickname, best:p.best });
-      return { top };
+      return { top, rank: 134 };
     }
     if(!p) return { error:'auth' };
     if(path === '/me') return { profile:p };
@@ -4185,7 +4186,7 @@ function renderNewMenu(){
     }
     lb.innerHTML = h;
 
-    const PLACE = { fr:'Ta place :', en:'Your rank:', es:'Tu puesto:', de:'Dein Platz:' };
+    const PLACE = { fr:'Tu es', en:'You are', es:'Eres', de:'Du bist' };
     const meEl = document.getElementById('mpMeRank');
     if(meEl){
       const show = !inTop && myRank > 0 && hasIdentity();
